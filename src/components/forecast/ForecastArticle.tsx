@@ -13,16 +13,18 @@ export function NumberPills({
 }: {
   numbers: number[];
   className?: string;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
 }) {
   return (
-    <div className={cn('flex flex-wrap', size === 'sm' ? 'gap-2' : 'gap-3', className)}>
+    <div className={cn('flex flex-wrap', size === 'md' ? 'gap-3' : 'gap-1.5', className)}>
       {numbers.map((number, index) => (
         <span
           key={`${number}-${index}`}
           className={cn(
-            'grid place-items-center rounded-full border-2 border-[#101828] font-semibold tabular-nums text-[#101828]',
-            size === 'sm' ? 'size-9 text-sm' : 'size-[52px] text-xl',
+            'grid place-items-center rounded-full font-semibold tabular-nums text-[#101828]',
+            size === 'xs' && 'size-7 border border-[#101828] text-[11px]',
+            size === 'sm' && 'size-9 border-2 border-[#101828] text-sm',
+            size === 'md' && 'size-[52px] border-2 border-[#101828] text-xl',
           )}
         >
           {number}

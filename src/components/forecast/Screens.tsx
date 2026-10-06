@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { latestPublished, publishedForecasts } from '@/data/forecasts';
-import { formatLongDate } from '@/lib/dates';
+import { ChevronRight } from 'lucide-react';
+import { latestPublished, publishedForecasts, gameById, type Forecast } from '@/data/forecasts';
+import { formatMonthYear, formatWeekdayDay } from '@/lib/dates';
 import { hasForecastAccess } from '@/lib/session';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
 import { ForecastArticle, NumberPills } from '@/components/forecast/ForecastArticle';
 import { useDesk } from '@/components/forecast/useDesk';
-import { gameById } from '@/data/forecasts';
 import { planById } from '@/data/site';
 
 export function FeedScreen() {
@@ -70,45 +70,88 @@ export function HistoryScreen() {
 
   const locked = !hasForecastAccess(user);
   const items = publishedForecasts(desk.forecasts);
+  const groups = groupByMonth(items);
 
   return (
     <div>
-      <h1 className="text-[1.75rem] font-semibold tracking-tight">Forecast history</h1>
-      <p className="mt-2 text-[15px] leading-6 text-[#667085]">
-        Current and past forecasts for active subscribers.
-      </p>
-      {locked ? (
-        <p className="mt-6 text-sm leading-6 text-[#667085]">
-          Dates and titles are listed here. Numbers and video open with an{' '}
-          <Link href="/pricing" className="font-medium text-[#101828] hover:underline">
-            active plan
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight">History</h1>
+          <p className="mt-1 text-sm text-[#667085]">
+            {items.length === 0
+              ? 'No published forecasts yet.'
+              : `${items.length} published`}
+          </p>
+        </div>
+        {locked ? (
+          <Link href="/pricing" className="text-sm font-medium text-[#101828] hover:underline">
+            Unlock
           </Link>
-          .
-        </p>
-      ) : null}
-      <ul className="mt-8 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
-        {items.map((forecast) => {
-          const game = gameById(forecast.game);
-          return (
-            <li key={forecast.id}>
-              <Link href={`/forecasts/${forecast.id}`} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
-                <span>
-                  <span className="block text-sm text-[#667085]">{formatLongDate(forecast.date)}</span>
-                  <span className="mt-1 block font-medium text-[#101828]">{forecast.title}</span>
-                  <span className="mt-1 block text-sm text-[#98a2b3]">{game.label}</span>
-                </span>
-                {locked ? (
-                  <span className="text-sm text-[#98a2b3]">Locked</span>
-                ) : (
-                  <NumberPills numbers={forecast.numbers} size="sm" />
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+        ) : null}
+      </div>
+
+      {items.length === 0 ? null : (
+        <div className="mt-6 overflow-hidden rounded-2xl border border-[#e6e8ee]">
+          {groups.map((group) => (
+            <section key={group.month} className="border-t border-[#eef0f3] first:border-t-0">
+              <h2 className="bg-[#f7f8fa] px-4 py-2 text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
+                {group.label}
+              </h2>
+              <ul>
+                {group.items.map((forecast) => {
+                  const game = gameById(forecast.game);
+                  return (
+                    <li key={forecast.id} className="border-t border-[#eef0f3] first:border-t-0">
+                      <Link
+                        href={`/forecasts/${forecast.id}`}
+                        className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f7f8fa] sm:gap-4"
+                      >
+                        <span className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm tabular-nums text-[#667085]">
+                          {formatWeekdayDay(forecast.date)}
+                        </span>
+                        <span className="w-[3.75rem] shrink-0 text-sm text-[#98a2b3]">{game.label}</span>
+                        <span className="min-w-0 flex-1">
+                          {locked ? (
+                            <span className="flex gap-1.5" aria-label="Numbers locked">
+                              {Array.from({ length: game.count }).map((_, index) => (
+                                <span
+                                  key={index}
+                                  className="grid size-7 place-items-center rounded-full border border-[#d0d5dd] text-[11px] text-[#d0d5dd]"
+                                >
+                                  •
+                                </span>
+                              ))}
+                            </span>
+                          ) : (
+                            <NumberPills numbers={forecast.numbers} size="xs" />
+                          )}
+                        </span>
+                        <ChevronRight className="size-4 shrink-0 text-[#d0d5dd] transition-colors group-hover:text-[#667085]" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
+}
+
+function groupByMonth(forecasts: Forecast[]) {
+  const groups: { month: string; label: string; items: Forecast[] }[] = [];
+  for (const forecast of forecasts) {
+    const month = forecast.date.slice(0, 7);
+    const last = groups[groups.length - 1];
+    if (last?.month === month) {
+      last.items.push(forecast);
+    } else {
+      groups.push({ month, label: formatMonthYear(forecast.date), items: [forecast] });
+    }
+  }
+  return groups;
 }
 
 export function ForecastScreen({ id }: { id: string }) {

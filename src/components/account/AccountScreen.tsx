@@ -7,6 +7,8 @@ import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 const fieldClass = 'h-12 rounded-xl border-[#d0d5dd] bg-white px-3.5 text-[15px]';
 
@@ -85,18 +87,24 @@ export function AccountScreen() {
             onChange={(event) => setPhone(event.target.value)}
             className={`mt-2 ${fieldClass}`}
           />
-          <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-[#344054]">
-            <input
-              type="checkbox"
+          <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-[#e6e8ee] bg-[#f7f8fa] px-4 py-3.5">
+            <div className="min-w-0 pr-2">
+              <Label htmlFor="sms-consent" className="text-[15px] font-semibold text-[#101828]">
+                Text messages
+              </Label>
+              <p id="sms-consent-desc" className="mt-1 text-sm leading-5 text-[#667085]">
+                I agree to receive text messages about forecasts when delivery becomes available.
+                Optional.
+              </p>
+            </div>
+            <Switch
+              id="sms-consent"
+              size="lg"
               checked={consent}
-              onChange={(event) => setConsent(event.target.checked)}
-              className="mt-1 size-4 accent-[#2563eb]"
+              onCheckedChange={setConsent}
+              aria-describedby="sms-consent-desc"
             />
-            <span>
-              I agree to receive text messages about forecasts when delivery becomes available.
-              Optional.
-            </span>
-          </label>
+          </div>
           {stored ? <p className="mt-4 text-sm text-[#667085]">{stored}</p> : null}
           {error ? <p className="mt-3 text-sm text-[#b42318]">{error}</p> : null}
           <div className="mt-5 flex flex-wrap gap-3">

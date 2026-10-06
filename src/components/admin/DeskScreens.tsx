@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { CircleDollarSign, Mail, Radio, Sparkles, Users } from 'lucide-react';
+import { CalendarDays, CreditCard, Mail, MessageSquare, UsersRound } from 'lucide-react';
 import { gameById, type Forecast } from '@/data/forecasts';
 import { formatDateTime, formatLongDate } from '@/lib/dates';
 import { listAccounts } from '@/lib/session';
@@ -80,11 +80,11 @@ export function AdminOverview() {
   );
 
   const stats = [
-    { label: 'Active subscribers', value: String(active), icon: Users },
-    { label: 'Published forecasts', value: String(published), icon: Sparkles },
+    { label: 'Active subscribers', value: String(active), icon: UsersRound },
+    { label: 'Published forecasts', value: String(published), icon: CalendarDays },
     { label: 'Emails sent', value: String(emails), icon: Mail },
-    { label: 'SMS queued', value: String(sms), icon: Radio },
-    { label: 'Payments recorded', value: formatMoney(paid), icon: CircleDollarSign },
+    { label: 'SMS queued', value: String(sms), icon: MessageSquare },
+    { label: 'Payments recorded', value: formatMoney(paid), icon: CreditCard },
   ];
 
   return (
@@ -114,11 +114,13 @@ export function AdminOverview() {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="rounded-2xl border border-[#e6e8ee] bg-white px-4 py-4">
-              <dt className="flex items-center gap-2 text-xs font-medium text-[#667085] sm:text-sm">
-                <Icon className="size-3.5 shrink-0 text-[#98a2b3]" />
-                {stat.label}
+              <dt className="flex items-start justify-between gap-3">
+                <span className="text-xs font-medium text-[#667085] sm:text-sm">{stat.label}</span>
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#f4f6f8] text-[#344054]">
+                  <Icon className="size-4" strokeWidth={1.75} />
+                </span>
               </dt>
-              <dd className="mt-2 text-2xl font-semibold tracking-tight">{stat.value}</dd>
+              <dd className="mt-3 text-2xl font-semibold tracking-tight">{stat.value}</dd>
             </div>
           );
         })}

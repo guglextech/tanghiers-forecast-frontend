@@ -20,6 +20,25 @@ export function formatForecastDate(isoDate: string) {
     .toUpperCase();
 }
 
+/** October 2026 */
+export function formatMonthYear(isoDate: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(utcDate(isoDate.slice(0, 10)));
+}
+
+/** Fri 9 */
+export function formatWeekdayDay(isoDate: string) {
+  const date = utcDate(isoDate.slice(0, 10));
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    timeZone: 'UTC',
+  }).format(date);
+  return `${weekday} ${date.getUTCDate()}`;
+}
+
 /** October 2, 2026 */
 export function formatLongDate(isoDate: string) {
   return new Intl.DateTimeFormat('en-US', {

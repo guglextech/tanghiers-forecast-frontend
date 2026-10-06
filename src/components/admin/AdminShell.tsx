@@ -4,14 +4,14 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard,
-  ListTree,
+  ArrowUpRight,
+  CalendarDays,
+  CirclePlus,
+  Grid2x2,
   LogOut,
   Menu,
-  Newspaper,
-  Plus,
-  Radio,
-  Users,
+  Send,
+  UsersRound,
 } from 'lucide-react';
 import { BrandLockup, LogoMark } from '@/components/brand/Logo';
 import { RequireAuth } from '@/components/app/RequireAuth';
@@ -27,11 +27,11 @@ import {
 } from '@/components/ui/sheet';
 
 const deskLinks = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard },
-  { href: '/admin/forecasts', label: 'Forecasts', icon: Newspaper },
-  { href: '/admin/forecasts/new', label: 'New forecast', icon: Plus },
-  { href: '/admin/deliveries', label: 'Deliveries', icon: Radio },
-  { href: '/admin/subscribers', label: 'Subscribers', icon: Users },
+  { href: '/admin', label: 'Overview', icon: Grid2x2 },
+  { href: '/admin/forecasts', label: 'Forecasts', icon: CalendarDays },
+  { href: '/admin/forecasts/new', label: 'New forecast', icon: CirclePlus },
+  { href: '/admin/deliveries', label: 'Deliveries', icon: Send },
+  { href: '/admin/subscribers', label: 'Subscribers', icon: UsersRound },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -116,7 +116,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
               onClick={() => setOpen(true)}
               aria-label="Open menu"
             >
-              <Menu className="size-4" />
+              <Menu className="size-4" strokeWidth={1.75} />
             </button>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
@@ -172,7 +172,7 @@ function SidebarBody() {
                 active ? 'bg-white/10 font-medium text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
               )}
             >
-              <Icon className="size-4 shrink-0" />
+              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
               {link.label}
             </Link>
           );
@@ -184,7 +184,7 @@ function SidebarBody() {
           href="/feed"
           className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-white/70 hover:bg-white/5 hover:text-white"
         >
-          <ListTree className="size-4 shrink-0" />
+          <ArrowUpRight className="size-4 shrink-0" strokeWidth={1.75} />
           Subscriber feed
         </Link>
       </nav>
@@ -206,7 +206,7 @@ function SidebarBody() {
             }}
             aria-label="Sign out"
           >
-            <LogOut className="size-4" />
+            <LogOut className="size-4" strokeWidth={1.75} />
           </button>
         </div>
       </div>
