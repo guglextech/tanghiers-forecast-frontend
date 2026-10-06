@@ -1,0 +1,10 @@
+{
+  "name": "Lotto Forecast",
+  "short_name": "Lotto Forecast",
+  "description": "Daily lotto forecasts for active subscribers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#101828",
+  "orientation": "portrait-primary"
+}

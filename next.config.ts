@@ -1,0 +1,41 @@
+import type { NextConfig } from "next";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+    ],
+  },
+  async redirects() {
+    return [
+      { source: '/support', destination: '/contact', permanent: false },
+      { source: '/help', destination: '/contact', permanent: false },
+      { source: '/app', destination: '/feed', permanent: false },
+      { source: '/dashboard', destination: '/feed', permanent: false },
+      { source: '/settings', destination: '/account', permanent: false },
+      { source: '/courses', destination: '/', permanent: false },
+      { source: '/library', destination: '/', permanent: false },
+      { source: '/calendar', destination: '/', permanent: false },
+      { source: '/network', destination: '/', permanent: false },
+      { source: '/career', destination: '/', permanent: false },
+      { source: '/curriculum', destination: '/', permanent: false },
+      { source: '/resources', destination: '/', permanent: false },
+      { source: '/events', destination: '/', permanent: false },
+      { source: '/blogs', destination: '/', permanent: false },
+      { source: '/blogs/:slug', destination: '/', permanent: false },
+    ];
+  },
+};
+
+export default withPWA(nextConfig);
