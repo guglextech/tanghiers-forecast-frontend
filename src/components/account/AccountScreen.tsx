@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
@@ -13,7 +14,8 @@ import { Switch } from '@/components/ui/switch';
 const fieldClass = 'h-12 rounded-xl border-[#d0d5dd] bg-white px-3.5 text-[15px]';
 
 export function AccountScreen() {
-  const { user, ready, savePhone, clearPhone } = useSession();
+  const { user, ready, savePhone, clearPhone, logout } = useSession();
+  const router = useRouter();
   const [phone, setPhone] = React.useState('');
   const [consent, setConsent] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -145,12 +147,24 @@ export function AccountScreen() {
         </div>
       </section>
 
-      <Link
-        href="/feed"
-        className="mt-6 inline-flex h-11 items-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white hover:bg-[#1d2939]"
-      >
-        View public feed
-      </Link>
+      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <Link
+          href="/feed"
+          className="inline-flex h-11 items-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white hover:bg-[#1d2939]"
+        >
+          View public feed
+        </Link>
+        <button
+          type="button"
+          className="text-sm font-medium text-[#667085] hover:text-[#101828] md:hidden"
+          onClick={() => {
+            logout();
+            router.push('/');
+          }}
+        >
+          Sign out
+        </button>
+      </div>
     </div>
   );
 }

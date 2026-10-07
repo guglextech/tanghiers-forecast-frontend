@@ -25,7 +25,7 @@ export function BrandLockup({
 }) {
   return (
     <Link href={href} className={cn('flex min-w-0 items-center gap-2.5', className)}>
-      <LogoMark className="size-8 shrink-0 sm:size-9" />
+      <LogoMark className="size-7 shrink-0 md:size-9" />
       <span
         className={cn(
           'truncate text-[16px] font-semibold tracking-tight sm:text-[17px]',

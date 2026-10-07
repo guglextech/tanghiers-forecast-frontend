@@ -23,7 +23,10 @@ Password for every demo account: `lotto123`
 | No plan yet | member@lottoforecast.test | Locked forecast, then subscribe |
 | Publishing desk | admin@lottoforecast.test | Admin, schedule, publish, delivery log |
 
-Log out between accounts. Sign out is in the top bar.
+Log out between accounts. Sign out is in the top bar on large screens, and on Account on a phone.
+
+Google on [Log in](http://localhost:3001/login) and [Sign up](http://localhost:3001/signup) is a preview: it records a Google account in the browser. Demo accounts above use **Username & password**.
+
 
 ## Public pages
 

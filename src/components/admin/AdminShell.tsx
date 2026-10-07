@@ -9,22 +9,16 @@ import {
   CirclePlus,
   Grid2x2,
   LogOut,
-  Menu,
   Send,
   UsersRound,
 } from 'lucide-react';
 import { BrandLockup, LogoMark } from '@/components/brand/Logo';
 import { RequireAuth } from '@/components/app/RequireAuth';
 import { useSession } from '@/components/app/SessionProvider';
+import { DeskBottomNav } from '@/components/chrome/BottomNav';
 import { initialsFromName } from '@/lib/session';
 import { SITE } from '@/data/site';
 import { cn } from '@/lib/utils';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 
 const deskLinks = [
   { href: '/admin', label: 'Overview', icon: Grid2x2 },
@@ -84,63 +78,38 @@ function AdminGate({ children }: { children: React.ReactNode }) {
 
 function AdminChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [open, setOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   return (
     <div className="min-h-screen bg-[#f6f7f9] text-[#101828]">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/10 bg-[#101828] lg:flex">
         <SidebarBody />
       </aside>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent
-          side="left"
-          showCloseButton={false}
-          className="w-72 gap-0 border-0 bg-[#101828] p-0 text-white sm:max-w-72"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Publishing menu</SheetTitle>
-          </SheetHeader>
-          <SidebarBody />
-        </SheetContent>
-      </Sheet>
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white/90 backdrop-blur">
-          <div className="flex h-14 items-center gap-3 px-4 sm:h-16 sm:px-6">
-            <button
-              type="button"
-              className="grid size-9 place-items-center rounded-lg border border-[#e6e8ee] text-[#344054] lg:hidden"
-              onClick={() => setOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu className="size-4" strokeWidth={1.75} />
-            </button>
+          <div className="flex h-12 items-center gap-3 px-4 md:h-16 md:px-6">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
                 {SITE.project} desk
               </p>
-              <h1 className="truncate text-[15px] font-semibold sm:text-base">{pageTitle(pathname)}</h1>
+              <h1 className="truncate text-[15px] font-semibold md:text-base">{pageTitle(pathname)}</h1>
             </div>
             <Link
               href="/admin/forecasts/new"
-              className="hidden h-9 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white sm:inline-flex"
+              className="hidden h-9 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white lg:inline-flex"
             >
               New forecast
             </Link>
-            <Link
-              href="/feed"
-              className="hidden text-sm text-[#667085] hover:text-[#101828] md:inline"
-            >
-              View site
+            <Link href="/feed" className="text-sm text-[#667085] hover:text-[#101828]">
+              Feed
             </Link>
           </div>
         </header>
-        <main className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">{children}</main>
-        <p className="px-4 pb-8 text-center text-xs text-[#98a2b3] sm:px-6">{SITE.disclaimer}</p>
+        <main className="px-4 py-6 pb-[calc(1.5rem+3.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
+          {children}
+        </main>
+        <p className="hidden px-4 pb-8 text-center text-xs text-[#98a2b3] lg:block lg:px-6">{SITE.disclaimer}</p>
       </div>
+      <DeskBottomNav />
     </div>
   );
 }

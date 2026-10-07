@@ -1,15 +1,24 @@
 'use client';
 
-import { AppHeader, Disclaimer, PublicFooter, PublicHeader } from '@/components/chrome/Chrome';
+import {
+  AppHeader,
+  Disclaimer,
+  PublicFooter,
+  PublicHeader,
+  shellClass,
+} from '@/components/chrome/Chrome';
+import { AppBottomNav, PublicBottomNav } from '@/components/chrome/BottomNav';
 import { RequireAuth } from '@/components/app/RequireAuth';
+import { cn } from '@/lib/utils';
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth>
       <div className="flex min-h-screen flex-col bg-white text-[#101828]">
         <AppHeader />
-        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 sm:py-10">{children}</main>
+        <main className={cn(shellClass, 'flex-1 py-6 md:py-10')}>{children}</main>
         <Disclaimer />
+        <AppBottomNav />
       </div>
     </RequireAuth>
   );
@@ -19,8 +28,9 @@ export function PublicFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#101828]">
       <PublicHeader />
-      <main className="flex-1">{children}</main>
+      <main className={cn(shellClass, 'flex-1 py-6 md:py-10')}>{children}</main>
       <PublicFooter />
+      <PublicBottomNav />
     </div>
   );
 }

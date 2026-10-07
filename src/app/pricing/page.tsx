@@ -11,27 +11,23 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <PublicFrame>
-      <div className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6">
-        <h1 className="text-4xl font-semibold tracking-tight">Pricing</h1>
-        <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#475467]">
-          An active plan opens the current forecast, the archive, and the machine video. Billing is a
-          recurring Stripe subscription in USD.
-        </p>
-        <div className="mt-10">
-          <PlanCards mode="public" />
-        </div>
-        <p className="mt-6 text-sm text-[#667085]">
-          Lotto Forecast does not take short-code, USSD, or mobile-money payments. Forecasts are not
-          guaranteed.
-        </p>
-        <div className="mt-14 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
-          {homeFaqs.map((item) => (
-            <article key={item.question} className="py-5">
-              <h2 className="font-medium">{item.question}</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#475467]">{item.answer}</p>
-            </article>
-          ))}
-        </div>
+      <h1 className="text-[1.75rem] font-semibold tracking-tight">Pricing</h1>
+      <p className="mt-1 text-sm leading-6 text-[#667085]">
+        An active plan opens the forecast, the archive, and the machine video. Stripe bills in USD.
+      </p>
+      <div className="mt-6">
+        <PlanCards mode="public" />
+      </div>
+      <p className="mt-4 text-sm text-[#98a2b3]">
+        No short code, USSD, or mobile money. Forecasts are not guaranteed.
+      </p>
+      <div className="mt-10 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
+        {homeFaqs.map((item) => (
+          <article key={item.question} className="py-4">
+            <h2 className="text-[15px] font-medium">{item.question}</h2>
+            <p className="mt-1.5 text-sm leading-6 text-[#667085]">{item.answer}</p>
+          </article>
+        ))}
       </div>
     </PublicFrame>
   );

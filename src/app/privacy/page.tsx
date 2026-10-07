@@ -33,24 +33,24 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <PublicFrame>
-      <article className="mx-auto w-full max-w-3xl px-4 py-14 sm:px-6">
-        <h1 className="text-4xl font-semibold tracking-tight">Privacy</h1>
-        <p className="mt-4 text-[15px] leading-7 text-[#475467]">
-          This note describes the information Lotto Forecast uses to run accounts, subscriptions, and
-          forecast delivery.
-        </p>
-        <div className="mt-10 space-y-8">
-          {sections.map((section) => (
-            <section key={section.title}>
-              <h2 className="text-lg font-semibold">{section.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-[#475467]">{section.body}</p>
-            </section>
-          ))}
-        </div>
-        <p className="mt-10 text-sm text-[#667085]">
-          Questions: <a className="font-medium text-[#101828] hover:underline" href={`mailto:${SITE.email}`}>{SITE.email}</a>
-        </p>
-      </article>
+      <h1 className="text-[1.75rem] font-semibold tracking-tight">Privacy</h1>
+      <p className="mt-1 text-sm leading-6 text-[#667085]">
+        How Lotto Forecast uses account, billing, and delivery information.
+      </p>
+      <div className="mt-8 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
+        {sections.map((section) => (
+          <section key={section.title} className="py-4">
+            <h2 className="text-[15px] font-medium">{section.title}</h2>
+            <p className="mt-1.5 text-sm leading-6 text-[#667085]">{section.body}</p>
+          </section>
+        ))}
+      </div>
+      <p className="mt-6 text-sm text-[#667085]">
+        Questions:{' '}
+        <a className="font-medium text-[#101828] hover:underline" href={`mailto:${SITE.email}`}>
+          {SITE.email}
+        </a>
+      </p>
     </PublicFrame>
   );
 }

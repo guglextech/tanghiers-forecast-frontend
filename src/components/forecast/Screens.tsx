@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { latestPublished, publishedForecasts, gameById, type Forecast } from '@/data/forecasts';
+import { publishedForecasts, gameById, type Forecast } from '@/data/forecasts';
 import { formatMonthYear, formatWeekdayDay } from '@/lib/dates';
 import { hasForecastAccess } from '@/lib/session';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
-import { ForecastArticle, NumberPills } from '@/components/forecast/ForecastArticle';
+import { ForecastPost, NumberPills } from '@/components/forecast/ForecastArticle';
 import { useDesk } from '@/components/forecast/useDesk';
-import { planById } from '@/data/site';
+import { SITE, planById } from '@/data/site';
 
 export function FeedScreen() {
   const { user, ready } = useSession();
@@ -17,47 +17,49 @@ export function FeedScreen() {
 
   if (!ready || !desk || !user) return <LoadingState label="Loading the forecast…" />;
 
-  const latest = latestPublished(desk.forecasts);
+  const items = publishedForecasts(desk.forecasts);
   const locked = !hasForecastAccess(user);
   const plan = planById(user.planId);
 
   return (
     <div>
-      <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Daily forecast</h1>
-      <p className="mt-2 text-[15px] leading-6 text-[#667085]">
-        Numbers and machine video, posted by the creator.
-      </p>
-
-      {locked ? (
-        <div className="mt-8 rounded-2xl border border-[#e6e8ee] px-5 py-5">
-          <p className="font-medium text-[#101828]">An active plan opens today’s forecast.</p>
-          <p className="mt-2 text-sm leading-6 text-[#667085]">
-            The numbers, the machine video, and the archive are for active subscribers.
+      <div className="flex items-end justify-between gap-4 border-b border-[#eef0f3] pb-4">
+        <div>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Feed</h1>
+          <p className="mt-1 text-sm text-[#667085]">
+            {locked
+              ? 'Numbers stay locked until a plan is active.'
+              : plan
+                ? `${plan.name} · ${SITE.disclaimer}`
+                : SITE.disclaimer}
           </p>
-          <Link
-            href="/pricing"
-            className="mt-4 inline-flex h-10 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white"
-          >
-            See plans
+        </div>
+        {locked ? (
+          <Link href="/pricing" className="text-sm font-medium text-[#101828] hover:underline">
+            Unlock
           </Link>
-        </div>
-      ) : plan ? (
-        <p className="mt-6 text-sm text-[#667085]">Included with your {plan.name} plan.</p>
-      ) : null}
+        ) : null}
+      </div>
 
-      {latest ? (
-        <div className={locked ? 'mt-8' : 'mt-8'}>
-          <ForecastArticle forecast={latest} locked={locked} />
-        </div>
-      ) : (
+      {items.length === 0 ? (
         <p className="mt-8 text-sm text-[#667085]">No forecast has been published yet.</p>
+      ) : (
+        items.map((forecast, index) => (
+          <ForecastPost
+            key={forecast.id}
+            forecast={forecast}
+            locked={locked}
+            showVideo={index === 0}
+            href={
+              index === 0 && !locked
+                ? undefined
+                : locked
+                  ? '/pricing'
+                  : `/forecasts/${forecast.id}`
+            }
+          />
+        ))
       )}
-
-      <p className="mt-8 text-sm text-[#667085]">
-        <Link href="/history" className="font-medium text-[#101828] hover:underline">
-          Forecast history
-        </Link>
-      </p>
     </div>
   );
 }
@@ -177,14 +179,8 @@ export function ForecastScreen({ id }: { id: string }) {
 
   return (
     <div>
-      <h1 className="text-[1.75rem] font-semibold tracking-tight">Daily forecast</h1>
-      <p className="mt-2 text-[15px] leading-6 text-[#667085]">
-        Numbers and machine video, posted by the creator.
-      </p>
-      <div className="mt-8">
-        <ForecastArticle forecast={forecast} locked={locked} />
-      </div>
-      <p className="mt-8 text-sm">
+      <ForecastPost forecast={forecast} locked={locked} showVideo />
+      <p className="pt-4 text-sm">
         <Link href="/history" className="font-medium text-[#101828] hover:underline">
           All forecasts
         </Link>

@@ -5,6 +5,7 @@ import {
   cancelSubscription,
   clearPhone,
   clearSession,
+  continueWithGoogle as continueWithGoogleAccount,
   loginAccount,
   readSession,
   savePhone,
@@ -19,6 +20,7 @@ type SessionContextValue = {
   ready: boolean;
   login: (input: { email: string; password: string }) => SessionUser;
   signup: (input: { name: string; email: string; password: string }) => SessionUser;
+  continueWithGoogle: () => SessionUser;
   logout: () => void;
   savePhone: (phone: string, smsConsent: boolean) => SessionUser;
   clearPhone: () => SessionUser;
@@ -48,6 +50,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       },
       signup: (input) => {
         const next = signupAccount(input);
+        setUser(next);
+        return next;
+      },
+      continueWithGoogle: () => {
+        const next = continueWithGoogleAccount();
         setUser(next);
         return next;
       },

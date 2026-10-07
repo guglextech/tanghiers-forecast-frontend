@@ -227,10 +227,40 @@ export function loginAccount(input: { email: string; password: string }): Sessio
   const email = input.email.trim().toLowerCase();
   const user = readStoredUsers().find((entry) => entry.email === email);
 
-  if (!user || user.password !== input.password) {
+  if (!user || !user.password || user.password !== input.password) {
     throw new Error('That email or password is not right.');
   }
 
+  const session = toSessionUser(user);
+  writeSession(session);
+  return session;
+}
+
+const GOOGLE_EMAIL = 'google@lottoforecast.test';
+
+export function continueWithGoogle(): SessionUser {
+  const users = readStoredUsers();
+  const existing = users.find((entry) => entry.email === GOOGLE_EMAIL);
+  if (existing) {
+    const session = toSessionUser(existing);
+    writeSession(session);
+    return session;
+  }
+
+  const user: StoredUser = {
+    id: 'usr_google',
+    name: 'Google account',
+    email: GOOGLE_EMAIL,
+    password: '',
+    role: 'member',
+    phone: '',
+    smsConsent: false,
+    planId: null,
+    subscriptionStatus: 'inactive',
+    currentPeriodEnd: null,
+    invoices: [],
+  };
+  writeStoredUsers([...users, user]);
   const session = toSessionUser(user);
   writeSession(session);
   return session;

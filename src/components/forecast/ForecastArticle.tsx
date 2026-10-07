@@ -3,7 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { gameById, type Forecast } from '@/data/forecasts';
-import { formatForecastDate } from '@/lib/dates';
+import { formatWeekdayDay } from '@/lib/dates';
+import { SITE } from '@/data/site';
+import { LogoMark } from '@/components/brand/Logo';
 import { cn } from '@/lib/utils';
 
 export function NumberPills({
@@ -128,19 +130,83 @@ export function MachineFilm({ numbers }: { numbers: number[] }) {
 export function LockedFilm() {
   return (
     <div className="overflow-hidden rounded-2xl border border-[#e6e8ee] bg-[#f7f8fa]">
-      <div className="flex aspect-video flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-sm font-medium text-[#101828]">Machine video is part of the subscription</p>
-        <p className="max-w-sm text-sm leading-6 text-[#667085]">
-          Active subscribers can play the draw attached to each forecast.
-        </p>
-        <Link
-          href="/pricing"
-          className="inline-flex h-10 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white"
+      <div className="relative flex aspect-video items-center justify-center">
+        <span
+          className="grid size-14 place-items-center rounded-full border border-[#e6e8ee] bg-white"
+          aria-hidden
         >
-          See plans
-        </Link>
+          <span className="ml-1 block h-0 w-0 border-y-[7px] border-l-[12px] border-y-transparent border-l-[#d0d5dd]" />
+        </span>
+        <span className="sr-only">Machine draw is locked</span>
       </div>
     </div>
+  );
+}
+
+export function ForecastPost({
+  forecast,
+  locked,
+  showVideo = true,
+  href,
+}: {
+  forecast: Forecast;
+  locked: boolean;
+  showVideo?: boolean;
+  href?: string;
+}) {
+  const game = gameById(forecast.game);
+  const pills = locked ? (
+    <div
+      className="flex gap-1.5"
+      aria-label={`${game.label} numbers are locked`}
+    >
+      {Array.from({ length: game.count }).map((_, index) => (
+        <span
+          key={index}
+          className={cn(
+            'grid place-items-center rounded-full border text-[#d0d5dd]',
+            showVideo
+              ? 'size-[52px] border-2 text-lg'
+              : 'size-7 border text-[11px]',
+          )}
+        >
+          •
+        </span>
+      ))}
+    </div>
+  ) : (
+    <NumberPills numbers={forecast.numbers} size={showVideo ? 'md' : 'xs'} />
+  );
+
+  const content = (
+    <article className="border-b border-[#eef0f3] py-4">
+      <div className="flex gap-3">
+        <LogoMark className="mt-0.5 size-10 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[15px] font-semibold text-[#101828]">{SITE.name}</span>
+            <span className="text-sm text-[#98a2b3]">
+              {game.label} · {formatWeekdayDay(forecast.date)}
+            </span>
+          </div>
+          <div className="mt-3">{pills}</div>
+          {showVideo ? (
+            <div className="mt-3">
+              {locked ? <LockedFilm /> : <MachineFilm numbers={forecast.numbers} />}
+            </div>
+          ) : null}
+          <p className="mt-3 text-[15px] leading-5 text-[#101828]">{forecast.title}</p>
+        </div>
+      </div>
+    </article>
+  );
+
+  if (!href) return content;
+
+  return (
+    <Link href={href} className="block transition-colors hover:bg-[#f7f8fa]">
+      {content}
+    </Link>
   );
 }
 
@@ -151,31 +217,5 @@ export function ForecastArticle({
   forecast: Forecast;
   locked: boolean;
 }) {
-  const game = gameById(forecast.game);
-
-  return (
-    <article>
-      <p className="text-[13px] font-medium tracking-[0.12em] text-[#98a2b3]">
-        {formatForecastDate(forecast.date)}
-      </p>
-      <div className="mt-4">
-        {locked ? (
-          <div className="flex gap-3" aria-label={`${game.label} numbers are locked`}>
-            {Array.from({ length: game.count }).map((_, index) => (
-              <span
-                key={index}
-                className="grid size-[52px] place-items-center rounded-full border-2 border-[#d0d5dd] text-lg text-[#d0d5dd]"
-              >
-                •
-              </span>
-            ))}
-          </div>
-        ) : (
-          <NumberPills numbers={forecast.numbers} />
-        )}
-      </div>
-      <div className="mt-6">{locked ? <LockedFilm /> : <MachineFilm numbers={forecast.numbers} />}</div>
-      <h2 className="mt-4 text-[15px] font-medium text-[#101828]">{forecast.title}</h2>
-    </article>
-  );
+  return <ForecastPost forecast={forecast} locked={locked} showVideo />;
 }
