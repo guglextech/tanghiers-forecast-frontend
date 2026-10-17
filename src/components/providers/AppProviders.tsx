@@ -5,6 +5,7 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { SessionProvider } from '@/components/app/SessionProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
+import { DailyReminder } from '@/components/app/DailyReminder';
 
 /**
  * Dev-only: clear leftover Workbox/PWA workers from older builds.
@@ -82,6 +83,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <SessionProvider>
         <TooltipProvider delayDuration={200}>
           {children}
+          <DailyReminder />
           <Toaster richColors closeButton position="top-right" />
         </TooltipProvider>
       </SessionProvider>

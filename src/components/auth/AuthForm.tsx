@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
 import { useSession } from '@/components/app/SessionProvider';
@@ -29,6 +30,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -110,6 +112,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               className="text-sm font-medium text-[#667085] hover:text-[#101828]"
               onClick={() => {
                 setError('');
+                setShowPassword(false);
                 setStep('choose');
               }}
             >
@@ -142,16 +145,27 @@ export function AuthForm({ mode }: { mode: Mode }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                required
-                minLength={6}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className={fieldClass}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className={`${fieldClass} pr-12`}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#667085] hover:text-[#101828]"
+                  onClick={() => setShowPassword((open) => !open)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? <EyeOff className="size-4" strokeWidth={1.75} /> : <Eye className="size-4" strokeWidth={1.75} />}
+                </button>
+              </div>
             </div>
             {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
             <Button type="submit" className="h-12 w-full">

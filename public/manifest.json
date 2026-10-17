@@ -1,10 +1,47 @@
 {
+  "id": "/",
   "name": "Lotto Forecast",
   "short_name": "Lotto Forecast",
-  "description": "Daily lotto forecasts for active subscribers.",
+  "description": "Daily lotto forecasts for active subscribers, on the site, by email, and by SMS.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "browser"],
   "background_color": "#ffffff",
   "theme_color": "#101828",
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["utilities", "news"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
