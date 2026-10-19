@@ -6,19 +6,12 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "browser"],
-  "background_color": "#ffffff",
-  "theme_color": "#101828",
-  "orientation": "portrait-primary",
+  "background_color": "#001a58",
+  "theme_color": "#001a58",
+  "orientation": "any",
   "lang": "en",
   "categories": ["utilities", "news"],
   "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",

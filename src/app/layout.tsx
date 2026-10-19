@@ -10,7 +10,7 @@ const inter = Inter({
   display: 'swap',
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
 export const metadata: Metadata = {
   title: {
@@ -22,11 +22,11 @@ export const metadata: Metadata = {
   authors: [{ name: SITE.name }],
   creator: SITE.project,
   publisher: SITE.name,
-  metadataBase: new URL(baseUrl),
+  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
   openGraph: {
     type: 'website',
     locale: 'en_GH',
-    url: baseUrl,
+    ...(siteUrl ? { url: siteUrl } : {}),
     siteName: SITE.name,
     title: `${SITE.name} — Daily forecasts`,
     description: SITE.description,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   applicationName: SITE.name,
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: SITE.name,
   },
   formatDetection: {
@@ -47,11 +47,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icons/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
 };
 
@@ -59,10 +60,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#101828' },
-  ],
+  themeColor: '#001a58',
 };
 
 export default function RootLayout({
@@ -73,6 +71,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content={SITE.name} />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
