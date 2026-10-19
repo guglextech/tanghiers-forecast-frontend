@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE.name}`,
   },
   description: SITE.description,
-  keywords: ['Lotto Forecast', 'TG', 'daily forecast', 'subscription', 'SMS', 'Stripe'].join(', '),
+  keywords: ['Tanghiers', 'TG', 'daily forecast', 'subscription', 'SMS', 'Stripe'].join(', '),
   authors: [{ name: SITE.name }],
   creator: SITE.project,
   publisher: SITE.name,

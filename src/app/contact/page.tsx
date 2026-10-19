@@ -5,7 +5,7 @@ import { SITE } from '@/data/site';
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Write to the Lotto Forecast desk.',
+  description: 'Write to the Tanghiers desk.',
 };
 
 export default function ContactPage() {

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: 'The service',
-    body: 'Lotto Forecast publishes daily forecasts and machine video for people with an active subscription. Access on the site, by email, and by SMS is part of that subscription.',
+    body: 'Tanghiers publishes daily forecasts and machine video for people with an active subscription. Access on the site, by email, and by SMS is part of that subscription.',
   },
   {
     title: 'No guarantee',

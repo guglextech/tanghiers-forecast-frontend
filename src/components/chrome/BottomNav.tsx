@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import {
+  Bell,
   CalendarDays,
   CirclePlus,
   Grid2x2,
@@ -18,6 +19,8 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { useSession } from '@/components/app/SessionProvider';
+import { useNotifications } from '@/components/app/useNotifications';
+import { UserAvatar } from '@/components/chrome/UserAvatar';
 import { cn } from '@/lib/utils';
 
 export const bottomNavPad = 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0';
@@ -27,6 +30,8 @@ type Tab = {
   label: string;
   icon: LucideIcon;
   match: (pathname: string) => boolean;
+  badge?: number;
+  avatarName?: string;
 };
 
 function TabBar({
@@ -62,7 +67,20 @@ function TabBar({
                   active ? 'text-[#101828]' : 'text-[#98a2b3]',
                 )}
               >
-                <Icon className="size-5" strokeWidth={active ? 2.15 : 1.7} />
+                <span className="relative">
+                  {tab.avatarName ? (
+                    <UserAvatar
+                      name={tab.avatarName}
+                      size="sm"
+                      className={cn('size-6', active && 'ring-2 ring-[#101828] ring-offset-1')}
+                    />
+                  ) : (
+                    <Icon className="size-5" strokeWidth={active ? 2.15 : 1.7} />
+                  )}
+                  {tab.badge ? (
+                    <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#f04438] ring-2 ring-white" />
+                  ) : null}
+                </span>
                 <span className="max-w-full truncate text-[10px] font-medium leading-none tracking-wide">
                   {tab.label}
                 </span>
@@ -77,6 +95,7 @@ function TabBar({
 
 export function AppBottomNav() {
   const { user } = useSession();
+  const { unreadCount } = useNotifications();
   const tabs: Tab[] = [
     {
       href: '/feed',
@@ -91,9 +110,17 @@ export function AppBottomNav() {
       match: (path) => path.startsWith('/history'),
     },
     {
+      href: '/notifications',
+      label: 'Inbox',
+      icon: Bell,
+      badge: unreadCount,
+      match: (path) => path.startsWith('/notifications') || path.startsWith('/notification'),
+    },
+    {
       href: '/account',
-      label: 'Account',
+      label: 'Profile',
       icon: UserRound,
+      avatarName: user?.name,
       match: (path) =>
         path.startsWith('/account') || path.startsWith('/subscription') || path.startsWith('/messages'),
     },

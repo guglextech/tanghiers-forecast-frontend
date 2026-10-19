@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Lotto Forecast",
-  "short_name": "Lotto Forecast",
+  "name": "Tanghiers",
+  "short_name": "Tanghiers",
   "description": "Daily lotto forecasts for active subscribers, on the site, by email, and by SMS.",
   "start_url": "/",
   "scope": "/",

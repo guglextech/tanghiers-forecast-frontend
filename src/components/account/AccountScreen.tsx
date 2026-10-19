@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { UserAvatar } from '@/components/chrome/UserAvatar';
 
 const fieldClass = 'h-12 rounded-xl border-[#d0d5dd] bg-white px-3.5 text-[15px]';
 
@@ -59,14 +60,17 @@ export function AccountScreen() {
 
   return (
     <div>
-      <h1 className="text-[1.75rem] font-semibold tracking-tight">Account</h1>
+      <h1 className="text-[1.75rem] font-semibold tracking-tight">Profile</h1>
       <p className="mt-2 text-[15px] leading-6 text-[#667085]">
         Manage your mobile number and text consent.
       </p>
 
-      <section className="mt-8 rounded-2xl border border-[#e6e8ee] px-5 py-5">
-        <p className="text-[15px] text-[#101828]">{user.email}</p>
-        <p className="mt-1 text-[15px] text-[#667085]">Setup complete.</p>
+      <section className="mt-8 flex items-center gap-4 rounded-2xl border border-[#e6e8ee] px-5 py-5">
+        <UserAvatar name={user.name} size="lg" />
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-semibold text-[#101828]">{user.name}</p>
+          <p className="truncate text-sm text-[#667085]">{user.email}</p>
+        </div>
       </section>
 
       <section className="mt-4 rounded-2xl border border-[#e6e8ee] px-5 py-5">

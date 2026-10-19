@@ -1,11 +1,11 @@
 export const SITE = {
-  name: 'Lotto Forecast',
+  name: 'Tanghiers',
   shortName: 'TG',
   project: 'TG',
   tagline: 'Daily lotto forecasts for active subscribers, on the site, by email, and by SMS.',
   description:
-    'Lotto Forecast publishes one daily forecast and delivers it to active subscribers on the website, by email, and by text. Subscribe online with Stripe.',
-  email: 'desk@lottoforecast.com',
+    'Tanghiers publishes one daily forecast and delivers it to active subscribers on the website, by email, and by text. Subscribe online with Stripe.',
+  email: 'desk@tanghiers.com',
   disclaimer: 'Forecasts are not guaranteed.',
 } as const;
 
@@ -86,7 +86,7 @@ export const homeFaqs = [
   {
     question: 'How do I pay?',
     answer:
-      'Online, with a recurring Stripe subscription. Lotto Forecast does not use short codes, USSD, or mobile money.',
+      'Online, with a recurring Stripe subscription. Tanghiers does not use short codes, USSD, or mobile money.',
   },
   {
     question: 'When does a forecast arrive?',

@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { BrandLockup } from '@/components/brand/Logo';
+import { NotificationBell } from '@/components/chrome/NotificationBell';
+import { ProfileMenu } from '@/components/chrome/ProfileMenu';
 import { useSession } from '@/components/app/SessionProvider';
 import { SITE, footerNav } from '@/data/site';
 import { cn } from '@/lib/utils';
@@ -12,7 +14,6 @@ export const shellClass = 'mx-auto w-full max-w-3xl px-4 sm:px-6';
 const appLinks = [
   { href: '/feed', label: 'Feed' },
   { href: '/history', label: 'History' },
-  { href: '/account', label: 'Account' },
 ];
 
 function navClass(active: boolean) {
@@ -24,45 +25,33 @@ function navClass(active: boolean) {
 
 function isAppActive(pathname: string, href: string) {
   if (href === '/feed') return pathname === '/feed' || pathname.startsWith('/forecasts');
-  if (href === '/account') {
-    return (
-      pathname.startsWith('/account') ||
-      pathname.startsWith('/subscription') ||
-      pathname.startsWith('/messages')
-    );
-  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AppHeader() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout } = useSession();
-
-  const signOut = () => {
-    logout();
-    router.push('/');
-  };
+  const { user } = useSession();
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white/95 backdrop-blur">
-      <div className={cn(shellClass, 'flex h-12 items-center justify-between gap-4 md:h-16')}>
+      <div className={cn(shellClass, 'flex h-12 items-center justify-between gap-3 md:h-16')}>
         <BrandLockup />
-        <nav aria-label="Account" className="hidden items-center gap-5 md:flex">
-          {appLinks.map((link) => (
-            <Link key={link.href} href={link.href} className={navClass(isAppActive(pathname, link.href))}>
-              {link.label}
-            </Link>
-          ))}
-          {user?.role === 'admin' ? (
-            <Link href="/admin" className={navClass(pathname.startsWith('/admin'))}>
-              Desk
-            </Link>
-          ) : null}
-          <button type="button" className="text-sm text-[#667085] hover:text-[#101828]" onClick={signOut}>
-            Sign out
-          </button>
-        </nav>
+        <div className="hidden items-center gap-2 md:flex">
+          <nav aria-label="App" className="flex items-center gap-5">
+            {appLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={navClass(isAppActive(pathname, link.href))}>
+                {link.label}
+              </Link>
+            ))}
+            {user?.role === 'admin' ? (
+              <Link href="/admin" className={navClass(pathname.startsWith('/admin'))}>
+                Desk
+              </Link>
+            ) : null}
+          </nav>
+          <NotificationBell />
+          <ProfileMenu />
+        </div>
       </div>
     </header>
   );

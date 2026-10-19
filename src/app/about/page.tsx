@@ -28,7 +28,7 @@ export default function AboutPage() {
     <PublicFrame>
       <h1 className="text-[1.75rem] font-semibold tracking-tight">About</h1>
       <p className="mt-1 text-sm leading-6 text-[#667085]">
-        Lotto Forecast is a {SITE.project} product. One daily forecast, delivered to active
+        Tanghiers is a {SITE.project} product. One daily forecast, delivered to active
         subscribers.
       </p>
       <p className="mt-5 text-[15px] leading-6 text-[#475467]">

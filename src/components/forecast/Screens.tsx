@@ -23,12 +23,12 @@ export function FeedScreen() {
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-4 border-b border-[#eef0f3] pb-4">
+      <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Feed</h1>
           <p className="mt-1 text-sm text-[#667085]">
             {locked
-              ? 'Numbers stay locked until a plan is active.'
+              ? 'Numbers and the draw stay locked until a plan is active.'
               : plan
                 ? `${plan.name} · ${SITE.disclaimer}`
                 : SITE.disclaimer}
@@ -44,21 +44,16 @@ export function FeedScreen() {
       {items.length === 0 ? (
         <p className="mt-8 text-sm text-[#667085]">No forecast has been published yet.</p>
       ) : (
-        items.map((forecast, index) => (
-          <ForecastPost
-            key={forecast.id}
-            forecast={forecast}
-            locked={locked}
-            showVideo={index === 0}
-            href={
-              index === 0 && !locked
-                ? undefined
-                : locked
-                  ? '/pricing'
-                  : `/forecasts/${forecast.id}`
-            }
-          />
-        ))
+        <div className="mt-6 space-y-4">
+          {items.map((forecast) => (
+            <ForecastPost
+              key={forecast.id}
+              forecast={forecast}
+              locked={locked}
+              href={locked ? '/pricing' : `/forecasts/${forecast.id}`}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -179,7 +174,7 @@ export function ForecastScreen({ id }: { id: string }) {
 
   return (
     <div>
-      <ForecastPost forecast={forecast} locked={locked} showVideo />
+      <ForecastPost forecast={forecast} locked={locked} />
       <p className="pt-4 text-sm">
         <Link href="/history" className="font-medium text-[#101828] hover:underline">
           All forecasts

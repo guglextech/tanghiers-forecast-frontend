@@ -5,7 +5,7 @@ import { LoadingState } from '@/components/app/LoadingState';
 
 export const metadata: Metadata = {
   title: 'Log in',
-  description: 'Log in to Lotto Forecast.',
+  description: 'Log in to Tanghiers.',
   robots: { index: false, follow: false },
 };
 

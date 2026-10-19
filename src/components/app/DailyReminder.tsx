@@ -31,7 +31,7 @@ function fireReminder(onOpen: () => void) {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
   try {
-    new Notification('Lotto Forecast', {
+    new Notification('Tanghiers', {
       body: TOAST.body,
       icon: '/icons/icon-192.png',
       tag: 'lotto-forecast-2pm',

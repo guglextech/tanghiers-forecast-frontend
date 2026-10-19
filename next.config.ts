@@ -25,6 +25,11 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        pathname: '/vi/**',
+      },
     ],
   },
   async redirects() {
@@ -34,6 +39,7 @@ const nextConfig: NextConfig = {
       { source: '/app', destination: '/feed', permanent: false },
       { source: '/dashboard', destination: '/feed', permanent: false },
       { source: '/settings', destination: '/account', permanent: false },
+      { source: '/notification', destination: '/notifications', permanent: false },
       { source: '/courses', destination: '/', permanent: false },
       { source: '/library', destination: '/', permanent: false },
       { source: '/calendar', destination: '/', permanent: false },

@@ -35,7 +35,7 @@ export default function PrivacyPage() {
     <PublicFrame>
       <h1 className="text-[1.75rem] font-semibold tracking-tight">Privacy</h1>
       <p className="mt-1 text-sm leading-6 text-[#667085]">
-        How Lotto Forecast uses account, billing, and delivery information.
+        How Tanghiers uses account, billing, and delivery information.
       </p>
       <div className="mt-8 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
         {sections.map((section) => (

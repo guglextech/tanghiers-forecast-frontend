@@ -5,7 +5,7 @@ import type { PlanId } from '@/data/site';
 
 export const metadata: Metadata = {
   title: 'Subscription',
-  description: 'Choose or cancel a Lotto Forecast plan.',
+  description: 'Choose or cancel a Tanghiers plan.',
   robots: { index: false, follow: false },
 };
 

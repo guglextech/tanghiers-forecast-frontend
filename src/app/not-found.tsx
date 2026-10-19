@@ -14,7 +14,7 @@ export default function NotFound() {
       <BrandLockup />
       <h1 className="mt-8 text-3xl font-semibold tracking-tight">Page not found</h1>
       <p className="mt-3 max-w-md text-sm leading-6 text-[#667085]">
-        That address is not part of Lotto Forecast.
+        That address is not part of Tanghiers.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link href="/" className="inline-flex h-11 items-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white">

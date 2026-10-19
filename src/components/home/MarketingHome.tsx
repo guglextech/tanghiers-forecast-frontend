@@ -27,15 +27,16 @@ export function MarketingHome() {
       ) : items.length === 0 ? (
         <p className="py-8 text-sm text-[#667085]">No forecast has been published yet.</p>
       ) : (
-        items.map((forecast, index) => (
-          <ForecastPost
-            key={forecast.id}
-            forecast={forecast}
-            locked
-            showVideo={index === 0}
-            href="/signup?next=/pricing"
-          />
-        ))
+        <div className="mt-6 space-y-4">
+          {items.map((forecast) => (
+            <ForecastPost
+              key={forecast.id}
+              forecast={forecast}
+              locked
+              href="/signup?next=/pricing"
+            />
+          ))}
+        </div>
       )}
 
       <section className="pt-4">

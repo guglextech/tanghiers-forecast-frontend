@@ -5,7 +5,7 @@ import { homeFaqs } from '@/data/site';
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Weekly, monthly, and quarterly plans for Lotto Forecast. Billed with Stripe.',
+  description: 'Weekly, monthly, and quarterly plans for Tanghiers. Billed with Stripe.',
 };
 
 export default function PricingPage() {

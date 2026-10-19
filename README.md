@@ -1,6 +1,6 @@
-# TG — Lotto Forecast
+# TG — Tanghiers
 
-TG’s Lotto Forecast site. Subscribers register, choose a plan, and read each day’s numbers and machine video. The publishing desk creates a forecast and publishes it now or on a schedule. Active subscribers then see it on the site, with email and SMS recorded for delivery.
+TG’s Tanghiers site. Subscribers register, choose a plan, and read each day’s numbers and machine video. The publishing desk creates a forecast and publishes it now or on a schedule. Active subscribers then see it on the site, with email and SMS recorded for delivery.
 
 Accounts, plans, forecasts, and delivery logs in this preview are stored in the browser. Stripe, Twilio, and email are represented in the product flow and are ready to connect.
 
@@ -50,7 +50,8 @@ Log in as `subscriber@lottoforecast.test` / `lotto123` first.
 - [Monday, October 5](http://localhost:3001/forecasts/f-20261005)
 - [Thursday, October 1](http://localhost:3001/forecasts/f-20261001)
 - [Wednesday, September 30](http://localhost:3001/forecasts/f-20260930)
-- [Account](http://localhost:3001/account) — email, mobile number, text consent
+- [Notifications](http://localhost:3001/notifications) — read and unread updates
+- [Account](http://localhost:3001/account) — profile, mobile number, text consent
 - [Subscription](http://localhost:3001/subscription) — plan, cancel, payments
 - [Choose Monthly](http://localhost:3001/subscription?plan=monthly)
 - [Delivery messages](http://localhost:3001/messages) — site, email, and queued SMS

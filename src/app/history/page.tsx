@@ -4,7 +4,7 @@ import { HistoryScreen } from '@/components/forecast/Screens';
 
 export const metadata: Metadata = {
   title: 'Forecast history',
-  description: 'Current and past Lotto Forecast posts.',
+  description: 'Current and past Tanghiers posts.',
   robots: { index: false, follow: false },
 };
 
