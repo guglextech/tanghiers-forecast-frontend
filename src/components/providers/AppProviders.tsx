@@ -83,8 +83,8 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <SessionProvider>
         <TooltipProvider delayDuration={200}>
           {children}
-          <DailyReminder />
           <Toaster richColors closeButton position="top-right" />
+          <DailyReminder />
         </TooltipProvider>
       </SessionProvider>
     </NextThemesProvider>

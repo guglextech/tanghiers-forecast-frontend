@@ -41,6 +41,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   useEffect(() => {
     setStep('choose');
     setError('');
+    setShowPassword(false);
   }, [mode]);
 
   const go = (sessionRole: 'member' | 'admin') => {

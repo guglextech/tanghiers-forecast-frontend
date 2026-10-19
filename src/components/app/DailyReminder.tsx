@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
 import {
@@ -15,10 +16,17 @@ const TOAST = {
   body: 'Open the feed to see the numbers and play the draw.',
 };
 
-function fireReminder() {
+function fireReminder(onOpen: () => void) {
   if (alreadyRemindedToday()) return;
   markRemindedToday();
-  toast(TOAST.title, { description: TOAST.body, duration: 8000 });
+  toast(TOAST.title, {
+    description: TOAST.body,
+    duration: 8000,
+    action: {
+      label: 'Open',
+      onClick: onOpen,
+    },
+  });
 
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
@@ -35,33 +43,38 @@ function fireReminder() {
 
 export function DailyReminder() {
   const { user, ready } = useSession();
+  const router = useRouter();
 
   React.useEffect(() => {
     if (!ready || !user) return;
 
-    if (isAtOrAfterReminder()) fireReminder();
+    const openFeed = () => router.push('/feed');
+    const run = () => fireReminder(openFeed);
+
+    const catchUp = window.setTimeout(() => {
+      if (isAtOrAfterReminder()) run();
+    }, 400);
 
     let timer = 0;
     const schedule = () => {
       timer = window.setTimeout(() => {
-        fireReminder();
+        run();
         schedule();
       }, msUntilNextReminder());
     };
     schedule();
 
     const onVisible = () => {
-      if (document.visibilityState === 'visible' && isAtOrAfterReminder()) {
-        fireReminder();
-      }
+      if (document.visibilityState === 'visible' && isAtOrAfterReminder()) run();
     };
     document.addEventListener('visibilitychange', onVisible);
 
     return () => {
+      window.clearTimeout(catchUp);
       window.clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [ready, user]);
+  }, [ready, user, router]);
 
   React.useEffect(() => {
     if (!ready || !user) return;
