@@ -61,13 +61,14 @@ function TabBar({
             <li key={tab.href + tab.label} className="min-w-0 flex-1">
               <Link
                 href={tab.href}
+                aria-label={tab.badge ? `${tab.label}, unread` : tab.label}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex h-full min-h-11 touch-manipulation flex-col items-center justify-center gap-0.5 px-1',
                   active ? 'text-[#101828]' : 'text-[#98a2b3]',
                 )}
               >
-                <span className="relative">
+                <span className="relative" aria-hidden>
                   {tab.avatarName ? (
                     <UserAvatar
                       name={tab.avatarName}
@@ -81,7 +82,7 @@ function TabBar({
                     <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#f04438] ring-2 ring-white" />
                   ) : null}
                 </span>
-                <span className="max-w-full truncate text-[10px] font-medium leading-none tracking-wide">
+                <span aria-hidden className="max-w-full truncate text-[10px] font-medium leading-none tracking-wide">
                   {tab.label}
                 </span>
               </Link>

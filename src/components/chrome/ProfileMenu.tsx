@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/components/app/SessionProvider';
 import { UserAvatar } from '@/components/chrome/UserAvatar';
@@ -36,16 +35,10 @@ export function ProfileMenu() {
           <p className="truncate text-xs font-normal text-[#667085]">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/account">Profile</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/subscription">Subscription</Link>
-        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push('/account')}>Profile</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push('/subscription')}>Subscription</DropdownMenuItem>
         {user.role === 'admin' ? (
-          <DropdownMenuItem asChild>
-            <Link href="/admin">Desk</Link>
-          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => router.push('/admin')}>Desk</DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem

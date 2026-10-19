@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { LoadingState } from '@/components/app/LoadingState';
 import { useNotifications } from '@/components/app/useNotifications';
 import { cn } from '@/lib/utils';
@@ -14,17 +14,11 @@ function formatStamp(iso: string) {
 
 export function NotificationsScreen() {
   const { items, unreadCount, markRead, markAllRead, ready } = useNotifications();
-  const router = useRouter();
 
   if (!ready) return <LoadingState label="Loading notifications…" />;
 
   const unread = items.filter((notice) => !notice.read);
   const read = items.filter((notice) => notice.read);
-
-  const open = (id: string, href: string) => {
-    markRead(id);
-    router.push(href);
-  };
 
   return (
     <div>
@@ -58,9 +52,9 @@ export function NotificationsScreen() {
               <ul>
                 {unread.map((notice) => (
                   <li key={notice.id} className="border-t border-[#eef0f3] first:border-t-0">
-                    <button
-                      type="button"
-                      onClick={() => open(notice.id, notice.href)}
+                    <Link
+                      href={notice.href}
+                      onClick={() => markRead(notice.id)}
                       className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#f7f8fa]"
                     >
                       <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#2e90fa]" aria-hidden />
@@ -69,7 +63,7 @@ export function NotificationsScreen() {
                         <span className="mt-0.5 block text-sm text-[#667085]">{notice.body}</span>
                       </span>
                       <span className="shrink-0 text-xs tabular-nums text-[#98a2b3]">{formatStamp(notice.at)}</span>
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -83,9 +77,9 @@ export function NotificationsScreen() {
               <ul>
                 {read.map((notice) => (
                   <li key={notice.id} className="border-t border-[#eef0f3] first:border-t-0">
-                    <button
-                      type="button"
-                      onClick={() => open(notice.id, notice.href)}
+                    <Link
+                      href={notice.href}
+                      onClick={() => markRead(notice.id)}
                       className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#f7f8fa]"
                     >
                       <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#d0d5dd]" aria-hidden />
@@ -94,7 +88,7 @@ export function NotificationsScreen() {
                         <span className="mt-0.5 block text-sm text-[#98a2b3]">{notice.body}</span>
                       </span>
                       <span className="shrink-0 text-xs tabular-nums text-[#98a2b3]">{formatStamp(notice.at)}</span>
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>

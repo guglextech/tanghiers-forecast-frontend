@@ -1,4 +1,5 @@
 import { gameById, publishedForecasts, type Forecast } from '@/data/forecasts';
+import { SITE } from '@/data/site';
 import { formatWeekdayDay } from '@/lib/dates';
 import type { SessionUser } from '@/lib/session';
 
@@ -67,7 +68,7 @@ function seedForUser(user: SessionUser, forecasts: Forecast[]): Notice[] {
 
   notices.push({
     id: `n-${user.id}-welcome`,
-    title: 'Welcome to Tanghiers',
+    title: `Welcome to ${SITE.name}`,
     body: 'New forecasts land here and on the feed.',
     href: '/feed',
     at: '2026-09-01T08:00:00.000Z',

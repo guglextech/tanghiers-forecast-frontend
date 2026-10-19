@@ -13,7 +13,10 @@ export function UserAvatar({
 }) {
   return (
     <Avatar size={size} className={cn('bg-[#101828] text-white', className)}>
-      <AvatarFallback className="bg-[#101828] text-[11px] font-semibold tracking-wide text-white group-data-[size=default]/avatar:text-xs group-data-[size=lg]/avatar:text-sm">
+      <AvatarFallback
+        aria-hidden
+        className="bg-[#101828] text-[11px] font-semibold tracking-wide text-white group-data-[size=default]/avatar:text-xs group-data-[size=lg]/avatar:text-sm"
+      >
         {initialsFromName(name)}
       </AvatarFallback>
     </Avatar>
