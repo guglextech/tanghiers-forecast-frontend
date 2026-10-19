@@ -26,39 +26,49 @@ function PublicPlanCards({ highlight }: { highlight?: PlanId | null }) {
   const { user } = useSession();
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
-      <div className="grid grid-cols-1 divide-y divide-[#eef0f3] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        {PLANS.map((plan) => {
-          const emphasized = highlight === plan.id || (!highlight && plan.featured);
-          const href = user
-            ? `/subscription?plan=${plan.id}`
-            : `/signup?next=${encodeURIComponent(`/subscription?plan=${plan.id}`)}`;
-          return (
-            <Link
-              key={plan.id}
-              href={href}
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {PLANS.map((plan) => {
+        const emphasized = highlight === plan.id || (!highlight && plan.featured);
+        const href = user
+          ? `/subscription?plan=${plan.id}`
+          : `/signup?next=${encodeURIComponent(`/subscription?plan=${plan.id}`)}`;
+        return (
+          <Link
+            key={plan.id}
+            href={href}
+            className={cn(
+              'group flex flex-col rounded-2xl border bg-white p-5',
+              'transition duration-300 ease-out',
+              'hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(16,24,40,0.35)]',
+              emphasized ? 'border-[#101828]' : 'border-[#e6e8ee] hover:border-[#d0d5dd]',
+            )}
+          >
+            <span className="flex min-h-5 items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
+              {plan.featured ? (
+                <span className="rounded-full bg-[#101828] px-2 py-0.5 text-[10px] font-medium tracking-[0.12em] text-white uppercase">
+                  Popular
+                </span>
+              ) : null}
+            </span>
+            <span className="mt-4 text-[1.75rem] font-semibold tracking-tight tabular-nums text-[#101828]">
+              {formatMoney(plan.price)}
+              <span className="text-sm font-medium text-[#667085]">/{plan.period}</span>
+            </span>
+            <span className="mt-2 min-h-[2.5rem] text-sm leading-5 text-[#667085]">{plan.blurb}</span>
+            <span
               className={cn(
-                'flex flex-col px-5 py-5 transition-colors hover:bg-[#f7f8fa]',
-                emphasized && 'bg-[#f7f8fa]',
+                'mt-6 inline-flex h-10 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                emphasized
+                  ? 'bg-[#101828] text-white group-hover:bg-[#1d2939]'
+                  : 'border border-[#d0d5dd] text-[#101828] group-hover:border-[#101828]',
               )}
             >
-              <span className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
-                {plan.featured ? (
-                  <span className="text-[11px] font-medium tracking-[0.12em] text-[#98a2b3] uppercase">
-                    Popular
-                  </span>
-                ) : null}
-              </span>
-              <span className="mt-4 text-[1.75rem] font-semibold tracking-tight tabular-nums">
-                {formatMoney(plan.price)}
-                <span className="text-sm font-medium text-[#667085]">/{plan.period}</span>
-              </span>
-              <span className="mt-5 text-sm font-medium text-[#101828]">Choose</span>
-            </Link>
-          );
-        })}
-      </div>
+              {user ? 'Continue' : 'Get started'}
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }

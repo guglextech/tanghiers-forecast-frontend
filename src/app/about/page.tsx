@@ -31,11 +31,7 @@ export default function AboutPage() {
         Tanghiers is a {SITE.project} product. One daily forecast, delivered to active
         subscribers.
       </p>
-      <p className="mt-5 text-[15px] leading-6 text-[#475467]">
-        It follows the same desk rhythm as TG’s LGM and DV products: prepare the forecast, publish
-        it, and let delivery run. The difference is the sale. This product is a direct online
-        subscription.
-      </p>
+    
       <div className="mt-8 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
         {points.map((point) => (
           <section key={point.title} className="py-4">
