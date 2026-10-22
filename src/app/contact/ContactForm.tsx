@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { SITE } from '@/data/site';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,33 +27,41 @@ export function ContactForm() {
 
   if (sent) {
     return (
-      <div className="rounded-2xl border border-[#e6e8ee] px-5 py-5">
-        <p className="font-medium">Message received.</p>
-        <p className="mt-2 text-sm leading-6 text-[#667085]">
-          The desk can also be reached at {SITE.email}.
-        </p>
-        <Button type="button" variant="outline" className="mt-4" onClick={() => setSent(false)}>
+      <div>
+        <p className="text-sm font-medium text-[#101828]">Message sent.</p>
+        <p className="mt-1 text-sm text-[#98a2b3]">We’ll reply to the email you used.</p>
+        <button
+          type="button"
+          className="mt-4 text-sm font-medium text-[#667085] hover:text-[#101828]"
+          onClick={() => setSent(false)}
+        >
           Send another
-        </Button>
+        </button>
       </div>
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" name="name" autoComplete="name" required />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" name="email" type="email" autoComplete="email" required />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="message">Message</Label>
         <Textarea id="message" name="message" required rows={5} />
       </div>
-      <Button type="submit">Send message</Button>
+      <div className="flex justify-end">
+        <Button type="submit" size="sm">
+          Send
+        </Button>
+      </div>
     </form>
   );
 }
