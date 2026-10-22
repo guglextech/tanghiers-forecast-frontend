@@ -11,9 +11,8 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { allNavItems } from '@/components/app/nav-config';
+import { accountNav, deskNav, mainNav } from '@/components/chrome/app-nav';
 import { publicNav } from '@/data/site';
-import { resources } from '@/data/resources';
 
 type CommandSearchProps = {
   open: boolean;
@@ -39,16 +38,18 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
     router.push(href);
   };
 
+  const appItems = [...mainNav, ...accountNav, ...deskNav];
+
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search courses, resources, pages..." />
+      <CommandInput placeholder="Search pages…" />
       <CommandList>
-        <CommandEmpty>No matches. Try a course, resource, or page name.</CommandEmpty>
-        <CommandGroup heading="Hub">
-          {allNavItems.map((item) => (
-            <CommandItem key={item.href} value={item.title} onSelect={() => go(item.href)}>
+        <CommandEmpty>No matches.</CommandEmpty>
+        <CommandGroup heading="App">
+          {appItems.map((item) => (
+            <CommandItem key={item.href} value={item.label} onSelect={() => go(item.href)}>
               <item.icon className="size-4" />
-              {item.title}
+              {item.label}
             </CommandItem>
           ))}
         </CommandGroup>
@@ -57,18 +58,6 @@ export function CommandSearch({ open, onOpenChange }: CommandSearchProps) {
           {publicNav.map((item) => (
             <CommandItem key={item.href} value={item.label} onSelect={() => go(item.href)}>
               {item.label}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-        <CommandSeparator />
-        <CommandGroup heading="Resources">
-          {resources.map((resource) => (
-            <CommandItem
-              key={resource.slug}
-              value={`${resource.title} ${resource.category}`}
-              onSelect={() => go(resource.href)}
-            >
-              {resource.title}
             </CommandItem>
           ))}
         </CommandGroup>
