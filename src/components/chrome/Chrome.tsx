@@ -103,9 +103,16 @@ export function PublicHeader() {
   );
 }
 
-export function Disclaimer() {
+export function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
-    <footer className="mt-auto border-t border-[#eef0f3] pt-6 pb-[calc(1.25rem+3.5rem+env(safe-area-inset-bottom))] text-center text-sm text-[#98a2b3] md:py-8">
+    <footer
+      className={cn(
+        'mt-auto border-t border-[#eef0f3] text-center text-sm text-[#98a2b3]',
+        compact
+          ? 'px-4 py-6 md:px-10 md:py-8'
+          : 'pt-6 pb-[calc(1.25rem+3.5rem+env(safe-area-inset-bottom))] md:py-8',
+      )}
+    >
       {SITE.disclaimer}
     </footer>
   );

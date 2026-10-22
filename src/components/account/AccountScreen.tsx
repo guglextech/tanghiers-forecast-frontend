@@ -3,7 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { Bell, Clock, Mail, Shield } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserAvatar } from '@/components/chrome/UserAvatar';
+import { initialsFromName } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
 const TIMEZONES = [
@@ -48,50 +49,103 @@ function zoneLabel(zone: string) {
   return zone.replace(/_/g, ' ');
 }
 
-function FieldRow({
-  label,
-  htmlFor,
-  align = 'center',
+function formatPhoneDisplay(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('233') && digits.length >= 12) {
+    return `+233 ${digits.slice(3, 5)} ${digits.slice(5, 8)} ${digits.slice(8, 12)}`;
+  }
+  if (digits.startsWith('1') && digits.length === 11) {
+    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+  }
+  if (digits.startsWith('44') && digits.length >= 12) {
+    return `+44 ${digits.slice(2, 6)} ${digits.slice(6)}`;
+  }
+  return phone.startsWith('+') ? phone : `+${digits}`;
+}
+
+function accountType(role: string) {
+  return role === 'admin' ? 'Admin' : 'Customer';
+}
+
+function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <section className={cn('rounded-[28px] bg-[#f4f6f8] px-5 py-5 sm:px-6 sm:py-6', className)}>
+      {children}
+    </section>
+  );
+}
+
+function CardHeading({ title, hint }: { title: string; hint: string }) {
+  return (
+    <div className="px-1">
+      <h2 className="text-[17px] font-semibold tracking-tight text-[#101828]">{title}</h2>
+      <p className="mt-0.5 text-sm text-[#98a2b3]">{hint}</p>
+    </div>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">{label}</p>
+      <p className="mt-1 truncate text-sm font-medium text-[#101828]">{value}</p>
+    </div>
+  );
+}
+
+function SettingRow({
+  icon: Icon,
+  title,
+  hint,
   children,
 }: {
-  label: string;
-  htmlFor?: string;
-  align?: 'center' | 'start';
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  title: string;
+  hint: string;
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className={cn(
-        'grid gap-2 px-5 py-4 sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:gap-8',
-        align === 'center' ? 'sm:items-center' : 'sm:items-start',
-      )}
-    >
-      <Label htmlFor={htmlFor} className={cn('text-[#344054]', align === 'start' && 'sm:pt-2')}>
-        {label}
-      </Label>
+    <div className="flex items-center gap-3 px-1 py-3.5">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[#101828]">
+        <Icon className="size-[18px]" strokeWidth={1.75} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-[#101828]">{title}</p>
+        <p className="mt-0.5 text-sm leading-5 text-[#98a2b3]">{hint}</p>
+      </div>
       {children}
     </div>
   );
 }
 
-function NavRow({
-  href,
-  label,
-  detail,
-}: {
-  href: string;
-  label: string;
-  detail?: string;
-}) {
+function StatusPill({ children }: { children: React.ReactNode }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[#f7f8fa]"
-    >
-      <span className="text-sm font-medium text-[#101828]">{label}</span>
-      <span className="ml-auto truncate text-sm text-[#667085]">{detail}</span>
-      <ChevronRight className="size-4 shrink-0 text-[#d0d5dd]" />
-    </Link>
+    <span className="shrink-0 rounded-full bg-[#e8f1ff] px-2.5 py-1 text-xs font-medium text-[#2e90fa]">
+      {children}
+    </span>
+  );
+}
+
+function ThemeRow() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && resolvedTheme === 'dark';
+
+  return (
+    <SettingRow icon={Clock} title="Dark theme" hint="Switch between light and dark mode">
+      <Switch
+        size="lg"
+        checked={isDark}
+        onCheckedChange={(on) => setTheme(on ? 'dark' : 'light')}
+        aria-label="Dark theme"
+      />
+    </SettingRow>
   );
 }
 
@@ -99,6 +153,7 @@ export function AccountScreen() {
   const { user, ready, refresh, updateProfile, clearPhone, exportAccount, deleteAccount, logout } =
     useSession();
   const router = useRouter();
+  const [editing, setEditing] = React.useState(false);
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [timezone, setTimezone] = React.useState('');
@@ -132,30 +187,48 @@ export function AccountScreen() {
   if (!ready || !user) return <LoadingState label="Loading your account…" />;
 
   const zones = timezone && !TIMEZONES.includes(timezone) ? [timezone, ...TIMEZONES] : TIMEZONES;
+  const phoneLabel = formatPhoneDisplay(user.phone);
+  const typeLabel = accountType(user.role);
   const planLabel =
     user.subscriptionStatus === 'active'
       ? 'Active'
       : user.subscriptionStatus === 'canceled'
         ? 'Canceled'
-        : 'No plan';
+        : 'None';
+
+  const persist = async (nextConsent = consent) => {
+    await updateProfile({
+      firstName,
+      lastName,
+      timezone,
+      phone: toE164(phoneCountry, phoneNational),
+      smsConsent: nextConsent,
+    });
+  };
 
   const onUpdate = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
     setSaving(true);
     try {
-      await updateProfile({
-        firstName,
-        lastName,
-        timezone,
-        phone: toE164(phoneCountry, phoneNational),
-        smsConsent: consent,
-      });
+      await persist();
+      setEditing(false);
       toast.success('Profile saved.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your profile.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onSmsChange = async (value: boolean) => {
+    setConsent(value);
+    setError('');
+    try {
+      await persist(value);
+    } catch (err) {
+      setConsent(!value);
+      setError(err instanceof Error ? err.message : 'Could not update text messages.');
     }
   };
 
@@ -206,65 +279,81 @@ export function AccountScreen() {
   };
 
   return (
-    <div className="mx-auto max-w-xl">
-      <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">Account</p>
-      <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">Profile</h1>
+    <div className="mx-auto max-w-2xl">
+      <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Settings</h1>
+      <p className="mt-1 text-sm text-[#98a2b3]">Manage your account and preferences.</p>
 
-      <section className="mt-8 flex items-center gap-4">
-        <UserAvatar name={user.name} size="lg" className="size-12 data-[size=lg]:size-12" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold tracking-tight text-[#101828]">{user.name}</p>
-          <p className="mt-0.5 truncate text-sm text-[#667085]">{user.email}</p>
+      <Card className="mt-8">
+        <div className="flex items-center gap-4">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold tracking-wide text-[#101828]">
+            {initialsFromName(user.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[17px] font-semibold tracking-tight text-[#101828]">{user.name}</p>
+            <p className="mt-0.5 truncate text-sm text-[#98a2b3]">{phoneLabel || 'No mobile number'}</p>
+          </div>
+          <button
+            type="button"
+            className="shrink-0 text-sm font-medium text-[#667085] hover:text-[#101828]"
+            onClick={() => {
+              setEditing((open) => !open);
+              setError('');
+            }}
+          >
+            {editing ? 'Close' : 'Edit'}
+          </button>
         </div>
-        <span
-          className={cn(
-            'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium tracking-[0.12em] uppercase',
-            user.emailVerified ? 'bg-[#ecfdf3] text-[#027a48]' : 'bg-[#f7f8fa] text-[#667085]',
-          )}
-        >
-          {user.emailVerified ? 'Verified' : 'Unverified'}
-        </span>
-      </section>
 
-      <form onSubmit={onUpdate} className="mt-8">
-        <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
-          <FieldRow label="First name" htmlFor="firstName">
-            <Input
-              id="firstName"
-              name="firstName"
-              autoComplete="given-name"
-              value={firstName}
-              onChange={(event) => setFirstName(event.target.value)}
-            />
-          </FieldRow>
-          <div className="h-px bg-[#eef0f3]" />
-          <FieldRow label="Last name" htmlFor="lastName">
-            <Input
-              id="lastName"
-              name="lastName"
-              autoComplete="family-name"
-              value={lastName}
-              onChange={(event) => setLastName(event.target.value)}
-            />
-          </FieldRow>
-          <div className="h-px bg-[#eef0f3]" />
-          <FieldRow label="Timezone" htmlFor="timezone">
-            <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger id="timezone">
-                <SelectValue placeholder="Choose a timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                {zones.map((zone) => (
-                  <SelectItem key={zone} value={zone}>
-                    {zoneLabel(zone)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FieldRow>
-          <div className="h-px bg-[#eef0f3]" />
-          <FieldRow label="Mobile" htmlFor="phone" align="start">
+        <div className="mt-5 border-t border-[#e8eaee] pt-5">
+          <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+            <Fact label="Full name" value={user.name} />
+            <Fact label="Phone" value={phoneLabel || '—'} />
+            <Fact label="Email" value={user.email} />
+            <Fact label="Account" value={typeLabel} />
+          </div>
+        </div>
+
+        {editing ? (
+          <form onSubmit={onUpdate} className="mt-6 space-y-4 border-t border-[#e8eaee] pt-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First name</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last name</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
+                />
+              </div>
+            </div>
             <div className="space-y-2">
+              <Label htmlFor="timezone">Timezone</Label>
+              <Select value={timezone} onValueChange={setTimezone}>
+                <SelectTrigger id="timezone">
+                  <SelectValue placeholder="Choose a timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {zones.map((zone) => (
+                    <SelectItem key={zone} value={zone}>
+                      {zoneLabel(zone)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Mobile number</Label>
               <PhoneInput
                 id="phone"
                 countries={[]}
@@ -291,53 +380,62 @@ export function AccountScreen() {
                 </div>
               ) : null}
             </div>
-          </FieldRow>
-          <div className="h-px bg-[#eef0f3]" />
-          <div className="flex items-center justify-between gap-4 px-5 py-4">
-            <div className="min-w-0">
-              <Label htmlFor="sms-consent" className="text-[#344054]">
-                Text messages
-              </Label>
-              <p id="sms-consent-desc" className="mt-1 text-xs leading-5 text-[#98a2b3]">
-                Optional. Delivery is not live yet.
-              </p>
+            {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
             </div>
+          </form>
+        ) : error ? (
+          <p className="mt-4 text-sm text-[#b42318]">{error}</p>
+        ) : null}
+      </Card>
+
+      <Card className="mt-4">
+        <CardHeading title="Preferences" hint="Display and app behaviour." />
+        <div className="mt-2 divide-y divide-[#e8eaee]">
+          <ThemeRow />
+          <SettingRow icon={Bell} title="Forecast texts" hint="Optional. Delivery is not live yet.">
             <Switch
-              id="sms-consent"
+              size="lg"
               checked={consent}
-              onCheckedChange={setConsent}
-              aria-describedby="sms-consent-desc"
+              onCheckedChange={onSmsChange}
+              aria-label="Forecast texts"
             />
-          </div>
+          </SettingRow>
         </div>
+      </Card>
 
-        {error ? <p className="mt-3 text-sm text-[#b42318]">{error}</p> : null}
-
-        <div className="mt-4 flex justify-end">
-          <Button type="submit" size="sm" disabled={saving}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
+      <Card className="mt-4">
+        <CardHeading title="Security" hint="How you sign in and protect this account." />
+        <div className="mt-2 divide-y divide-[#e8eaee]">
+          <SettingRow
+            icon={Shield}
+            title="Email verification"
+            hint={user.emailVerified ? 'Your email is confirmed' : 'Confirm your email to protect this account'}
+          >
+            <StatusPill>{user.emailVerified ? 'Active' : 'Needed'}</StatusPill>
+          </SettingRow>
+          <SettingRow icon={Shield} title="Two-factor authentication" hint="Extra protection beyond your password">
+            <StatusPill>Soon</StatusPill>
+          </SettingRow>
         </div>
-      </form>
+      </Card>
 
-      <div className="mt-8 overflow-hidden rounded-2xl border border-[#e6e8ee]">
-        <NavRow href="/subscription" label="Subscription" detail={planLabel} />
-        <div className="h-px bg-[#eef0f3]" />
-        <NavRow href="/messages" label="Messages" />
-        <div className="h-px bg-[#eef0f3]" />
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-[#f7f8fa] disabled:opacity-60"
-          disabled={exporting}
-          onClick={onExport}
-        >
-          <span className="text-sm font-medium text-[#101828]">Export data</span>
-          <span className="ml-auto text-sm text-[#667085]">{exporting ? 'Preparing…' : ''}</span>
-          <ChevronRight className="size-4 shrink-0 text-[#d0d5dd]" />
-        </button>
-      </div>
+      <Card className="mt-4">
+        <CardHeading title="Notifications" hint="Choose how we reach you." />
+        <div className="mt-2 divide-y divide-[#e8eaee]">
+          <SettingRow icon={Bell} title="Push notifications" hint="Forecast updates on this device">
+            <StatusPill>Soon</StatusPill>
+          </SettingRow>
+          <SettingRow icon={Mail} title="Email receipts" hint="Send receipts to your email">
+            <StatusPill>Soon</StatusPill>
+          </SettingRow>
+        </div>
+      </Card>
 
-      <div className="mt-8">
+      <div className="mt-8 px-1">
         {showDelete ? (
           <form onSubmit={onDelete} className="space-y-3">
             <p className="text-sm text-[#667085]">Enter your password to delete this account.</p>
@@ -367,6 +465,17 @@ export function AccountScreen() {
           </form>
         ) : (
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href="/subscription" className="text-sm text-[#98a2b3] transition-colors hover:text-[#101828]">
+              Subscription{planLabel !== 'None' ? ` · ${planLabel}` : ''}
+            </Link>
+            <button
+              type="button"
+              className="text-sm text-[#98a2b3] transition-colors hover:text-[#101828] disabled:opacity-60"
+              disabled={exporting}
+              onClick={onExport}
+            >
+              {exporting ? 'Preparing…' : 'Export data'}
+            </button>
             <button
               type="button"
               className="text-sm text-[#98a2b3] transition-colors hover:text-[#b42318]"

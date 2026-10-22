@@ -4,23 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import {
-  Bell,
   CalendarDays,
   CirclePlus,
   Grid2x2,
-  History,
   House,
   Info,
   LogIn,
   Newspaper,
   Send,
   Tag,
-  UserRound,
   UsersRound,
 } from 'lucide-react';
 import { useSession } from '@/components/app/SessionProvider';
 import { useNotifications } from '@/components/app/useNotifications';
-import { UserAvatar } from '@/components/chrome/UserAvatar';
+import { accountNav, deskNav, mainNav } from '@/components/chrome/app-nav';
 import { cn } from '@/lib/utils';
 
 export const bottomNavPad = 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0';
@@ -31,7 +28,6 @@ type Tab = {
   icon: LucideIcon;
   match: (pathname: string) => boolean;
   badge?: number;
-  avatarName?: string;
 };
 
 function TabBar({
@@ -69,15 +65,7 @@ function TabBar({
                 )}
               >
                 <span className="relative" aria-hidden>
-                  {tab.avatarName ? (
-                    <UserAvatar
-                      name={tab.avatarName}
-                      size="sm"
-                      className={cn('size-6', active && 'ring-2 ring-[#101828] ring-offset-1')}
-                    />
-                  ) : (
-                    <Icon className="size-5" strokeWidth={active ? 2.15 : 1.7} />
-                  )}
+                  <Icon className="size-5" strokeWidth={active ? 2.15 : 1.7} />
                   {tab.badge ? (
                     <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#f04438] ring-2 ring-white" />
                   ) : null}
@@ -97,44 +85,19 @@ function TabBar({
 export function AppBottomNav() {
   const { user } = useSession();
   const { unreadCount } = useNotifications();
-  const tabs: Tab[] = [
-    {
-      href: '/feed',
-      label: 'Feed',
-      icon: House,
-      match: (path) => path === '/feed' || path.startsWith('/forecasts'),
-    },
-    {
-      href: '/history',
-      label: 'History',
-      icon: History,
-      match: (path) => path.startsWith('/history'),
-    },
-    {
-      href: '/notifications',
-      label: 'Inbox',
-      icon: Bell,
-      badge: unreadCount,
-      match: (path) => path.startsWith('/notifications') || path.startsWith('/notification'),
-    },
-    {
-      href: '/account',
-      label: 'Profile',
-      icon: UserRound,
-      avatarName: user?.name,
-      match: (path) =>
-        path.startsWith('/account') || path.startsWith('/subscription') || path.startsWith('/messages'),
-    },
+  const items = [
+    ...mainNav,
+    accountNav.find((item) => item.href === '/notifications')!,
+    accountNav.find((item) => item.href === '/account')!,
+    ...(user?.role === 'admin' ? deskNav : []),
   ];
-
-  if (user?.role === 'admin') {
-    tabs.push({
-      href: '/admin',
-      label: 'Desk',
-      icon: Grid2x2,
-      match: (path) => path.startsWith('/admin'),
-    });
-  }
+  const tabs: Tab[] = items.map((item) => ({
+    href: item.href,
+    label: item.label,
+    icon: item.icon,
+    match: item.match,
+    badge: item.badge === 'notifications' ? unreadCount : undefined,
+  }));
 
   return <TabBar tabs={tabs} label="App" />;
 }

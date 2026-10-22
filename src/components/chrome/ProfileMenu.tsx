@@ -35,7 +35,7 @@ export function ProfileMenu() {
           <p className="truncate text-xs font-normal text-[#667085]">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => router.push('/account')}>Profile</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push('/account')}>Settings</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => router.push('/subscription')}>Subscription</DropdownMenuItem>
         {user.role === 'admin' ? (
           <DropdownMenuItem onSelect={() => router.push('/admin')}>Desk</DropdownMenuItem>

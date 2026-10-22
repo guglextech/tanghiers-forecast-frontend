@@ -3,8 +3,8 @@ import { AppFrame } from '@/components/chrome/Frames';
 import { AccountScreen } from '@/components/account/AccountScreen';
 
 export const metadata: Metadata = {
-  title: 'Account',
-  description: 'Your Tanghiers profile, mobile number, and account data.',
+  title: 'Settings',
+  description: 'Manage your Tanghiers account and preferences.',
   robots: { index: false, follow: false },
 };
 
