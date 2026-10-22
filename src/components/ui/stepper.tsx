@@ -26,11 +26,20 @@ type StepState = "completed" | "active" | "pending"
  * - pending:   muted circle (default)
  */
 
-function Stepper({ className, ...props }: React.ComponentProps<"ol">) {
+function Stepper({
+  className,
+  orientation = "vertical",
+  ...props
+}: React.ComponentProps<"ol"> & { orientation?: "vertical" | "horizontal" }) {
   return (
     <ol
       data-slot="stepper"
-      className={cn("flex flex-col", className)}
+      data-orientation={orientation}
+      className={cn(
+        "group/stepper flex",
+        orientation === "vertical" ? "flex-col" : "w-full flex-row items-center",
+        className,
+      )}
       {...props}
     />
   )
@@ -45,7 +54,11 @@ function StepperItem({
     <li
       data-slot="stepper-item"
       data-state={state}
-      className={cn("group/step relative flex gap-3", className)}
+      className={cn(
+        "group/step relative flex gap-3",
+        "group-data-[orientation=horizontal]/stepper:min-w-0 group-data-[orientation=horizontal]/stepper:flex-1 group-data-[orientation=horizontal]/stepper:items-center group-data-[orientation=horizontal]/stepper:last:flex-none",
+        className,
+      )}
       {...props}
     />
   )
@@ -67,13 +80,13 @@ function StepperIndicator({ className, ...props }: React.ComponentProps<"span">)
     <span
       data-slot="stepper-indicator"
       className={cn(
-        "z-[1] grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold transition-colors",
+        "z-[1] grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold transition-colors",
         // pending (default)
         "bg-muted text-muted-foreground ring-1 ring-inset ring-border",
         // active
         "group-data-[state=active]/step:bg-primary group-data-[state=active]/step:text-primary-foreground group-data-[state=active]/step:ring-0",
         // completed
-        "group-data-[state=completed]/step:bg-[#008DFF] group-data-[state=completed]/step:text-white group-data-[state=completed]/step:ring-0",
+        "group-data-[state=completed]/step:bg-primary group-data-[state=completed]/step:text-primary-foreground group-data-[state=completed]/step:ring-0",
         className
       )}
       {...props}
@@ -89,7 +102,8 @@ function StepperSeparator({ className, ...props }: React.ComponentProps<"span">)
       data-slot="stepper-separator"
       className={cn(
         "my-1 w-px flex-1 rounded-full bg-border transition-colors group-last/step:hidden",
-        "group-data-[state=completed]/step:bg-[#008DFF]",
+        "group-data-[state=completed]/step:bg-primary",
+        "group-data-[orientation=horizontal]/stepper:mx-3 group-data-[orientation=horizontal]/stepper:my-0 group-data-[orientation=horizontal]/stepper:h-px group-data-[orientation=horizontal]/stepper:w-auto group-data-[orientation=horizontal]/stepper:self-center",
         className
       )}
       {...props}

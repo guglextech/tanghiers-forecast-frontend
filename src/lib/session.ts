@@ -226,25 +226,46 @@ export async function completeMfaEnroll(code: string): Promise<{ user: SessionUs
   return { user, recoveryCodes };
 }
 
-export async function signupAccount(input: { name: string; email: string; password: string }): Promise<SessionUser> {
-  const { firstName, lastName } = splitName(input.name);
-  let consents: Awaited<ReturnType<typeof catalog.consents>> = {};
-  try {
-    consents = await catalog.consents();
-  } catch {
-    consents = {};
+export type SignupInput = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  countryCode: string;
+  dateOfBirth: string;
+  phone: string;
+  consents: { terms: string; privacy: string; age: string };
+};
+
+export async function signupAccount(input: SignupInput): Promise<SessionUser> {
+  const email = input.email.trim().toLowerCase();
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  const countryCode = input.countryCode.trim().toUpperCase();
+  const dateOfBirth = input.dateOfBirth.trim();
+  const phone = input.phone.trim().replace(/\s+/g, '');
+
+  if (!firstName) throw new Error('Enter a first name.');
+  if (!lastName) throw new Error('Enter a last name.');
+  if (!countryCode) throw new Error('Choose a country.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) throw new Error('Choose a date of birth.');
+  if (!PHONE_PATTERN.test(phone)) {
+    throw new Error('Enter a mobile number with a country code, for example +14155550100.');
   }
+
   await auth.register({
-    email: input.email.trim().toLowerCase(),
+    email,
     password: input.password,
     firstName,
     lastName,
-    countryCode: 'US',
-    dateOfBirth: '1990-01-01',
+    countryCode,
+    dateOfBirth,
+    phone,
     productSlug: PRODUCT_SLUG,
     consents: {
-      terms: consents.TERMS?.version ?? consents.terms?.version ?? 'terms-2026-10',
-      privacy: consents.PRIVACY?.version ?? consents.privacy?.version ?? 'privacy-2026-10',
+      terms: input.consents.terms,
+      privacy: input.consents.privacy,
+      age: input.consents.age,
     },
   });
   throw new ApiError(
@@ -383,6 +404,14 @@ export async function verifyEmailToken(token: string) {
   await auth.verifyEmail(token);
 }
 
+export async function forgotPassword(email: string) {
+  const value = email.trim().toLowerCase();
+  if (!value) throw new Error('Enter an email.');
+  await auth.forgotPassword(value);
+}
+
 export async function resetPasswordToken(token: string, newPassword: string) {
-  await auth.resetPassword(token, newPassword);
+  const password = newPassword.trim();
+  if (password.length < 8) throw new Error('Use a password of at least 8 characters.');
+  await auth.resetPassword(token, password);
 }

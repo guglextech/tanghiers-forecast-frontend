@@ -17,6 +17,7 @@ import {
   subscribeToPlan,
   updateProfile,
   type SessionUser,
+  type SignupInput,
 } from '@/lib/session';
 import type { PlanId } from '@/data/site';
 
@@ -24,7 +25,7 @@ type SessionContextValue = {
   user: SessionUser | null;
   ready: boolean;
   login: (input: { email: string; password: string }) => Promise<SessionUser>;
-  signup: (input: { name: string; email: string; password: string }) => Promise<SessionUser>;
+  signup: (input: SignupInput) => Promise<SessionUser>;
   continueWithGoogle: () => Promise<SessionUser>;
   verifyMfa: (code: string) => Promise<SessionUser>;
   confirmMfaSetup: (code: string) => Promise<{ user: SessionUser; recoveryCodes: string[] }>;

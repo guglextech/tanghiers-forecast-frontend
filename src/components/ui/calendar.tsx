@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
-import { DayPicker, getDefaultClassNames } from "react-day-picker"
+import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -19,64 +19,44 @@ function Calendar({
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
 }) {
-  const defaultClassNames = getDefaultClassNames()
-
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("group/calendar bg-white p-3 [--cell-size:2.5rem]", className)}
+      className={cn("w-fit bg-white p-3 [--cell-size:2.25rem]", className)}
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) => date.toLocaleString("default", { month: "short" }),
         ...formatters,
       }}
       classNames={{
-        root: cn("w-fit", defaultClassNames.root),
-        months: cn("relative flex flex-col gap-4", defaultClassNames.months),
-        month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
-        nav: cn(
-          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
-          defaultClassNames.nav,
-        ),
+        months: "relative flex flex-col",
+        month: "flex flex-col gap-3",
+        month_caption: "relative flex h-8 items-center justify-center",
+        caption_label: "text-sm font-medium",
+        nav: "pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between",
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          "size-8 rounded-lg p-0 select-none aria-disabled:opacity-50",
-          defaultClassNames.button_previous,
+          "pointer-events-auto size-8 rounded-md p-0",
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          "size-8 rounded-lg p-0 select-none aria-disabled:opacity-50",
-          defaultClassNames.button_next,
+          "pointer-events-auto size-8 rounded-md p-0",
         ),
-        month_caption: cn(
-          "flex h-8 w-full items-center justify-center px-10",
-          defaultClassNames.month_caption,
-        ),
-        caption_label: cn("text-sm font-medium", defaultClassNames.caption_label),
-        dropdowns: cn(
-          "flex h-8 w-full items-center justify-center gap-2 text-sm font-medium",
-          defaultClassNames.dropdowns,
-        ),
-        month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
-        weekdays: cn("flex", defaultClassNames.weekdays),
-        weekday: cn(
-          "flex-1 rounded-md text-[0.75rem] font-medium text-[#98a2b3] select-none",
-          defaultClassNames.weekday,
-        ),
-        week: cn("mt-1 flex w-full", defaultClassNames.week),
-        day: cn("group/day relative aspect-square h-full w-full p-0 text-center select-none", defaultClassNames.day),
+        month_grid: "w-[calc(var(--cell-size)*7)] table-fixed border-separate border-spacing-0",
+        weekdays: "",
+        weekday:
+          "h-(--cell-size) w-(--cell-size) p-0 text-center text-[0.75rem] font-medium text-[#98a2b3]",
+        week: "",
+        day: "relative h-(--cell-size) w-(--cell-size) p-0 text-center text-sm",
         day_button: cn(
-          "flex size-full items-center justify-center rounded-lg text-sm font-normal text-[#101828] hover:bg-[#f4f6f8]",
-          defaultClassNames.day_button,
+          "flex h-(--cell-size) w-(--cell-size) items-center justify-center rounded-md text-sm text-[#101828] hover:bg-[#f4f6f8]",
         ),
-        selected: cn(
-          "rounded-lg bg-[#101828] text-white [&>button]:bg-[#101828] [&>button]:text-white [&>button]:hover:bg-[#101828]",
-          defaultClassNames.selected,
-        ),
-        today: cn("[&>button]:font-semibold [&>button]:text-[#101828]", defaultClassNames.today),
-        outside: cn("text-[#98a2b3] [&>button]:text-[#98a2b3]", defaultClassNames.outside),
-        disabled: cn("opacity-40", defaultClassNames.disabled),
-        hidden: cn("invisible", defaultClassNames.hidden),
+        selected:
+          "rounded-md bg-[#101828] text-white [&>button]:bg-[#101828] [&>button]:text-white [&>button]:hover:bg-[#101828]",
+        today: "[&>button]:font-semibold",
+        outside: "text-[#98a2b3] [&>button]:text-[#98a2b3]",
+        disabled: "opacity-40",
+        hidden: "invisible",
         ...classNames,
       }}
       components={{

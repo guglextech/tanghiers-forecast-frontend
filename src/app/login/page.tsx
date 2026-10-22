@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <Suspense fallback={<LoadingState label="Loading…" />}>
-      <AuthForm mode="login" />
+      <AuthForm />
     </Suspense>
   );
 }

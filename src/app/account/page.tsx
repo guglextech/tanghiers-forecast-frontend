@@ -4,7 +4,7 @@ import { AccountScreen } from '@/components/account/AccountScreen';
 
 export const metadata: Metadata = {
   title: 'Account',
-  description: 'Manage your mobile number and text consent.',
+  description: 'Your Tanghiers profile, mobile number, and account data.',
   robots: { index: false, follow: false },
 };
 

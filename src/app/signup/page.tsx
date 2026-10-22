@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { AuthForm } from '@/components/auth/AuthForm';
+import { SignupScreen } from '@/components/auth/SignupScreen';
 import { LoadingState } from '@/components/app/LoadingState';
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <Suspense fallback={<LoadingState label="Loading…" />}>
-      <AuthForm mode="signup" />
+      <SignupScreen />
     </Suspense>
   );
 }

@@ -5,8 +5,7 @@ export const FORM_RADIUS = 'rounded-md';
 export const FORM_CONTROL =
   `h-9 ${FORM_RADIUS} border border-input bg-background text-base shadow-none transition-colors md:text-sm`;
 
-export const FORM_CONTROL_FOCUS =
-  'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
+export const FORM_CONTROL_FOCUS = 'focus-visible:border-foreground';
 
 export const FORM_LABEL = 'text-xs font-medium text-foreground/80';
 

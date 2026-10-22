@@ -15,20 +15,18 @@ import { Label } from '@/components/ui/label';
 import { shellClass } from '@/components/chrome/Chrome';
 import { cn } from '@/lib/utils';
 
-type Mode = 'login' | 'signup';
 type Step = 'choose' | 'password';
 
 const choiceClass =
   'inline-flex h-9 w-full items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors';
 
-export function AuthForm({ mode }: { mode: Mode }) {
-  const { user, ready, login, signup, continueWithGoogle } = useSession();
+export function AuthForm() {
+  const { user, ready, login, continueWithGoogle } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '';
 
   const [step, setStep] = useState<Step>('choose');
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,17 +34,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   useEffect(() => {
     if (!ready || !user) return;
-    router.replace(destinationFor(user.role, next, mode));
-  }, [ready, user, next, router, mode]);
-
-  useEffect(() => {
-    setStep('choose');
-    setError('');
-    setShowPassword(false);
-  }, [mode]);
+    router.replace(destinationFor(user.role, next));
+  }, [ready, user, next, router]);
 
   const go = (sessionRole: 'member' | 'admin') => {
-    router.replace(destinationFor(sessionRole, next, mode));
+    router.replace(destinationFor(sessionRole, next));
   };
 
   const onGoogle = async () => {
@@ -64,8 +56,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     event.preventDefault();
     setError('');
     try {
-      const session =
-        mode === 'signup' ? await signup({ name, email, password }) : await login({ email, password });
+      const session = await login({ email, password });
       go(session.role);
     } catch (err) {
       if (err instanceof ApiError && err.code === 'PENDING_VERIFICATION') {
@@ -92,10 +83,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
         <h1 className="text-[1.75rem] font-semibold tracking-tight">
-          {mode === 'login' ? 'Log in' : 'Create your account'}
+          Log in
         </h1>
         <p className="mt-1 text-sm leading-6 text-[#667085]">
-          Continue with Google, or use a username and password.
+          Continue with Google, or use email and password.
         </p>
 
         {step === 'choose' ? (
@@ -129,19 +120,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
             >
               Back
             </button>
-            {mode === 'signup' ? (
-              <div className="space-y-2">
-                <Label htmlFor="name">Username</Label>
-                <Input
-                  id="name"
-                  autoComplete="username"
-                  required
-                  placeholder="Jane"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </div>
-            ) : null}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -160,7 +138,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  autoComplete="current-password"
                   required
                   minLength={6}
                   placeholder="••••••••"
@@ -181,34 +159,31 @@ export function AuthForm({ mode }: { mode: Mode }) {
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Button type="submit" className="w-full">
-              {mode === 'login' ? 'Log in' : 'Create account'}
+              Log in
             </Button>
+            <p className="text-center text-sm">
+              <Link
+                href={email.trim() ? `/forgot-password?email=${encodeURIComponent(email.trim())}` : '/forgot-password'}
+                className="font-medium text-[#667085] hover:text-[#101828]"
+              >
+                Forgot password?
+              </Link>
+            </p>
           </form>
         )}
 
         <p className="mt-6 text-sm text-[#667085]">
-          {mode === 'login' ? (
-            <>
-              New here?{' '}
-              <Link href={`/signup${query}`} className="font-medium text-[#101828] hover:underline">
-                Create an account
-              </Link>
-            </>
-          ) : (
-            <>
-              Already have an account?{' '}
-              <Link href={`/login${query}`} className="font-medium text-[#101828] hover:underline">
-                Log in
-              </Link>
-            </>
-          )}
+          New here?{' '}
+          <Link href={`/signup${query}`} className="font-medium text-[#101828] hover:underline">
+            Create an account
+          </Link>
         </p>
       </main>
     </div>
   );
 }
 
-function GoogleMark() {
+export function GoogleMark() {
   return (
     <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
       <path
@@ -231,9 +206,8 @@ function GoogleMark() {
   );
 }
 
-function destinationFor(role: 'member' | 'admin', next: string, mode: Mode) {
+function destinationFor(role: 'member' | 'admin', next: string) {
   if (next.startsWith('/') && !next.startsWith('//')) return next;
   if (role === 'admin') return '/admin';
-  if (mode === 'signup') return '/pricing';
   return '/feed';
 }
