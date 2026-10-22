@@ -1,17 +1,10 @@
-import {
-  SEED_FORECASTS,
-  gameById,
-  seedDeliveries,
-  type Delivery,
-  type DeliveryChannel,
-  type Forecast,
-  type GameId,
-} from '@/data/forecasts';
-import { listAccounts } from '@/lib/session';
-
-const FORECASTS_KEY = 'tg.forecasts.v1';
-const DELIVERIES_KEY = 'tg.deliveries.v1';
-
+import { type Delivery, type Forecast } from '@/data/forecasts';
+import { admin, asList, forecasts as forecastApi, me } from '@/lib/api/resources';
+import { PRODUCT_SLUG } from '@/lib/api/config';
+import { forecastBodyFrom, mapDelivery, mapForecast } from '@/lib/api/mappers';
+import { readSession } from '@/lib/session';
+import type { ApiForecast, ApiNotification } from '@/lib/api/types';
+ 
 export type DeskState = {
   forecasts: Forecast[];
   deliveries: Delivery[];
@@ -20,13 +13,18 @@ export type DeskState = {
 export type ForecastDraft = {
   id?: string;
   title: string;
-  game: GameId;
-  numbers: number[];
   date: string;
+  banker: number[];
+  twoSure: number[];
+  threeDirect: number[];
+  permutations?: string;
+  message?: string;
+  videoUrl?: string;
   publishAt?: string | null;
 };
 
 const listeners = new Set<() => void>();
+let cache: DeskState = { forecasts: [], deliveries: [] };
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -39,153 +37,141 @@ export function subscribeDesk(listener: () => void) {
   };
 }
 
-function canUseStorage() {
-  return typeof window !== 'undefined';
-}
-
-function readForecasts(): Forecast[] {
-  if (!canUseStorage()) return SEED_FORECASTS;
-  try {
-    const raw = window.localStorage.getItem(FORECASTS_KEY);
-    if (!raw) {
-      window.localStorage.setItem(FORECASTS_KEY, JSON.stringify(SEED_FORECASTS));
-      return SEED_FORECASTS.map((forecast) => ({ ...forecast, numbers: [...forecast.numbers] }));
-    }
-    const parsed = JSON.parse(raw) as Forecast[];
-    return Array.isArray(parsed) ? parsed : SEED_FORECASTS;
-  } catch {
-    return SEED_FORECASTS;
-  }
-}
-
-function readDeliveries(): Delivery[] {
-  if (!canUseStorage()) return seedDeliveries();
-  try {
-    const raw = window.localStorage.getItem(DELIVERIES_KEY);
-    if (!raw) {
-      const seeded = seedDeliveries();
-      window.localStorage.setItem(DELIVERIES_KEY, JSON.stringify(seeded));
-      return seeded;
-    }
-    const parsed = JSON.parse(raw) as Delivery[];
-    return Array.isArray(parsed) ? parsed : seedDeliveries();
-  } catch {
-    return seedDeliveries();
-  }
-}
-
-function writeForecasts(forecasts: Forecast[]) {
-  if (!canUseStorage()) return;
-  window.localStorage.setItem(FORECASTS_KEY, JSON.stringify(forecasts));
-}
-
-function writeDeliveries(deliveries: Delivery[]) {
-  if (!canUseStorage()) return;
-  window.localStorage.setItem(DELIVERIES_KEY, JSON.stringify(deliveries));
-}
-
-function promoteDue(forecasts: Forecast[]) {
-  const now = Date.now();
-  let changed = false;
-  const next = forecasts.map((forecast) => {
-    if (forecast.status !== 'scheduled' || !forecast.publishAt) return forecast;
-    if (new Date(forecast.publishAt).getTime() > now) return forecast;
-    changed = true;
-    return { ...forecast, status: 'published' as const };
-  });
-  return { forecasts: next, changed };
-}
-
-function channelDetail(channel: DeliveryChannel, skipped: boolean) {
-  if (channel === 'web') return { status: 'available' as const, detail: 'Visible on the site' };
-  if (channel === 'email') return { status: 'sent' as const, detail: 'Sent to the subscriber inbox' };
-  if (skipped) {
-    return { status: 'skipped' as const, detail: 'No mobile number or text consent on the account.' };
-  }
-  return { status: 'queued' as const, detail: 'Recorded. Text delivery is not active yet.' };
-}
-
-export function recordDeliveries(forecast: Forecast) {
-  const deliveries = readDeliveries();
-  if (deliveries.some((row) => row.forecastId === forecast.id)) return deliveries;
-  const at = forecast.publishAt ?? new Date().toISOString();
-  const rows: Delivery[] = [];
-  for (const account of listAccounts()) {
-    if (account.subscriptionStatus !== 'active') continue;
-    for (const channel of ['web', 'email', 'sms'] as const) {
-      const skipped = channel === 'sms' && !(account.phone && account.smsConsent);
-      const meta = channelDetail(channel, skipped);
-      rows.push({
-        id: `${forecast.id}-${account.id}-${channel}`,
-        forecastId: forecast.id,
-        userId: account.id,
-        userEmail: account.email,
-        channel,
-        status: meta.status,
-        detail: meta.detail,
-        at,
-      });
-    }
-  }
-  const next = [...rows, ...deliveries];
-  writeDeliveries(next);
-  return next;
-}
-
 export function readDesk(): DeskState {
-  const loaded = readForecasts();
-  const promoted = promoteDue(loaded);
-  let forecasts = promoted.forecasts;
-  if (promoted.changed) {
-    writeForecasts(forecasts);
-    for (const forecast of forecasts) {
-      if (forecast.status === 'published') recordDeliveries(forecast);
-    }
-  }
+  return cache;
+}
+
+async function loadCustomerDesk(): Promise<DeskState> {
+  const [list, today, notes] = await Promise.all([
+    forecastApi.list().catch(() => []),
+    forecastApi.today().catch(() => null),
+    me.notifications().catch(() => []),
+  ]);
+  const rows = asList<ApiForecast>(list);
+  if (today && !rows.some((row) => row.id === today.id)) rows.unshift(today);
   return {
-    forecasts: forecasts.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)),
-    deliveries: readDeliveries().sort((a, b) => b.at.localeCompare(a.at)),
+    forecasts: rows.map(mapForecast).sort(byDate),
+    deliveries: asList<ApiNotification>(notes).map(mapDelivery).sort((a, b) => b.at.localeCompare(a.at)),
   };
+}
+
+async function loadAdminDesk(): Promise<DeskState> {
+  const rows = asList<ApiForecast>(await admin.forecasts());
+  const forecasts = rows.map(mapForecast).sort(byDate);
+  const published = forecasts.filter((item) => item.status === 'published').slice(0, 12);
+  const groups = await Promise.all(
+    published.map(async (forecast) => {
+      try {
+        return asList<ApiNotification>(await admin.deliveryMessages(forecast.id)).map(mapDelivery);
+      } catch {
+        return [] as Delivery[];
+      }
+    }),
+  );
+  return {
+    forecasts,
+    deliveries: groups.flat().sort((a, b) => b.at.localeCompare(a.at)),
+  };
+}
+
+function byDate(a: Forecast, b: Forecast) {
+  return b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt);
+}
+
+async function loadPublicDesk(): Promise<DeskState> {
+  try {
+    const rows = asList<ApiForecast>(await forecastApi.listPublic());
+    return { forecasts: rows.map(mapForecast).sort(byDate), deliveries: [] };
+  } catch {
+    return { forecasts: [], deliveries: [] };
+  }
+}
+
+export async function loadDesk(): Promise<DeskState> {
+  const user = readSession();
+  if (!user) {
+    cache = await loadPublicDesk();
+    emit();
+    return cache;
+  }
+  cache = user.role === 'admin' ? await loadAdminDesk() : await loadCustomerDesk();
+  emit();
+  return cache;
+}
+
+function parseGroup(values: number[], count: number, label: string) {
+  if (values.length !== count || values.some((value) => !Number.isInteger(value) || value < 0 || value > 99)) {
+    throw new Error(`Enter ${count} ${label} number${count === 1 ? '' : 's'}, each from 0 to 99.`);
+  }
+  return values;
 }
 
 function validateDraft(input: ForecastDraft) {
   const title = input.title.trim();
-  const game = gameById(input.game);
   if (!title) throw new Error('Add a title.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error('Choose the forecast date.');
-  if (input.numbers.length !== game.count || input.numbers.some((value) => !Number.isInteger(value) || value < 0 || value > 99)) {
-    throw new Error(`Enter ${game.count} numbers, each from 0 to 99.`);
-  }
-  return { title, game };
+  return {
+    title,
+    banker: parseGroup(input.banker, 1, 'banker'),
+    twoSure: parseGroup(input.twoSure, 2, 'two sure'),
+    threeDirect: parseGroup(input.threeDirect, 3, 'three direct'),
+  };
 }
 
-export function saveForecast(input: ForecastDraft, mode: 'draft' | 'publish' | 'schedule'): Forecast {
-  const { title } = validateDraft(input);
+export async function saveForecast(input: ForecastDraft, mode: 'draft' | 'publish' | 'schedule'): Promise<Forecast> {
+  const parsed = validateDraft(input);
   if (mode === 'schedule' && !input.publishAt) {
     throw new Error('Choose a date and time to schedule publication.');
   }
-  const forecasts = readForecasts();
-  const existing = input.id ? forecasts.find((forecast) => forecast.id === input.id) : undefined;
-  const now = new Date().toISOString();
-  const forecast: Forecast = {
-    id: existing?.id ?? `f-${Date.now()}`,
-    title,
-    game: input.game,
-    numbers: input.numbers,
-    date: input.date,
-    status: mode === 'publish' ? 'published' : mode === 'schedule' ? 'scheduled' : 'draft',
-    publishAt: mode === 'publish' ? now : mode === 'schedule' ? input.publishAt ?? null : null,
-    createdAt: existing?.createdAt ?? now,
+  const payload = {
+    productSlug: PRODUCT_SLUG,
+    drawDate: input.date,
+    title: parsed.title,
+    body: forecastBodyFrom({
+      banker: parsed.banker,
+      twoSure: parsed.twoSure,
+      threeDirect: parsed.threeDirect,
+      permutations: input.permutations,
+    }),
+    message: (input.message ?? 'Play responsibly.').trim() || 'Play responsibly.',
+    videoUrl: input.videoUrl?.trim() || 'https://www.youtube.com/watch?v=GymyHmEjBxI',
+    accessLevel: 'PREMIUM',
   };
-  const next = existing
-    ? forecasts.map((item) => (item.id === forecast.id ? forecast : item))
-    : [forecast, ...forecasts];
-  writeForecasts(next);
-  if (forecast.status === 'published') recordDeliveries(forecast);
-  emit();
-  return forecast;
+
+  let saved: ApiForecast;
+  if (input.id) {
+    const current = cache.forecasts.find((item) => item.id === input.id);
+    saved = await admin.updateForecast(input.id, {
+      version: current?.version ?? 1,
+      ...payload,
+    });
+  } else {
+    saved = await admin.createForecast(payload);
+  }
+
+  const version = saved.version ?? 1;
+  if (mode === 'publish') {
+    saved = await admin.publishForecast(saved.id, version);
+  } else if (mode === 'schedule' && input.publishAt) {
+    saved = await admin.scheduleForecast(saved.id, version, input.publishAt);
+  }
+
+  await loadDesk();
+  return mapForecast(saved);
 }
 
 export function forecastById(id: string) {
-  return readDesk().forecasts.find((forecast) => forecast.id === id) ?? null;
+  return cache.forecasts.find((item) => item.id === id) ?? null;
+}
+
+export async function fetchForecastById(id: string) {
+  const local = forecastById(id);
+  if (local) return local;
+  const user = readSession();
+  try {
+    const row = user?.role === 'admin' ? await admin.forecast(id) : await forecastApi.get(id);
+    return mapForecast(row);
+  } catch {
+    return null;
+  }
 }

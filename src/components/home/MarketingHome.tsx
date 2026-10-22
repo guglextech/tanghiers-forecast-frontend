@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { LogoMark } from '@/components/brand/Logo';
 import { PublicFrame } from '@/components/chrome/Frames';
@@ -7,11 +8,19 @@ import { LoadingState } from '@/components/app/LoadingState';
 import { ForecastPost } from '@/components/forecast/ForecastArticle';
 import { useDesk } from '@/components/forecast/useDesk';
 import { publishedForecasts } from '@/data/forecasts';
-import { PLANS, SITE, formatMoney } from '@/data/site';
+import { SITE, formatMoney, type Plan } from '@/data/site';
+import { getCatalogPlans } from '@/lib/plans';
 
 export function MarketingHome() {
   const desk = useDesk();
   const items = desk ? publishedForecasts(desk.forecasts) : [];
+  const [plans, setPlans] = React.useState<Plan[] | null>(null);
+
+  React.useEffect(() => {
+    void getCatalogPlans()
+      .then(setPlans)
+      .catch(() => setPlans([]));
+  }, []);
 
   return (
     <PublicFrame>
@@ -45,8 +54,13 @@ export function MarketingHome() {
           <div className="min-w-0 flex-1">
             <p className="text-[15px] font-semibold text-[#101828]">Plans</p>
             <p className="mt-1 text-sm text-[#667085]">Stripe · USD</p>
+            {!plans ? (
+              <p className="mt-3 text-sm text-[#667085]">Loading plans…</p>
+            ) : plans.length === 0 ? (
+              <p className="mt-3 text-sm text-[#667085]">Plans are being updated.</p>
+            ) : (
             <ul className="mt-3 divide-y divide-[#eef0f3] overflow-hidden rounded-2xl border border-[#e6e8ee]">
-              {PLANS.map((plan) => (
+              {plans.map((plan) => (
                 <li
                   key={plan.id}
                   className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
@@ -60,11 +74,12 @@ export function MarketingHome() {
                     ) : null}
                   </span>
                   <span className="tabular-nums text-[#667085]">
-                    {formatMoney(plan.price)}/{plan.period}
+                    {formatMoney(plan.price, plan.currency)}/{plan.period}
                   </span>
                 </li>
               ))}
             </ul>
+            )}
             <Link
               href="/pricing"
               className="mt-3 inline-flex text-sm font-medium text-[#101828] hover:underline"

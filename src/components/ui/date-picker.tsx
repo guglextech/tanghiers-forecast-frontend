@@ -32,8 +32,8 @@ export function DatePicker({
           type="button"
           variant="outline"
           className={cn(
-            "h-11 w-full justify-start rounded-xl border-[#d0d5dd] bg-white px-3.5 text-left text-sm font-normal shadow-none hover:bg-white",
-            !value && "text-[#98a2b3]",
+            "h-9 w-full justify-start rounded-md border-input bg-transparent px-3 text-left text-sm font-normal shadow-xs hover:bg-transparent",
+            !value && "text-muted-foreground",
             className,
           )}
         >

@@ -18,7 +18,7 @@ export function useNotifications() {
 
   React.useEffect(() => {
     if (!user || !desk) return;
-    const load = () => setItems(listNotifications(user, desk.forecasts));
+    const load = () => setItems(listNotifications(user, desk.forecasts, desk.deliveries));
     load();
     return subscribeNotifications(load);
   }, [user, desk]);

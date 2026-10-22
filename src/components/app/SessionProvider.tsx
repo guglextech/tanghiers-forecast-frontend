@@ -4,13 +4,18 @@ import * as React from 'react';
 import {
   cancelSubscription,
   clearPhone,
-  clearSession,
   continueWithGoogle as continueWithGoogleAccount,
+  deleteAccount,
+  exportAccountData,
+  hydrateSession,
+  completeMfaEnroll,
+  completeMfaVerify,
   loginAccount,
-  readSession,
+  logoutAccount,
   savePhone,
   signupAccount,
   subscribeToPlan,
+  updateProfile,
   type SessionUser,
 } from '@/lib/session';
 import type { PlanId } from '@/data/site';
@@ -18,14 +23,26 @@ import type { PlanId } from '@/data/site';
 type SessionContextValue = {
   user: SessionUser | null;
   ready: boolean;
-  login: (input: { email: string; password: string }) => SessionUser;
-  signup: (input: { name: string; email: string; password: string }) => SessionUser;
-  continueWithGoogle: () => SessionUser;
+  login: (input: { email: string; password: string }) => Promise<SessionUser>;
+  signup: (input: { name: string; email: string; password: string }) => Promise<SessionUser>;
+  continueWithGoogle: () => Promise<SessionUser>;
+  verifyMfa: (code: string) => Promise<SessionUser>;
+  confirmMfaSetup: (code: string) => Promise<{ user: SessionUser; recoveryCodes: string[] }>;
   logout: () => void;
-  savePhone: (phone: string, smsConsent: boolean) => SessionUser;
-  clearPhone: () => SessionUser;
-  subscribeToPlan: (planId: PlanId) => SessionUser;
-  cancelSubscription: () => SessionUser;
+  refresh: () => Promise<SessionUser | null>;
+  updateProfile: (input: {
+    firstName: string;
+    lastName: string;
+    timezone: string;
+    phone: string;
+    smsConsent: boolean;
+  }) => Promise<SessionUser>;
+  savePhone: (phone: string, smsConsent: boolean) => Promise<SessionUser>;
+  clearPhone: () => Promise<SessionUser>;
+  exportAccount: () => Promise<unknown>;
+  deleteAccount: (password: string) => Promise<void>;
+  subscribeToPlan: (planId: PlanId) => Promise<SessionUser>;
+  cancelSubscription: () => Promise<SessionUser>;
 };
 
 const SessionContext = React.createContext<SessionContextValue | null>(null);
@@ -35,59 +52,89 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
-    setUser(readSession());
-    setReady(true);
+    void hydrateSession()
+      .then(setUser)
+      .finally(() => setReady(true));
+  }, []);
+
+  const refresh = React.useCallback(async () => {
+    const next = await hydrateSession();
+    setUser(next);
+    return next;
   }, []);
 
   const value = React.useMemo<SessionContextValue>(
     () => ({
       user,
       ready,
-      login: (input) => {
-        const next = loginAccount(input);
+      login: async (input) => {
+        const next = await loginAccount(input);
         setUser(next);
         return next;
       },
-      signup: (input) => {
-        const next = signupAccount(input);
+      signup: async (input) => {
+        const next = await signupAccount(input);
         setUser(next);
         return next;
       },
-      continueWithGoogle: () => {
-        const next = continueWithGoogleAccount();
+      continueWithGoogle: async () => {
+        const next = await continueWithGoogleAccount();
         setUser(next);
         return next;
+      },
+      verifyMfa: async (code) => {
+        const next = await completeMfaVerify(code);
+        setUser(next);
+        return next;
+      },
+      confirmMfaSetup: async (code) => {
+        const result = await completeMfaEnroll(code);
+        setUser(result.user);
+        return result;
       },
       logout: () => {
-        clearSession();
+        void logoutAccount();
         setUser(null);
       },
-      savePhone: (phone, smsConsent) => {
+      refresh,
+      updateProfile: async (input) => {
+        if (!user) throw new Error('Log in to update your profile.');
+        const next = await updateProfile(input);
+        setUser(next);
+        return next;
+      },
+      savePhone: async (phone, smsConsent) => {
         if (!user) throw new Error('Log in to save a mobile number.');
-        const next = savePhone(user.id, phone, smsConsent);
+        const next = await savePhone(user.id, phone, smsConsent);
         setUser(next);
         return next;
       },
-      clearPhone: () => {
+      clearPhone: async () => {
         if (!user) throw new Error('Log in to update your mobile number.');
-        const next = clearPhone(user.id);
+        const next = await clearPhone(user.id);
         setUser(next);
         return next;
       },
-      subscribeToPlan: (planId) => {
+      exportAccount: () => exportAccountData(),
+      deleteAccount: async (password) => {
+        if (!user) throw new Error('Log in to delete your account.');
+        await deleteAccount(password);
+        setUser(null);
+      },
+      subscribeToPlan: async (planId) => {
         if (!user) throw new Error('Log in to choose a plan.');
-        const next = subscribeToPlan(user.id, planId);
+        const next = await subscribeToPlan(user.id, planId);
         setUser(next);
         return next;
       },
-      cancelSubscription: () => {
+      cancelSubscription: async () => {
         if (!user) throw new Error('Log in to manage a subscription.');
-        const next = cancelSubscription(user.id);
+        const next = await cancelSubscription(user.id);
         setUser(next);
         return next;
       },
     }),
-    [user, ready],
+    [user, ready, refresh],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

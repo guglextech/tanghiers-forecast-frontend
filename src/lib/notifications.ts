@@ -1,4 +1,4 @@
-import { gameById, publishedForecasts, type Forecast } from '@/data/forecasts';
+import { gameById, publishedForecasts, type Delivery, type Forecast } from '@/data/forecasts';
 import { SITE } from '@/data/site';
 import { formatWeekdayDay } from '@/lib/dates';
 import type { SessionUser } from '@/lib/session';
@@ -44,7 +44,7 @@ function writeStore(store: Record<string, Notice[]>) {
   emit();
 }
 
-function seedForUser(user: SessionUser, forecasts: Forecast[]): Notice[] {
+function seedForUser(user: SessionUser, forecasts: Forecast[], deliveries: Delivery[] = []): Notice[] {
   const published = publishedForecasts(forecasts);
   const notices: Notice[] = published.map((forecast, index) => ({
     id: `n-${user.id}-${forecast.id}`,
@@ -75,14 +75,29 @@ function seedForUser(user: SessionUser, forecasts: Forecast[]): Notice[] {
     read: true,
   });
 
+  for (const delivery of deliveries) {
+    notices.push({
+      id: delivery.id,
+      title: delivery.detail || 'Forecast delivery',
+      body: `${delivery.channel} · ${delivery.status}`,
+      href: delivery.forecastId ? `/forecasts/${delivery.forecastId}` : '/feed',
+      at: delivery.at,
+      read: delivery.status === 'sent' || delivery.status === 'available',
+    });
+  }
+
   return notices;
 }
 
-export function listNotifications(user: SessionUser, forecasts: Forecast[]): Notice[] {
+export function listNotifications(
+  user: SessionUser,
+  forecasts: Forecast[],
+  deliveries: Delivery[] = [],
+): Notice[] {
   const store = readStore();
   const existing = store[user.id] ?? [];
   const byId = new Map(existing.map((notice) => [notice.id, notice]));
-  for (const notice of seedForUser(user, forecasts)) {
+  for (const notice of seedForUser(user, forecasts, deliveries)) {
     if (!byId.has(notice.id)) byId.set(notice.id, notice);
   }
   const next = [...byId.values()].sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));

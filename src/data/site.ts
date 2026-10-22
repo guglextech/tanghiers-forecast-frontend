@@ -25,16 +25,19 @@ export const footerNav = {
   ],
 } as const;
 
-export type PlanId = 'weekly' | 'monthly' | 'quarterly';
+export type PlanId = string;
 
 export type Plan = {
   id: PlanId;
   name: string;
   price: number;
+  currency?: string;
   period: string;
   cadence: string;
   blurb: string;
   featured?: boolean;
+  channels?: string[];
+  kind?: string;
 };
 
 export const PLANS: Plan[] = [
@@ -66,14 +69,19 @@ export const PLANS: Plan[] = [
 ];
 
 export function planById(id: PlanId | null | undefined) {
-  return PLANS.find((plan) => plan.id === id) ?? null;
+  if (!id) return null;
+  const match = PLANS.find((plan) => plan.id === id);
+  if (match) return match;
+  const name = id.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return { id, name, price: 0, period: '', cadence: '', blurb: '' };
 }
 
-export function formatMoney(amount: number) {
+export function formatMoney(amount: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency,
     minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 

@@ -7,8 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-const fieldClass = 'rounded-xl border-[#d0d5dd] bg-white px-3.5';
-
 export function ContactForm() {
   const [sent, setSent] = React.useState(false);
 
@@ -35,7 +33,7 @@ export function ContactForm() {
         <p className="mt-2 text-sm leading-6 text-[#667085]">
           The desk can also be reached at {SITE.email}.
         </p>
-        <Button type="button" variant="outline" className="mt-4 h-10 border-[#d0d5dd]" onClick={() => setSent(false)}>
+        <Button type="button" variant="outline" className="mt-4" onClick={() => setSent(false)}>
           Send another
         </Button>
       </div>
@@ -46,19 +44,17 @@ export function ContactForm() {
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" required className={`h-12 ${fieldClass}`} />
+        <Input id="name" name="name" required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required className={`h-12 ${fieldClass}`} />
+        <Input id="email" name="email" type="email" required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="message">Message</Label>
-        <Textarea id="message" name="message" required rows={5} className={fieldClass} />
+        <Textarea id="message" name="message" required rows={5} />
       </div>
-      <Button type="submit" className="h-11">
-        Send message
-      </Button>
+      <Button type="submit">Send message</Button>
     </form>
   );
 }

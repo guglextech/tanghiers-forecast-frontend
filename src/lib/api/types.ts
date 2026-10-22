@@ -1,0 +1,148 @@
+export type ApiEnvelope<T> = {
+  success: boolean;
+  data: T;
+  timestamp?: string;
+  statusCode?: number;
+  error?: string;
+  message?: string | string[];
+  code?: string | null;
+  path?: string;
+};
+
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export type LoginResult = {
+  tokens?: AuthTokens;
+  accessToken?: string;
+  refreshToken?: string;
+  mfaRequired?: boolean;
+  mfaEnrollmentRequired?: boolean;
+  mfaToken?: string;
+  signupToken?: string;
+  user?: ApiUser;
+  recoveryCodes?: string[];
+};
+
+export type MfaEnrollStart = {
+  secret?: string;
+  totpSecret?: string;
+  base32?: string;
+  otpauthUrl?: string;
+  otpauth_uri?: string;
+  otpauthUri?: string;
+  uri?: string;
+  qrCode?: string | null;
+  qrCodeDataUrl?: string | null;
+  qr?: string | null;
+  mfaToken?: string;
+  issuer?: string;
+  account?: string;
+  email?: string;
+};
+
+export type ApiUser = {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  role?: string;
+  phone?: string | null;
+  timezone?: string | null;
+  countryCode?: string | null;
+  dateOfBirth?: string | null;
+  emailVerified?: boolean;
+};
+
+export type ApiConsentMap = Record<
+  string,
+  {
+    version: string;
+    text: string;
+  }
+>;
+
+export type ApiPlan = {
+  id?: string;
+  code?: string;
+  name?: string;
+  description?: string | null;
+  kind?: string;
+  interval?: string | null;
+  intervalCount?: number;
+  passDurationHours?: number | null;
+  displayPrices?: Record<string, number>;
+  amounts?: Record<string, number>;
+  channels?: string[];
+  featured?: boolean;
+  period?: string;
+};
+
+export type ApiForecastBody = {
+  banker?: number[];
+  twoSure?: number[];
+  threeDirect?: number[];
+  permutations?: string;
+};
+
+export type ApiForecast = {
+  id: string;
+  title?: string;
+  drawDate?: string;
+  date?: string;
+  status?: string;
+  publishAt?: string | null;
+  publishedAt?: string | null;
+  createdAt?: string;
+  version?: number;
+  videoUrl?: string | null;
+  message?: string | null;
+  accessLevel?: string;
+  body?: ApiForecastBody | null;
+};
+
+export type ApiSubscription = {
+  id?: string;
+  status?: string;
+  planCode?: string;
+  planId?: string;
+  currentPeriodEnd?: string | null;
+  productSlug?: string;
+};
+
+export type ApiPayment = {
+  id?: string;
+  date?: string;
+  createdAt?: string;
+  label?: string;
+  description?: string;
+  amount?: number;
+  status?: string;
+};
+
+export type ApiEntitlement = {
+  entitled?: boolean;
+  hasAccess?: boolean;
+  active?: boolean;
+  status?: string;
+};
+
+export type ApiNotification = {
+  id?: string;
+  channel?: string;
+  status?: string;
+  detail?: string;
+  message?: string;
+  forecastId?: string;
+  userId?: string;
+  userEmail?: string;
+  email?: string;
+  createdAt?: string;
+  at?: string;
+  sentAt?: string;
+};
+
+export type Paginated<T> = T[] | { items?: T[]; data?: T[]; results?: T[] };

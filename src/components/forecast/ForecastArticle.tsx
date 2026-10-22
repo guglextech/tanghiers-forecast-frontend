@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { gameById, type Forecast } from '@/data/forecasts';
 import { formatWeekdayDay } from '@/lib/dates';
 import { LogoMark } from '@/components/brand/Logo';
-import { YoutubeFrame } from '@/components/feed/YoutubeFrame';
+import { SAMPLE_YOUTUBE_ID, YoutubeFrame } from '@/components/feed/YoutubeFrame';
+import { youtubeIdFromUrl } from '@/lib/api/mappers';
 import { cn } from '@/lib/utils';
 
 export function NumberPills({
@@ -45,9 +46,10 @@ export function ForecastPost({
   href?: string;
 }) {
   const game = gameById(forecast.game);
+  const lockedCount = forecast.numbers.length || game.count;
   const pills = locked ? (
     <div className="flex gap-1.5" aria-label={`${game.label} numbers are locked`}>
-      {Array.from({ length: game.count }).map((_, index) => (
+      {Array.from({ length: lockedCount }).map((_, index) => (
         <span
           key={index}
           className="grid size-[52px] place-items-center rounded-full border-2 border-[#d0d5dd] text-lg text-[#d0d5dd]"
@@ -90,7 +92,11 @@ export function ForecastPost({
         {pills}
       </div>
       <div className="mt-4">
-        <YoutubeFrame title={`${forecast.title} draw`} locked={locked} />
+        <YoutubeFrame
+          title={`${forecast.title} draw`}
+          locked={locked}
+          videoId={youtubeIdFromUrl(forecast.videoUrl) ?? SAMPLE_YOUTUBE_ID}
+        />
       </div>
     </article>
   );

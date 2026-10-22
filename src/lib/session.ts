@@ -1,5 +1,23 @@
-import { addDaysIso, todayIsoDate } from '@/lib/dates';
-import { planById, type PlanId } from '@/data/site';
+import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
+import { readTokens, writeTokens } from '@/lib/api/client';
+import { PRODUCT_SLUG } from '@/lib/api/config';
+import { ApiError } from '@/lib/api/errors';
+import {
+  hasEntitlement,
+  mapAdminUser,
+  mapSessionUser,
+  splitName,
+} from '@/lib/api/mappers';
+import type { ApiPayment, ApiSubscription, ApiUser, LoginResult } from '@/lib/api/types';
+import type { PlanId } from '@/data/site';
+import {
+  clearPendingMfa,
+  confirmMfaRequest,
+  recoveryCodesFrom,
+  tokensFromLoginResult,
+  verifyMfaRequest,
+  writePendingMfa,
+} from '@/lib/mfa';
 
 export type Role = 'member' | 'admin';
 export type SubscriptionStatus = 'inactive' | 'active' | 'canceled';
@@ -15,9 +33,14 @@ export type Invoice = {
 export type SessionUser = {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  emailVerified: boolean;
   role: Role;
   phone: string;
+  timezone: string;
+  countryCode: string;
   smsConsent: boolean;
   planId: PlanId | null;
   subscriptionStatus: SubscriptionStatus;
@@ -25,107 +48,11 @@ export type SessionUser = {
   invoices: Invoice[];
 };
 
-type StoredUser = SessionUser & {
-  password: string;
-};
-
 const SESSION_KEY = 'tg.session.v1';
-const USERS_KEY = 'tg.users.v1';
-
-const DEMO_USERS: StoredUser[] = [
-  {
-    id: 'usr_subscriber',
-    name: 'Ama Mensah',
-    email: 'subscriber@lottoforecast.test',
-    password: 'lotto123',
-    role: 'member',
-    phone: '+233550982043',
-    smsConsent: true,
-    planId: 'monthly',
-    subscriptionStatus: 'active',
-    currentPeriodEnd: '2026-11-06',
-    invoices: [
-      {
-        id: 'in_1006',
-        date: '2026-10-06',
-        label: 'Monthly subscription',
-        amount: 12,
-        status: 'Paid',
-      },
-    ],
-  },
-  {
-    id: 'usr_member',
-    name: 'Kwesi Boateng',
-    email: 'member@lottoforecast.test',
-    password: 'lotto123',
-    role: 'member',
-    phone: '',
-    smsConsent: false,
-    planId: null,
-    subscriptionStatus: 'inactive',
-    currentPeriodEnd: null,
-    invoices: [],
-  },
-  {
-    id: 'usr_admin',
-    name: 'Efua Darko',
-    email: 'admin@lottoforecast.test',
-    password: 'lotto123',
-    role: 'admin',
-    phone: '',
-    smsConsent: false,
-    planId: null,
-    subscriptionStatus: 'inactive',
-    currentPeriodEnd: null,
-    invoices: [],
-  },
-];
+const PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
 
 function canUseStorage() {
   return typeof window !== 'undefined';
-}
-
-function readStoredUsers(): StoredUser[] {
-  if (!canUseStorage()) return DEMO_USERS.map((user) => ({ ...user, invoices: [...user.invoices] }));
-  try {
-    const raw = window.localStorage.getItem(USERS_KEY);
-    const parsed = raw ? (JSON.parse(raw) as StoredUser[]) : [];
-    const users = Array.isArray(parsed) ? parsed : [];
-    let changed = false;
-    for (const demo of DEMO_USERS) {
-      if (!users.some((user) => user.email === demo.email)) {
-        users.push({ ...demo, invoices: [...demo.invoices] });
-        changed = true;
-      }
-    }
-    if (!raw || changed) {
-      window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-    return users;
-  } catch {
-    return DEMO_USERS.map((user) => ({ ...user, invoices: [...user.invoices] }));
-  }
-}
-
-function writeStoredUsers(users: StoredUser[]) {
-  if (!canUseStorage()) return;
-  window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-export function toSessionUser(user: StoredUser): SessionUser {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    phone: user.phone,
-    smsConsent: user.smsConsent,
-    planId: user.planId,
-    subscriptionStatus: user.subscriptionStatus,
-    currentPeriodEnd: user.currentPeriodEnd,
-    invoices: user.invoices ?? [],
-  };
 }
 
 export function hasForecastAccess(user: SessionUser | null | undefined) {
@@ -152,172 +79,310 @@ export function initialsFromName(name: string) {
   );
 }
 
+function normalizeSession(parsed: Partial<SessionUser> | null | undefined): SessionUser | null {
+  if (!parsed?.email) return null;
+  const names = splitName(parsed.name || parsed.email);
+  return {
+    id: parsed.id || '',
+    name: parsed.name || `${names.firstName} ${names.lastName}`.trim(),
+    firstName: parsed.firstName || names.firstName,
+    lastName: parsed.lastName || names.lastName,
+    email: parsed.email,
+    emailVerified: Boolean(parsed.emailVerified),
+    role: parsed.role === 'admin' ? 'admin' : 'member',
+    phone: parsed.phone || '',
+    timezone: parsed.timezone || '',
+    countryCode: parsed.countryCode || '',
+    smsConsent: Boolean(parsed.smsConsent),
+    planId: parsed.planId ?? null,
+    subscriptionStatus: parsed.subscriptionStatus ?? 'inactive',
+    currentPeriodEnd: parsed.currentPeriodEnd ?? null,
+    invoices: parsed.invoices ?? [],
+  };
+}
+
 export function readSession(): SessionUser | null {
   if (!canUseStorage()) return null;
   try {
     const raw = window.localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as SessionUser;
-    if (!parsed?.email) return null;
-    const fresh = readStoredUsers().find((user) => user.id === parsed.id || user.email === parsed.email);
-    return fresh ? toSessionUser(fresh) : parsed;
+    return normalizeSession(JSON.parse(raw) as Partial<SessionUser>);
   } catch {
     return null;
   }
 }
 
-export function writeSession(user: SessionUser) {
+export function writeSession(user: SessionUser | null) {
   if (!canUseStorage()) return;
+  if (!user) {
+    window.localStorage.removeItem(SESSION_KEY);
+    return;
+  }
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
 }
 
 export function clearSession() {
-  if (!canUseStorage()) return;
-  window.localStorage.removeItem(SESSION_KEY);
+  writeTokens(null);
+  writeSession(null);
 }
+
+let accountCache: SessionUser[] = [];
 
 export function listAccounts(): SessionUser[] {
-  return readStoredUsers()
-    .map(toSessionUser)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  return accountCache;
 }
 
-function persistUser(next: StoredUser) {
-  const users = readStoredUsers().map((user) => (user.id === next.id ? next : user));
-  writeStoredUsers(users);
-  const session = readSession();
-  if (session?.id === next.id) writeSession(toSessionUser(next));
-  return toSessionUser(next);
+export async function refreshAccounts() {
+  const rows = asList<ApiUser & { subscriptionStatus?: string; planCode?: string }>(await admin.users());
+  accountCache = rows.map(mapAdminUser).sort((a, b) => a.name.localeCompare(b.name));
+  return accountCache;
 }
 
-export function signupAccount(input: { name: string; email: string; password: string }): SessionUser {
-  const name = input.name.trim();
+async function loadSmsConsent() {
+  try {
+    const consents = await me.consents();
+    if (!consents || typeof consents !== 'object') return false;
+    const record = consents as Record<string, { granted?: boolean } | boolean>;
+    const sms = record.SMS ?? record.sms;
+    if (typeof sms === 'boolean') return sms;
+    return Boolean(sms && typeof sms === 'object' && sms.granted);
+  } catch {
+    return false;
+  }
+}
+
+export async function hydrateSession(): Promise<SessionUser | null> {
+  if (!readTokens()?.accessToken) {
+    writeSession(null);
+    return null;
+  }
+  try {
+    const [profile, subscriptions, payments, entitlement] = await Promise.all([
+      me.profile(),
+      me.subscriptions().catch(() => []),
+      me.payments().catch(() => []),
+      me.entitlements().catch(() => false),
+    ]);
+    const list = asList<ApiSubscription>(subscriptions);
+    const user = mapSessionUser({
+      profile,
+      subscription: list[0] ?? null,
+      payments: asList<ApiPayment>(payments),
+      entitled: hasEntitlement(entitlement),
+      smsConsent: await loadSmsConsent(),
+    });
+    writeSession(user);
+    return user;
+  } catch {
+    clearSession();
+    return null;
+  }
+}
+
+function applyTokens(result: LoginResult) {
+  const tokens = tokensFromLoginResult(result);
+  if (!tokens?.accessToken) {
+    throw new ApiError('Could not sign in.', 401);
+  }
+  writeTokens(tokens);
+}
+
+async function sessionFromLogin(result: LoginResult): Promise<SessionUser> {
+  applyTokens(result);
+  clearPendingMfa();
+  const session = await hydrateSession();
+  if (!session) throw new ApiError('Signed in, but the profile could not be loaded.');
+  return session;
+}
+
+export async function loginAccount(input: { email: string; password: string }): Promise<SessionUser> {
   const email = input.email.trim().toLowerCase();
-  const password = input.password;
+  const result = await auth.login(email, input.password);
+  if (result.mfaToken) {
+    writePendingMfa({
+      mfaToken: result.mfaToken,
+      enrollmentRequired: Boolean(result.mfaEnrollmentRequired),
+      email,
+    });
+    throw new ApiError(
+      result.mfaEnrollmentRequired
+        ? 'Set up an authenticator app to finish signing in.'
+        : 'Enter the code from your authenticator app.',
+      401,
+      result.mfaEnrollmentRequired ? 'MFA_ENROLL' : 'MFA_VERIFY',
+    );
+  }
+  return sessionFromLogin(result);
+}
 
-  if (!name || !email || password.length < 6) {
-    throw new Error('Enter your name, email, and a password of at least 6 characters.');
+export async function completeMfaVerify(code: string): Promise<SessionUser> {
+  return sessionFromLogin(await verifyMfaRequest(code));
+}
+
+export async function completeMfaEnroll(code: string): Promise<{ user: SessionUser; recoveryCodes: string[] }> {
+  const result = await confirmMfaRequest(code);
+  const recoveryCodes = recoveryCodesFrom(result);
+  const user = await sessionFromLogin(result);
+  return { user, recoveryCodes };
+}
+
+export async function signupAccount(input: { name: string; email: string; password: string }): Promise<SessionUser> {
+  const { firstName, lastName } = splitName(input.name);
+  let consents: Awaited<ReturnType<typeof catalog.consents>> = {};
+  try {
+    consents = await catalog.consents();
+  } catch {
+    consents = {};
+  }
+  await auth.register({
+    email: input.email.trim().toLowerCase(),
+    password: input.password,
+    firstName,
+    lastName,
+    countryCode: 'US',
+    dateOfBirth: '1990-01-01',
+    productSlug: PRODUCT_SLUG,
+    consents: {
+      terms: consents.TERMS?.version ?? consents.terms?.version ?? 'terms-2026-10',
+      privacy: consents.PRIVACY?.version ?? consents.privacy?.version ?? 'privacy-2026-10',
+    },
+  });
+  throw new ApiError(
+    'If that email can be used, a message with next steps has been sent to it.',
+    202,
+    'PENDING_VERIFICATION',
+  );
+}
+
+export async function continueWithGoogle(): Promise<SessionUser> {
+  throw new ApiError('Google sign-in needs a Google ID token from the API.');
+}
+
+export async function logoutAccount() {
+  const refreshToken = readTokens()?.refreshToken;
+  try {
+    if (refreshToken) await auth.logout(refreshToken);
+  } catch {
+    /* still clear local session */
+  }
+  clearSession();
+}
+
+export async function updateProfile(input: {
+  firstName: string;
+  lastName: string;
+  timezone: string;
+  phone: string;
+  smsConsent: boolean;
+}) {
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  if (!firstName) throw new Error('Enter a first name.');
+  if (!lastName) throw new Error('Enter a last name.');
+
+  const nextPhone = input.phone.trim().replace(/\s+/g, '');
+  if (nextPhone && !PHONE_PATTERN.test(nextPhone)) {
+    throw new Error('Enter a mobile number with a country code, for example +233550982043.');
   }
 
-  const users = readStoredUsers();
-  if (users.some((user) => user.email === email)) {
-    throw new Error('An account with that email already exists. Log in instead.');
+  const timezone = input.timezone.trim();
+  if (!timezone) throw new Error('Choose a timezone.');
+  if (input.smsConsent && !nextPhone) {
+    throw new Error('Add a mobile number before turning on text messages.');
   }
 
-  const user: StoredUser = {
-    id: `usr_${Date.now()}`,
-    name,
-    email,
-    password,
-    role: 'member',
-    phone: '',
-    smsConsent: false,
-    planId: null,
-    subscriptionStatus: 'inactive',
-    currentPeriodEnd: null,
-    invoices: [],
-  };
-  writeStoredUsers([...users, user]);
-  const session = toSessionUser(user);
-  writeSession(session);
+  await me.update({ firstName, lastName, timezone });
+  const storedPhone = readSession()?.phone || '';
+  if (storedPhone !== nextPhone) {
+    await me.update({ phone: nextPhone || null });
+  }
+
+  try {
+    const consents = await catalog.consents();
+    const version = consents.SMS?.version ?? consents.sms?.version ?? 'sms-2026-10';
+    await me.setConsent('SMS', input.smsConsent, version);
+  } catch {
+    /* profile saved even if consent endpoint fails */
+  }
+
+  const session = await hydrateSession();
+  if (!session) throw new Error('Could not refresh your account.');
   return session;
 }
 
-export function loginAccount(input: { email: string; password: string }): SessionUser {
-  const email = input.email.trim().toLowerCase();
-  const user = readStoredUsers().find((entry) => entry.email === email);
-
-  if (!user || !user.password || user.password !== input.password) {
-    throw new Error('That email or password is not right.');
-  }
-
-  const session = toSessionUser(user);
-  writeSession(session);
-  return session;
+export async function exportAccountData() {
+  return me.exportData();
 }
 
-const GOOGLE_EMAIL = 'google@lottoforecast.test';
-
-export function continueWithGoogle(): SessionUser {
-  const users = readStoredUsers();
-  const existing = users.find((entry) => entry.email === GOOGLE_EMAIL);
-  if (existing) {
-    const session = toSessionUser(existing);
-    writeSession(session);
-    return session;
-  }
-
-  const user: StoredUser = {
-    id: 'usr_google',
-    name: 'Google account',
-    email: GOOGLE_EMAIL,
-    password: '',
-    role: 'member',
-    phone: '',
-    smsConsent: false,
-    planId: null,
-    subscriptionStatus: 'inactive',
-    currentPeriodEnd: null,
-    invoices: [],
-  };
-  writeStoredUsers([...users, user]);
-  const session = toSessionUser(user);
-  writeSession(session);
-  return session;
+export async function deleteAccount(password: string) {
+  if (!password.trim()) throw new Error('Enter your password to delete this account.');
+  await me.remove(password);
+  clearSession();
 }
 
-const PHONE_PATTERN = /^\+[1-9]\d{7,14}$/;
-
-export function savePhone(userId: string, phone: string, smsConsent: boolean) {
+export async function savePhone(userId: string, phone: string, smsConsent: boolean) {
+  void userId;
   const nextPhone = phone.trim().replace(/\s+/g, '');
   if (!PHONE_PATTERN.test(nextPhone)) {
     throw new Error('Enter a mobile number with a country code, for example +233550982043.');
   }
-  const user = readStoredUsers().find((entry) => entry.id === userId);
-  if (!user) throw new Error('Account not found.');
-  return persistUser({ ...user, phone: nextPhone, smsConsent });
+  await me.update({ phone: nextPhone });
+  try {
+    const consents = await catalog.consents();
+    await me.setConsent('SMS', smsConsent, consents.SMS?.version ?? 'sms-2026-10');
+  } catch {
+    /* phone saved even if consent endpoint fails */
+  }
+  try {
+    await me.sendPhoneCode();
+  } catch {
+    /* verification send is optional until the number flow is complete */
+  }
+  const session = await hydrateSession();
+  if (!session) throw new Error('Could not refresh your account.');
+  return session;
 }
 
-export function clearPhone(userId: string) {
-  const user = readStoredUsers().find((entry) => entry.id === userId);
-  if (!user) throw new Error('Account not found.');
-  return persistUser({ ...user, phone: '', smsConsent: false });
+export async function clearPhone(userId: string) {
+  void userId;
+  await me.update({ phone: null });
+  try {
+    const consents = await catalog.consents();
+    await me.setConsent('SMS', false, consents.SMS?.version ?? 'sms-2026-10');
+  } catch {
+    /* ignore */
+  }
+  const session = await hydrateSession();
+  if (!session) throw new Error('Could not refresh your account.');
+  return session;
 }
 
-const PERIOD_DAYS: Record<PlanId, number> = {
-  weekly: 7,
-  monthly: 30,
-  quarterly: 90,
-};
-
-export function subscribeToPlan(userId: string, planId: PlanId) {
-  const user = readStoredUsers().find((entry) => entry.id === userId);
-  if (!user) throw new Error('Account not found.');
-  const plan = planById(planId);
-  if (!plan) throw new Error('Choose a plan.');
-  const invoice: Invoice = {
-    id: `in_${Date.now()}`,
-    date: todayIsoDate(),
-    label: `${plan.name} subscription`,
-    amount: plan.price,
-    status: 'Paid',
-  };
-  return persistUser({
-    ...user,
-    planId,
-    subscriptionStatus: 'active',
-    currentPeriodEnd: addDaysIso(PERIOD_DAYS[planId]),
-    invoices: [invoice, ...(user.invoices ?? [])],
-  });
+export async function subscribeToPlan(userId: string, planId: PlanId) {
+  void userId;
+  const checkout = await billing.checkout(planId);
+  const url = checkout.url || checkout.checkoutUrl;
+  if (!url) throw new Error('Stripe checkout is not available for that plan yet.');
+  window.location.assign(url);
+  const session = readSession();
+  if (!session) throw new Error('Log in to choose a plan.');
+  return session;
 }
 
-export function cancelSubscription(userId: string) {
-  const user = readStoredUsers().find((entry) => entry.id === userId);
-  if (!user) throw new Error('Account not found.');
-  return persistUser({
-    ...user,
-    planId: null,
-    subscriptionStatus: 'canceled',
-    currentPeriodEnd: null,
-  });
+export async function cancelSubscription(userId: string) {
+  void userId;
+  const portal = await billing.portal();
+  const url = portal.url || portal.portalUrl;
+  if (!url) throw new Error('The billing portal is not available yet.');
+  window.location.assign(url);
+  const session = readSession();
+  if (!session) throw new Error('Log in to manage a subscription.');
+  return session;
+}
+
+export async function verifyEmailToken(token: string) {
+  await auth.verifyEmail(token);
+}
+
+export async function resetPasswordToken(token: string, newPassword: string) {
+  await auth.resetPassword(token, newPassword);
 }

@@ -34,21 +34,21 @@ export function AccountScreen() {
     ? `Stored: ${user.phone} · ${user.smsConsent ? 'Consent given' : 'No consent'} · Not verified`
     : '';
 
-  const onUpdate = (event: React.FormEvent) => {
+  const onUpdate = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
     try {
-      savePhone(phone, consent);
+      await savePhone(phone, consent);
       toast.success('Mobile number saved.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save that number.');
     }
   };
 
-  const onRemove = () => {
+  const onRemove = async () => {
     setError('');
     try {
-      clearPhone();
+      await clearPhone();
       setPhone('');
       setConsent(false);
       setConfirmRemove(false);

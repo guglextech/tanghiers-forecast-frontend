@@ -2,17 +2,28 @@ export type ForecastStatus = 'draft' | 'scheduled' | 'published';
 
 export type GameId = 'pick-2' | 'pick-3' | 'pick-4' | 'pick-5';
 
+export type ForecastBody = {
+  banker: number[];
+  twoSure: number[];
+  threeDirect: number[];
+  permutations: string;
+};
+
 export type Forecast = {
   id: string;
   title: string;
   game: GameId;
   numbers: number[];
+  body?: ForecastBody;
   /** Calendar day the forecast belongs to, YYYY-MM-DD. */
   date: string;
   status: ForecastStatus;
   /** ISO time the forecast goes live. Null while it is a draft. */
   publishAt: string | null;
   createdAt: string;
+  version?: number;
+  videoUrl?: string | null;
+  message?: string | null;
 };
 
 export type DeliveryChannel = 'web' | 'email' | 'sms';

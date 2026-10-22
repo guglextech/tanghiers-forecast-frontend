@@ -12,12 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  FORM_CONTROL,
-  FORM_CONTROL_FOCUS,
-  FORM_HINT,
-  FORM_LABEL,
-} from '@/lib/form-styles';
+import { FORM_HINT, FORM_LABEL } from '@/lib/form-styles';
 import { cn } from '@/lib/utils';
 
 export function Field({
@@ -60,15 +55,7 @@ export function IconInput({
           icon,
         )}
       />
-      <Input
-        className={cn(
-          FORM_CONTROL,
-          FORM_CONTROL_FOCUS,
-          'pl-9 shadow-none',
-          className,
-        )}
-        {...props}
-      />
+      <Input className={cn('pl-9', className)} {...props} />
     </span>
   );
 }
@@ -82,7 +69,7 @@ export function AmountInput({ className, ...props }: Omit<ComponentProps<'input'
       <Input
         type="number"
         inputMode="decimal"
-        className={cn(FORM_CONTROL, FORM_CONTROL_FOCUS, 'pl-11 shadow-none', className)}
+        className={cn('pl-11', className)}
         {...props}
       />
     </span>
@@ -145,7 +132,7 @@ export function ChoicePicker({
   return (
     <div className={cn('grid gap-1.5', className)}>
       {label ? <Label className="text-xs text-muted-foreground">{label}</Label> : null}
-      <div className="flex h-10 w-full min-w-0 rounded-md border border-input bg-muted/40 p-0.5">
+      <div className="flex h-9 w-full min-w-0 rounded-md border border-input bg-muted/40 p-0.5">
         {options.map((option) => {
           const selected = value === option.id;
           return (

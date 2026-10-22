@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { publishedForecasts, gameById, type Forecast } from '@/data/forecasts';
@@ -9,6 +10,7 @@ import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
 import { ForecastPost, NumberPills } from '@/components/forecast/ForecastArticle';
 import { useDesk } from '@/components/forecast/useDesk';
+import { fetchForecastById } from '@/lib/desk';
 import { SITE, planById } from '@/data/site';
 
 export function FeedScreen() {
@@ -154,10 +156,21 @@ function groupByMonth(forecasts: Forecast[]) {
 export function ForecastScreen({ id }: { id: string }) {
   const { user, ready } = useSession();
   const desk = useDesk();
+  const [fetched, setFetched] = React.useState<Forecast | null>(null);
+
+  React.useEffect(() => {
+    if (!desk) return;
+    const local = desk.forecasts.find((item) => item.id === id) ?? null;
+    if (local) {
+      setFetched(local);
+      return;
+    }
+    void fetchForecastById(id).then(setFetched);
+  }, [desk, id]);
 
   if (!ready || !desk || !user) return <LoadingState label="Loading the forecast…" />;
 
-  const forecast = desk.forecasts.find((item) => item.id === id);
+  const forecast = fetched ?? desk.forecasts.find((item) => item.id === id);
   if (!forecast || forecast.status !== 'published') {
     return (
       <div>

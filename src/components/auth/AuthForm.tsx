@@ -7,6 +7,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
 import { useSession } from '@/components/app/SessionProvider';
+import { ApiError } from '@/lib/api/errors';
+import { mfaPathFor, readPendingMfa } from '@/lib/mfa';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,9 +18,8 @@ import { cn } from '@/lib/utils';
 type Mode = 'login' | 'signup';
 type Step = 'choose' | 'password';
 
-const fieldClass = 'h-12 rounded-xl border-[#d0d5dd] bg-white px-3.5';
 const choiceClass =
-  'inline-flex h-12 w-full items-center justify-center gap-3 rounded-full text-sm font-semibold transition-colors';
+  'inline-flex h-9 w-full items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors';
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const { user, ready, login, signup, continueWithGoogle } = useSession();
@@ -48,10 +49,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
     router.replace(destinationFor(sessionRole, next, mode));
   };
 
-  const onGoogle = () => {
+  const onGoogle = async () => {
     setError('');
     try {
-      const session = continueWithGoogle();
+      const session = await continueWithGoogle();
       toast.success('Signed in with Google.');
       go(session.role);
     } catch (err) {
@@ -59,14 +60,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
     try {
       const session =
-        mode === 'signup' ? signup({ name, email, password }) : login({ email, password });
+        mode === 'signup' ? await signup({ name, email, password }) : await login({ email, password });
       go(session.role);
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'PENDING_VERIFICATION') {
+        toast.success(err.message);
+        setError(err.message);
+        return;
+      }
+      if (err instanceof ApiError && (err.code === 'MFA_ENROLL' || err.code === 'MFA_VERIFY')) {
+        router.replace(mfaPathFor(readPendingMfa(), next));
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Could not continue.');
     }
   };
@@ -89,8 +99,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </p>
 
         {step === 'choose' ? (
-          <div className="mt-8 space-y-3">
-            <button type="button" onClick={onGoogle} className={cn(choiceClass, 'border border-[#d0d5dd] bg-white text-[#101828] hover:bg-[#f7f8fa]')}>
+          <div className="mt-6 space-y-2">
+            <button type="button" onClick={onGoogle} className={cn(choiceClass, 'border border-input bg-background text-foreground hover:bg-muted')}>
               <GoogleMark />
               Continue with Google
             </button>
@@ -100,14 +110,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 setError('');
                 setStep('password');
               }}
-              className={cn(choiceClass, 'bg-[#101828] text-white hover:bg-[#1d2939]')}
+              className={cn(choiceClass, 'bg-primary text-primary-foreground hover:bg-[#262626]')}
             >
               Username & password
             </button>
-            {error ? <p className="pt-1 text-sm text-[#b42318]">{error}</p> : null}
+            {error ? <p className="pt-1 text-sm text-destructive">{error}</p> : null}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-3">
             <button
               type="button"
               className="text-sm font-medium text-[#667085] hover:text-[#101828]"
@@ -126,9 +136,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
                   id="name"
                   autoComplete="username"
                   required
+                  placeholder="Jane"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  className={fieldClass}
                 />
               </div>
             ) : null}
@@ -139,9 +149,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 type="email"
                 autoComplete="email"
                 required
+                placeholder="you@email.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className={fieldClass}
               />
             </div>
             <div className="space-y-2">
@@ -153,13 +163,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                   required
                   minLength={6}
+                  placeholder="••••••••"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className={`${fieldClass} pr-12`}
+                  className="pr-9"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#667085] hover:text-[#101828]"
+                  className="absolute inset-y-0 right-0 grid w-9 place-items-center text-muted-foreground hover:text-foreground"
                   onClick={() => setShowPassword((open) => !open)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   aria-pressed={showPassword}
@@ -168,8 +179,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 </button>
               </div>
             </div>
-            {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-            <Button type="submit" className="h-12 w-full">
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            <Button type="submit" className="w-full">
               {mode === 'login' ? 'Log in' : 'Create account'}
             </Button>
           </form>

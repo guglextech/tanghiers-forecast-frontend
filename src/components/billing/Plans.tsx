@@ -4,34 +4,73 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { PLANS, formatMoney, planById, type PlanId } from '@/data/site';
+import { formatMoney, planById, type Plan, type PlanId } from '@/data/site';
 import { formatLongDate } from '@/lib/dates';
+import { getCatalogPlans, planFromList } from '@/lib/plans';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+function useCatalogPlans(initial?: Plan[]) {
+  const [plans, setPlans] = React.useState<Plan[] | null>(initial ?? null);
+
+  React.useEffect(() => {
+    if (initial && initial.length > 0) {
+      setPlans(initial);
+      return;
+    }
+    void getCatalogPlans()
+      .then(setPlans)
+      .catch(() => setPlans([]));
+  }, [initial]);
+
+  return plans;
+}
+
 export function PlanCards({
   mode,
   highlight,
+  plans: initialPlans,
 }: {
   mode: 'public' | 'account';
   highlight?: PlanId | null;
+  plans?: Plan[];
 }) {
-  if (mode === 'public') return <PublicPlanCards highlight={highlight} />;
+  if (mode === 'public') return <PublicPlanCards highlight={highlight} initialPlans={initialPlans} />;
   return <AccountPlanSelector highlight={highlight} />;
 }
 
-function PublicPlanCards({ highlight }: { highlight?: PlanId | null }) {
+function PublicPlanCards({
+  highlight,
+  initialPlans,
+}: {
+  highlight?: PlanId | null;
+  initialPlans?: Plan[];
+}) {
   const { user } = useSession();
+  const plans = useCatalogPlans(initialPlans);
+
+  if (!plans) return <LoadingState label="Loading plans…" />;
+
+  if (plans.length === 0) {
+    return <p className="text-sm text-[#667085]">Plans are being updated. Check back shortly.</p>;
+  }
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {PLANS.map((plan) => {
+    <div
+      className={cn(
+        'grid grid-cols-1 gap-3',
+        plans.length === 2 && 'sm:grid-cols-2',
+        plans.length >= 3 && 'sm:grid-cols-3',
+      )}
+    >
+      {plans.map((plan) => {
         const emphasized = highlight === plan.id || (!highlight && plan.featured);
         const href = user
           ? `/subscription?plan=${plan.id}`
           : `/signup?next=${encodeURIComponent(`/subscription?plan=${plan.id}`)}`;
+        const channels = (plan.channels ?? []).map((channel) => channel.toUpperCase()).join(' · ');
         return (
           <Link
             key={plan.id}
@@ -52,16 +91,18 @@ function PublicPlanCards({ highlight }: { highlight?: PlanId | null }) {
               ) : null}
             </span>
             <span className="mt-4 text-[1.75rem] font-semibold tracking-tight tabular-nums text-[#101828]">
-              {formatMoney(plan.price)}
+              {formatMoney(plan.price, plan.currency)}
               <span className="text-sm font-medium text-[#667085]">/{plan.period}</span>
             </span>
+            <span className="mt-1 text-xs text-[#98a2b3]">{plan.cadence}</span>
             <span className="mt-2 min-h-[2.5rem] text-sm leading-5 text-[#667085]">{plan.blurb}</span>
+            {channels ? <span className="mt-3 text-xs font-medium tracking-[0.08em] text-[#98a2b3] uppercase">{channels}</span> : null}
             <span
               className={cn(
-                'mt-6 inline-flex h-10 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                'mt-6 inline-flex h-9 items-center justify-center rounded-md text-sm font-medium transition-colors',
                 emphasized
                   ? 'bg-[#101828] text-white group-hover:bg-[#1d2939]'
-                  : 'border border-[#d0d5dd] text-[#101828] group-hover:border-[#101828]',
+                  : 'border border-input text-[#101828] group-hover:border-[#101828]',
               )}
             >
               {user ? 'Continue' : 'Get started'}
@@ -76,25 +117,34 @@ function PublicPlanCards({ highlight }: { highlight?: PlanId | null }) {
 function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
   const { user, subscribeToPlan } = useSession();
   const router = useRouter();
+  const plans = useCatalogPlans();
   const currentId =
     user?.subscriptionStatus === 'active' ? user.planId : null;
-  const [selected, setSelected] = React.useState<PlanId>(
-    highlight ?? currentId ?? 'monthly',
-  );
+  const [selected, setSelected] = React.useState<PlanId>(highlight ?? currentId ?? '');
   const [error, setError] = React.useState('');
 
   React.useEffect(() => {
     if (highlight) setSelected(highlight);
   }, [highlight]);
 
-  const pending = selected !== currentId;
-  const chosen = planById(selected);
+  React.useEffect(() => {
+    if (selected || !plans?.length) return;
+    setSelected(currentId ?? plans[0].id);
+  }, [plans, currentId, selected]);
 
-  const confirm = () => {
+  if (!plans) return <LoadingState label="Loading plans…" />;
+  if (plans.length === 0) {
+    return <p className="text-sm text-[#667085]">Plans are being updated. Check back shortly.</p>;
+  }
+
+  const pending = Boolean(selected) && selected !== currentId;
+  const chosen = planFromList(plans, selected) ?? planById(selected);
+
+  const confirm = async () => {
     setError('');
     try {
-      subscribeToPlan(selected);
-      toast.success('Subscription is active.');
+      await subscribeToPlan(selected);
+      toast.success('Continue in checkout to finish.');
       router.push('/feed');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start that plan.');
@@ -108,7 +158,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
         role="radiogroup"
         aria-label="Plans"
       >
-        {PLANS.map((plan) => {
+        {plans.map((plan) => {
           const isSelected = selected === plan.id;
           const isCurrent = currentId === plan.id;
           return (
@@ -135,7 +185,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
               <span className="min-w-0 flex-1 text-sm font-semibold text-[#101828]">{plan.name}</span>
               <span className="shrink-0 text-right">
                 <span className="text-sm font-medium tabular-nums text-[#101828]">
-                  {formatMoney(plan.price)}
+                  {formatMoney(plan.price, plan.currency)}
                   <span className="text-[#667085]">/{plan.period}</span>
                 </span>
                 {isCurrent ? (
@@ -152,7 +202,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
       {pending && chosen ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-[#667085]">
-            {chosen.name} · {formatMoney(chosen.price)}/{chosen.period}
+            {chosen.name} · {formatMoney(chosen.price, chosen.currency)}/{chosen.period}
           </p>
           <Button type="button" className="h-10 px-5" onClick={confirm}>
             Confirm
@@ -166,16 +216,17 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
 
 export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null }) {
   const { user, ready, cancelSubscription } = useSession();
+  const plans = useCatalogPlans();
   const [confirmCancel, setConfirmCancel] = React.useState(false);
   const [error, setError] = React.useState('');
 
-  if (!ready || !user) return <LoadingState label="Loading subscription…" />;
+  if (!ready || !user || !plans) return <LoadingState label="Loading subscription…" />;
 
-  const plan = planById(user.planId);
+  const plan = planFromList(plans, user.planId) ?? planById(user.planId);
   const active = user.subscriptionStatus === 'active' && plan;
 
   const status = active
-    ? `${plan.name} · ${formatMoney(plan.price)}/${plan.period} · Renews ${
+    ? `${plan.name} · ${formatMoney(plan.price, plan.currency)}/${plan.period} · Renews ${
         user.currentPeriodEnd ? formatLongDate(user.currentPeriodEnd) : 'soon'
       }`
     : user.subscriptionStatus === 'canceled'
@@ -196,13 +247,15 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
                 type="button"
                 className="text-sm font-medium text-[#b42318] hover:underline"
                 onClick={() => {
-                  try {
-                    cancelSubscription();
-                    setConfirmCancel(false);
-                    toast.success('Subscription canceled.');
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : 'Could not cancel.');
-                  }
+                  void (async () => {
+                    try {
+                      await cancelSubscription();
+                      setConfirmCancel(false);
+                      toast.success('Continue in the billing portal.');
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Could not cancel.');
+                    }
+                  })();
                 }}
               >
                 Confirm cancel

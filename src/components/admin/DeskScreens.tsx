@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CalendarDays, CreditCard, Mail, MessageSquare, UsersRound } from 'lucide-react';
 import { gameById, type Forecast } from '@/data/forecasts';
 import { formatDateTime, formatLongDate } from '@/lib/dates';
-import { listAccounts } from '@/lib/session';
+import { listAccounts, refreshAccounts } from '@/lib/session';
 import { formatMoney, planById } from '@/data/site';
 import { useDesk } from '@/components/forecast/useDesk';
 import { LoadingState } from '@/components/app/LoadingState';
@@ -65,7 +65,9 @@ export function AdminOverview() {
   const [accounts, setAccounts] = React.useState<ReturnType<typeof listAccounts>>([]);
 
   React.useEffect(() => {
-    setAccounts(listAccounts());
+    void refreshAccounts()
+      .then(setAccounts)
+      .catch(() => setAccounts(listAccounts()));
   }, [desk]);
 
   if (!desk) return <LoadingState label="Loading the desk…" />;
@@ -301,8 +303,10 @@ export function SubscriberTable() {
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
-    setAccounts(listAccounts());
-    setReady(true);
+    void refreshAccounts()
+      .then(setAccounts)
+      .catch(() => setAccounts(listAccounts()))
+      .finally(() => setReady(true));
   }, []);
 
   if (!ready) return <LoadingState label="Loading subscribers…" />;
