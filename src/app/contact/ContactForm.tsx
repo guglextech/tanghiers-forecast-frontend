@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import { useSession } from '@/components/app/SessionProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 export function ContactForm() {
+  const { user } = useSession();
   const [sent, setSent] = React.useState(false);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -46,11 +48,24 @@ export function ContactForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" autoComplete="name" required />
+          <Input
+            id="name"
+            name="name"
+            autoComplete="name"
+            defaultValue={user?.name ?? ''}
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            defaultValue={user?.email ?? ''}
+            required
+          />
         </div>
       </div>
       <div className="space-y-2">

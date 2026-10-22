@@ -9,7 +9,8 @@ import { useSession } from '@/components/app/SessionProvider';
 import { SITE, footerNav } from '@/data/site';
 import { cn } from '@/lib/utils';
 
-export const shellClass = 'mx-auto w-full max-w-3xl px-4 sm:px-6';
+export const contentWidth = 'mx-auto w-full max-w-2xl';
+export const shellClass = `${contentWidth} px-4 sm:px-6`;
 
 const appLinks = [
   { href: '/feed', label: 'Feed' },
