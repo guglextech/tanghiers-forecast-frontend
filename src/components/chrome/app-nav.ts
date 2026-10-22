@@ -1,6 +1,7 @@
 import {
   Bell,
   CircleHelp,
+  CreditCard,
   Grid2x2,
   History,
   LayoutGrid,
@@ -50,8 +51,13 @@ export const accountNav: AppNavItem[] = [
     href: '/account',
     label: 'Settings',
     icon: Settings,
-    match: (path) =>
-      path.startsWith('/account') || path.startsWith('/subscription') || path.startsWith('/messages'),
+    match: (path) => path.startsWith('/account') || path.startsWith('/messages'),
+  },
+  {
+    href: '/subscription',
+    label: 'Subscription',
+    icon: CreditCard,
+    match: (path) => path.startsWith('/subscription'),
   },
 ];
 
