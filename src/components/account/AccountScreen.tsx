@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Clock, Mail, Shield } from 'lucide-react';
+import { Bell, Clock, CreditCard, Download, Mail, Shield, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
@@ -98,20 +98,29 @@ function SettingRow({
   icon: Icon,
   title,
   hint,
+  tone = 'default',
   children,
 }: {
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   title: string;
   hint: string;
-  children: React.ReactNode;
+  tone?: 'default' | 'danger';
+  children?: React.ReactNode;
 }) {
   return (
     <div className="flex items-center gap-3 px-1 py-3.5">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[#101828]">
+      <span
+        className={cn(
+          'flex size-10 shrink-0 items-center justify-center rounded-full bg-white',
+          tone === 'danger' ? 'text-[#b42318]' : 'text-[#101828]',
+        )}
+      >
         <Icon className="size-[18px]" strokeWidth={1.75} />
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-[#101828]">{title}</p>
+      <div className="min-w-0 flex-1 text-left">
+        <p className={cn('text-sm font-semibold', tone === 'danger' ? 'text-[#b42318]' : 'text-[#101828]')}>
+          {title}
+        </p>
         <p className="mt-0.5 text-sm leading-5 text-[#98a2b3]">{hint}</p>
       </div>
       {children}
@@ -150,7 +159,7 @@ function ThemeRow() {
 }
 
 export function AccountScreen() {
-  const { user, ready, refresh, updateProfile, clearPhone, exportAccount, deleteAccount, logout } =
+  const { user, ready, refresh, updateProfile, clearPhone, exportAccount, deleteAccount } =
     useSession();
   const router = useRouter();
   const [editing, setEditing] = React.useState(false);
@@ -435,67 +444,60 @@ export function AccountScreen() {
         </div>
       </Card>
 
-      <div className="mt-8 px-1">
-        {showDelete ? (
-          <form onSubmit={onDelete} className="space-y-3">
-            <p className="text-sm text-[#667085]">Enter your password to delete this account.</p>
-            <Input
-              id="delete-password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Password"
-              value={deletePassword}
-              onChange={(event) => setDeletePassword(event.target.value)}
+      <Card className="mt-4">
+        <CardHeading title="Account" hint="Plan, data, and this login." />
+        <div className="mt-2 divide-y divide-[#e8eaee]">
+          <Link href="/subscription" className="block">
+            <SettingRow icon={CreditCard} title="Subscription" hint="Plan, billing, and renewal">
+              <StatusPill>{planLabel}</StatusPill>
+            </SettingRow>
+          </Link>
+          <button type="button" className="block w-full" disabled={exporting} onClick={onExport}>
+            <SettingRow
+              icon={Download}
+              title="Export data"
+              hint={exporting ? 'Preparing your download…' : 'Download a copy of your account'}
             />
-            <div className="flex items-center gap-4">
-              <Button type="submit" size="sm" variant="outline" disabled={deleting}>
-                {deleting ? 'Deleting…' : 'Delete account'}
-              </Button>
-              <button
-                type="button"
-                className="text-sm font-medium text-[#667085] hover:text-[#101828]"
-                onClick={() => {
-                  setShowDelete(false);
-                  setDeletePassword('');
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link href="/subscription" className="text-sm text-[#98a2b3] transition-colors hover:text-[#101828]">
-              Subscription{planLabel !== 'None' ? ` · ${planLabel}` : ''}
-            </Link>
-            <button
-              type="button"
-              className="text-sm text-[#98a2b3] transition-colors hover:text-[#101828] disabled:opacity-60"
-              disabled={exporting}
-              onClick={onExport}
-            >
-              {exporting ? 'Preparing…' : 'Export data'}
+          </button>
+          {showDelete ? (
+            <form onSubmit={onDelete} className="space-y-3 px-1 py-4">
+              <p className="text-sm text-[#667085]">Enter your password to delete this account.</p>
+              <Input
+                id="delete-password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Password"
+                value={deletePassword}
+                onChange={(event) => setDeletePassword(event.target.value)}
+              />
+              <div className="flex items-center gap-4">
+                <Button type="submit" size="sm" variant="outline" disabled={deleting}>
+                  {deleting ? 'Deleting…' : 'Delete account'}
+                </Button>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-[#667085] hover:text-[#101828]"
+                  onClick={() => {
+                    setShowDelete(false);
+                    setDeletePassword('');
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button type="button" className="block w-full" onClick={() => setShowDelete(true)}>
+              <SettingRow
+                icon={Trash2}
+                title="Delete account"
+                hint="Permanently remove this login"
+                tone="danger"
+              />
             </button>
-            <button
-              type="button"
-              className="text-sm text-[#98a2b3] transition-colors hover:text-[#b42318]"
-              onClick={() => setShowDelete(true)}
-            >
-              Delete account
-            </button>
-            <button
-              type="button"
-              className="text-sm text-[#98a2b3] transition-colors hover:text-[#101828] md:hidden"
-              onClick={() => {
-                logout();
-                router.push('/');
-              }}
-            >
-              Sign out
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
