@@ -58,54 +58,42 @@ function PublicPlanCards({
   }
 
   return (
-    <div
-      className={cn(
-        'grid grid-cols-1 gap-3',
-        plans.length === 2 && 'sm:grid-cols-2',
-        plans.length >= 3 && 'sm:grid-cols-3',
-      )}
-    >
+    <div className="space-y-3">
       {plans.map((plan) => {
         const emphasized = highlight === plan.id || (!highlight && plan.featured);
         const href = user
           ? `/subscription?plan=${plan.id}`
           : `/signup?next=${encodeURIComponent(`/subscription?plan=${plan.id}`)}`;
-        const channels = (plan.channels ?? []).map((channel) => channel.toUpperCase()).join(' · ');
         return (
           <Link
             key={plan.id}
             href={href}
-            className={cn(
-              'group flex flex-col rounded-2xl border bg-white p-5',
-              'transition duration-300 ease-out',
-              'hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(16,24,40,0.35)]',
-              emphasized ? 'border-[#101828]' : 'border-[#e6e8ee] hover:border-[#d0d5dd]',
-            )}
+            className="flex flex-col gap-4 rounded-[28px] bg-[#f4f6f8] px-5 py-5 transition-colors hover:bg-[#eef0f3] sm:flex-row sm:items-center"
           >
-            <span className="flex min-h-5 items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
-              {plan.featured ? (
-                <span className="rounded-full bg-[#101828] px-2 py-0.5 text-[10px] font-medium tracking-[0.12em] text-white uppercase">
-                  Popular
-                </span>
-              ) : null}
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
+                {plan.featured ? (
+                  <span className="rounded-full bg-[#e8f1ff] px-2.5 py-0.5 text-xs font-medium text-[#2e90fa]">
+                    Popular
+                  </span>
+                ) : null}
+              </span>
+              <span className="mt-1 block text-sm leading-5 text-[#98a2b3]">{plan.blurb}</span>
             </span>
-            <span className="mt-4 text-[1.75rem] font-semibold tracking-tight tabular-nums text-[#101828]">
-              {formatMoney(plan.price, plan.currency)}
-              <span className="text-sm font-medium text-[#667085]">/{plan.period}</span>
-            </span>
-            <span className="mt-1 text-xs text-[#98a2b3]">{plan.cadence}</span>
-            <span className="mt-2 min-h-[2.5rem] text-sm leading-5 text-[#667085]">{plan.blurb}</span>
-            {channels ? <span className="mt-3 text-xs font-medium tracking-[0.08em] text-[#98a2b3] uppercase">{channels}</span> : null}
-            <span
-              className={cn(
-                'mt-6 inline-flex h-9 items-center justify-center rounded-md text-sm font-medium transition-colors',
-                emphasized
-                  ? 'bg-[#101828] text-white group-hover:bg-[#1d2939]'
-                  : 'border border-input text-[#101828] group-hover:border-[#101828]',
-              )}
-            >
-              {user ? 'Continue' : 'Get started'}
+            <span className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
+              <span className="text-[1.25rem] font-semibold tracking-tight tabular-nums text-[#101828]">
+                {formatMoney(plan.price, plan.currency)}
+                <span className="text-sm font-medium text-[#98a2b3]">/{plan.period}</span>
+              </span>
+              <span
+                className={cn(
+                  'inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-semibold',
+                  emphasized ? 'bg-[#101828] text-white' : 'bg-white text-[#101828]',
+                )}
+              >
+                {user ? 'Continue' : 'Get started'}
+              </span>
             </span>
           </Link>
         );

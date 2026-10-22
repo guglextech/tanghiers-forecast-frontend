@@ -49,7 +49,7 @@ function TabBar({
         collapse === 'lg' ? 'lg:hidden' : 'md:hidden',
       )}
     >
-      <ul className="mx-auto flex h-14 w-full max-w-lg px-2">
+      <ul className="mx-auto flex h-14 w-full max-w-2xl px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = tab.match(pathname);

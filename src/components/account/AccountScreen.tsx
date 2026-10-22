@@ -288,7 +288,7 @@ export function AccountScreen() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Settings</h1>
       <p className="mt-1 text-sm text-[#98a2b3]">Manage your account and preferences.</p>
 

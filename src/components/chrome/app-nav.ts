@@ -35,19 +35,6 @@ export const mainNav: AppNavItem[] = [
 
 export const accountNav: AppNavItem[] = [
   {
-    href: '/notifications',
-    label: 'Notifications',
-    icon: Bell,
-    match: (path) => path.startsWith('/notifications'),
-    badge: 'notifications',
-  },
-  {
-    href: '/contact',
-    label: 'Help',
-    icon: CircleHelp,
-    match: (path) => path.startsWith('/contact') || path.startsWith('/about'),
-  },
-  {
     href: '/account',
     label: 'Settings',
     icon: Settings,
@@ -58,6 +45,19 @@ export const accountNav: AppNavItem[] = [
     label: 'Subscription',
     icon: CreditCard,
     match: (path) => path.startsWith('/subscription'),
+  },
+  {
+    href: '/notifications',
+    label: 'Notifications',
+    icon: Bell,
+    match: (path) => path.startsWith('/notifications'),
+    badge: 'notifications',
+  },
+  {
+    href: '/contact',
+    label: 'Help',
+    icon: CircleHelp,
+    match: (path) => path.startsWith('/contact'),
   },
 ];
 
