@@ -45,11 +45,11 @@ function TabBar({
     <nav
       aria-label={label}
       className={cn(
-        'fixed inset-x-0 bottom-0 z-30 border-t border-[#e6e8ee] bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur',
+        'fixed inset-x-0 bottom-0 z-30 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur',
         collapse === 'lg' ? 'lg:hidden' : 'md:hidden',
       )}
     >
-      <ul className="mx-auto flex h-14 w-full max-w-3xl px-4 sm:px-6">
+      <ul className="mx-auto flex h-14 w-full max-w-lg px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = tab.match(pathname);
