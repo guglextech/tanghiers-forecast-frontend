@@ -99,8 +99,16 @@ export const me = {
   setConsent: (key: string, granted: boolean, textVersion: string) =>
     apiRequest<unknown>(`/v1/me/consents/${key}`, { method: 'PUT', body: { granted, textVersion } }),
   exportData: () => apiRequest<unknown>('/v1/me/export'),
-  subscriptions: () => apiRequest<ApiSubscription[] | { items?: ApiSubscription[] }>('/v1/me/subscriptions'),
-  payments: () => apiRequest<ApiPayment[] | { items?: ApiPayment[] }>('/v1/me/payments'),
+  subscriptions: () => apiRequest<ApiSubscription[] | { items?: ApiSubscription[]; subscriptions?: ApiSubscription[] }>('/v1/me/subscriptions'),
+  payments: (query: { limit?: number; offset?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (query.limit != null) params.set('limit', String(query.limit));
+    if (query.offset != null) params.set('offset', String(query.offset));
+    const search = params.toString();
+    return apiRequest<ApiPayment[] | { items?: ApiPayment[]; payments?: ApiPayment[] }>(
+      `/v1/me/payments${search ? `?${search}` : ''}`,
+    );
+  },
   entitlements: (productSlug = PRODUCT_SLUG) =>
     apiRequest<ApiEntitlement | boolean>(productUrl('/v1/me/entitlements', {}, productSlug)),
   notifications: () =>

@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { StepBars } from '@/components/auth/StepBars';
 import { shellClass } from '@/components/chrome/Chrome';
 import { cn } from '@/lib/utils';
 
@@ -257,40 +258,15 @@ export function SignupScreen() {
             <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">{STEP_COPY[step].title}</h1>
             <p className="mt-1 text-sm leading-6 text-[#667085]">{STEP_COPY[step].hint}</p>
 
-            <nav aria-label="Signup progress" className="mt-8">
-              <ol className="grid grid-cols-3 gap-2">
-                {STEPS.map((item, index) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      className="w-full text-left"
-                      disabled={index > step}
-                      onClick={() => {
-                        if (index < step) {
-                          setError('');
-                          setStep(index);
-                        }
-                      }}
-                    >
-                      <span
-                        className={cn(
-                          'block h-1 rounded-full',
-                          index <= step ? 'bg-[#101828]' : 'bg-[#e6e8ee]',
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          'mt-2 block text-xs font-medium',
-                          index === step ? 'text-[#101828]' : 'text-[#98a2b3]',
-                        )}
-                      >
-                        {item.title}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            </nav>
+            <StepBars
+              label="Signup progress"
+              steps={STEPS}
+              current={step}
+              onSelect={(index) => {
+                setError('');
+                setStep(index);
+              }}
+            />
 
             <form onSubmit={submit} className="mt-8 space-y-4">
               {step === 0 ? (

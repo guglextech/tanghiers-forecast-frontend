@@ -4,15 +4,8 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, Copy, Download } from 'lucide-react';
-import {
-  Stepper,
-  StepperIndicator,
-  StepperItem,
-  StepperSeparator,
-  StepperTitle,
-  type StepState,
-} from '@/components/ui/stepper';
 import { toast } from 'sonner';
+import { StepBars } from '@/components/auth/StepBars';
 import { BrandLockup } from '@/components/brand/Logo';
 import { useSession } from '@/components/app/SessionProvider';
 import { Button } from '@/components/ui/button';
@@ -26,11 +19,15 @@ function AuthShell({
   description,
   children,
   wide = false,
+  kicker,
+  align = 'center',
 }: {
   title: string;
   description: string;
   children: React.ReactNode;
   wide?: boolean;
+  kicker?: string;
+  align?: 'center' | 'start';
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -41,11 +38,15 @@ function AuthShell({
       </header>
       <main
         className={cn(
-          'mx-auto flex w-full flex-1 flex-col justify-center px-4 py-12',
+          'mx-auto flex w-full flex-1 flex-col px-4 py-12',
+          align === 'start' ? 'justify-start pt-10 md:pt-16' : 'justify-center',
           wide ? 'max-w-lg' : 'max-w-md',
         )}
       >
-        <h1 className="text-[1.75rem] font-semibold tracking-tight">{title}</h1>
+        {kicker ? (
+          <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">{kicker}</p>
+        ) : null}
+        <h1 className={cn('text-[1.75rem] font-semibold tracking-tight', kicker && 'mt-2')}>{title}</h1>
         <p className="mt-1 text-sm leading-6 text-[#667085]">{description}</p>
         {children}
       </main>
@@ -102,7 +103,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
     <button
       type="button"
       onClick={() => void copy()}
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#667085] hover:text-[#101828]"
+      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[#e6e8ee] px-3 text-xs font-medium text-[#344054] transition-colors hover:bg-[#f7f8fa]"
     >
       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
       {copied ? 'Copied' : 'Copy'}
@@ -191,63 +192,54 @@ export function MfaVerifyScreen() {
 }
 
 const SETUP_STEPS = [
-  { title: 'Scan', description: 'Add Tanghiers in your authenticator app.' },
-  { title: 'Confirm', description: 'Enter the 6-digit code from the app.' },
-  { title: 'Save', description: 'Store these codes. They are shown once.' },
+  { title: 'Scan', heading: 'Scan the code', description: 'Open your authenticator app and add Tanghiers.' },
+  { title: 'Confirm', heading: 'Confirm the code', description: 'Enter the 6-digit code from the app.' },
+  { title: 'Save', heading: 'Save your codes', description: 'Store these codes somewhere safe. They are shown once.' },
 ] as const;
 
-function stepState(index: number, current: number): StepState {
-  if (index < current) return 'completed';
-  if (index === current) return 'active';
-  return 'pending';
-}
-
-function SetupStepper({ current }: { current: number }) {
-  return (
-    <Stepper orientation="horizontal" aria-label="Setup progress" className="mt-8">
-      {SETUP_STEPS.map((step, index) => (
-        <StepperItem
-          key={step.title}
-          state={stepState(index, current)}
-          aria-current={index === current ? 'step' : undefined}
-          className="gap-2"
-        >
-          <StepperIndicator>
-            {index < current ? <Check className="size-3.5" /> : index + 1}
-          </StepperIndicator>
-          <StepperTitle>{step.title}</StepperTitle>
-          <StepperSeparator className="mx-1 min-w-3 flex-1" />
-        </StepperItem>
-      ))}
-    </Stepper>
-  );
-}
-
 function ScanStep({ challenge, onContinue }: { challenge: MfaChallenge; onContinue: () => void }) {
-  const secret = formatSecret(challenge.secret);
+  const groups = formatSecret(challenge.secret).split(' ').filter(Boolean);
 
   return (
     <div className="mt-8">
-      <div className="flex justify-center">
-        <div className="rounded-xl border border-[#e6e8ee] p-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={challenge.qrCode} alt="Authenticator QR code" width={168} height={168} className="size-[168px]" />
-        </div>
-      </div>
-      {secret ? (
-        <div className="mt-5">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-[#667085]">
-              Or enter this key{challenge.email ? ` for ${challenge.email}` : ''}.
-            </p>
-            <CopyButton value={challenge.secret.replace(/\s+/g, '')} label="Setup key" />
+      <div className="rounded-2xl border border-[#e6e8ee] bg-white p-5">
+        <div className="flex justify-center">
+          <div className="rounded-xl bg-[#f7f8fa] p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={challenge.qrCode}
+              alt="Authenticator QR code"
+              width={180}
+              height={180}
+              className="size-[180px] rounded-lg bg-white"
+            />
           </div>
-          <p className="mt-2 break-all rounded-xl bg-[#f7f8fa] px-3 py-2.5 font-mono text-sm tracking-[0.14em] text-[#101828]">
-            {secret}
-          </p>
         </div>
-      ) : null}
-      <Button type="button" className="mt-6 h-11 w-full" onClick={onContinue}>
+        {groups.length > 0 ? (
+          <div className="mt-5 border-t border-[#eef0f3] pt-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[#101828]">Setup key</p>
+                <p className="mt-0.5 truncate text-xs text-[#98a2b3]">
+                  {challenge.email ? `For ${challenge.email}` : 'Enter this if you cannot scan the code.'}
+                </p>
+              </div>
+              <CopyButton value={groups.join('')} label="Setup key" />
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              {groups.map((group, index) => (
+                <span
+                  key={`${group}-${index}`}
+                  className="rounded-md bg-[#f7f8fa] py-1.5 text-center font-mono text-[13px] tracking-wide text-[#101828]"
+                >
+                  {group}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <Button type="button" className="mt-5 h-11 w-full" onClick={onContinue}>
         Continue
       </Button>
     </div>
@@ -304,25 +296,27 @@ function SaveStep({ codes, onContinue }: { codes: string[]; onContinue: () => vo
 
   return (
     <div className="mt-8">
-      <div className="flex items-center justify-end gap-4">
-        <CopyButton value={codes.join('\n')} label="Recovery codes" />
-        <button
-          type="button"
-          onClick={download}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#667085] hover:text-[#101828]"
-        >
-          <Download className="size-3.5" />
-          Download
-        </button>
+      <div className="rounded-2xl border border-[#e6e8ee] p-4">
+        <div className="flex items-center justify-end gap-2">
+          <CopyButton value={codes.join('\n')} label="Recovery codes" />
+          <button
+            type="button"
+            onClick={download}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[#e6e8ee] px-3 text-xs font-medium text-[#344054] transition-colors hover:bg-[#f7f8fa]"
+          >
+            <Download className="size-3.5" />
+            Download
+          </button>
+        </div>
+        <ul className="mt-3 grid grid-cols-2 gap-2">
+          {codes.map((item) => (
+            <li key={item} className="rounded-lg bg-[#f7f8fa] px-3 py-2.5 text-center font-mono text-sm tracking-wide text-[#101828]">
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="mt-3 grid grid-cols-2 gap-2">
-        {codes.map((item) => (
-          <li key={item} className="rounded-lg bg-[#f7f8fa] px-3 py-2 font-mono text-sm tracking-wide text-[#101828]">
-            {item}
-          </li>
-        ))}
-      </ul>
-      <Button type="button" className="mt-6 h-11 w-full" onClick={onContinue}>
+      <Button type="button" className="mt-5 h-11 w-full" onClick={onContinue}>
         I have saved these codes
       </Button>
     </div>
@@ -423,14 +417,31 @@ export function MfaSetupScreen() {
   if (!challenge) {
     return (
       <AuthShell title="Set up authenticator" description="Preparing your authenticator setup…">
-        <div className="mt-8 h-8 animate-pulse rounded-full bg-[#f2f4f7]" />
+        <div className="mt-8 h-1 animate-pulse rounded-full bg-[#f2f4f7]" />
       </AuthShell>
     );
   }
 
   return (
-    <AuthShell title="Set up authenticator" description={SETUP_STEPS[current].description}>
-      <SetupStepper current={current} />
+    <AuthShell
+      kicker="Set up authenticator"
+      title={SETUP_STEPS[current].heading}
+      description={SETUP_STEPS[current].description}
+      align="start"
+    >
+      <StepBars
+        label="Setup progress"
+        steps={SETUP_STEPS}
+        current={current}
+        onSelect={
+          current < 2
+            ? (index) => {
+                setError('');
+                setStep(index);
+              }
+            : undefined
+        }
+      />
       {current === 0 ? <ScanStep challenge={challenge} onContinue={() => setStep(1)} /> : null}
       {current === 1 ? (
         <ConfirmStep
@@ -449,8 +460,8 @@ export function MfaSetupScreen() {
         <SaveStep codes={recoveryCodes} onContinue={() => finish(user?.role ?? 'admin')} />
       ) : null}
       {current < 2 ? (
-        <p className="mt-5 text-sm text-[#667085]">
-          <Link href="/login" className="hover:text-[#101828]">
+        <p className="mt-6 text-center text-sm text-[#98a2b3]">
+          <Link href="/login" className="text-[#667085] hover:text-[#101828]">
             Use a different account
           </Link>
         </p>

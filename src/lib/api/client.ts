@@ -123,11 +123,20 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 export function unwrapList<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value as T[];
   if (value && typeof value === 'object') {
-    const record = value as { items?: T[]; data?: T[]; results?: T[]; users?: T[] };
+    const record = value as {
+      items?: T[];
+      data?: T[];
+      results?: T[];
+      users?: T[];
+      payments?: T[];
+      subscriptions?: T[];
+    };
     if (Array.isArray(record.items)) return record.items;
     if (Array.isArray(record.data)) return record.data;
     if (Array.isArray(record.results)) return record.results;
     if (Array.isArray(record.users)) return record.users;
+    if (Array.isArray(record.payments)) return record.payments;
+    if (Array.isArray(record.subscriptions)) return record.subscriptions;
   }
   return [];
 }

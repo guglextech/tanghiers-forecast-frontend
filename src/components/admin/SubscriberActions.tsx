@@ -8,16 +8,7 @@ import { mapAdminUser, type AdminAccount } from '@/lib/api/mappers';
 import { useSession } from '@/components/app/SessionProvider';
 import { formatDateTime } from '@/lib/dates';
 import { planById } from '@/data/site';
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { ConfirmDrawer } from '@/components/admin/ConfirmDrawer';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -153,8 +144,7 @@ export function SubscriberActions({
           </DropdownMenuItem>
           {!isSelf && !isAdmin && !account.disabled ? (
             <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
+              onSelect={() => {
                 setCode('');
                 setConfirm('make-admin');
               }}
@@ -164,8 +154,7 @@ export function SubscriberActions({
           ) : null}
           {!isSelf && isAdmin ? (
             <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
+              onSelect={() => {
                 setCode('');
                 setConfirm('remove-admin');
               }}
@@ -174,35 +163,19 @@ export function SubscriberActions({
             </DropdownMenuItem>
           ) : null}
           {!isSelf && !account.disabled ? (
-            <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                setConfirm('disable');
-              }}
-            >
+            <DropdownMenuItem onSelect={() => setConfirm('disable')}>
               Disable
             </DropdownMenuItem>
           ) : null}
           {!isSelf && account.disabled ? (
-            <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                setConfirm('enable');
-              }}
-            >
+            <DropdownMenuItem onSelect={() => setConfirm('enable')}>
               Enable
             </DropdownMenuItem>
           ) : null}
           {!isSelf ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={(event) => {
-                  event.preventDefault();
-                  setConfirm('erase');
-                }}
-              >
+              <DropdownMenuItem variant="destructive" onSelect={() => setConfirm('erase')}>
                 Erase
               </DropdownMenuItem>
             </>
@@ -266,13 +239,23 @@ export function SubscriberActions({
         </SheetContent>
       </Sheet>
 
-      <AlertDialog open={Boolean(confirm)} onOpenChange={(open) => !open && closeConfirm()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{copy?.title}</AlertDialogTitle>
-            <AlertDialogDescription>{copy?.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          {needsCode ? (
+      <ConfirmDrawer
+        open={Boolean(confirm)}
+        title={copy?.title ?? ''}
+        description={copy?.description ?? ''}
+        subject={{ title: account.name, detail: account.email }}
+        confirmLabel={copy?.confirm ?? 'Confirm'}
+        busy={busy}
+        destructive={confirm === 'erase'}
+        disabled={!canSubmit}
+        onClose={closeConfirm}
+        onConfirm={() => {
+          if (confirm) void run(confirm);
+        }}
+      >
+        {needsCode ? (
+          <div className="mt-6">
+            <p className="text-sm font-medium text-[#101828]">Authenticator code</p>
             <InputOTP
               maxLength={6}
               value={code}
@@ -280,33 +263,21 @@ export function SubscriberActions({
               disabled={busy}
               autoFocus
               inputMode="numeric"
-              containerClassName="flex w-full justify-center py-1"
+              containerClassName="mt-4 justify-start"
             >
-              <InputOTPGroup className="gap-2.5">
+              <InputOTPGroup className="gap-2">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <InputOTPSlot
                     key={index}
                     index={index}
-                    className="h-9 w-9 rounded-md text-sm font-medium shadow-none sm:w-10"
+                    className="h-11 w-10 rounded-lg text-base font-medium shadow-none"
                   />
                 ))}
               </InputOTPGroup>
             </InputOTP>
-          ) : null}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
-            <Button
-              variant={confirm === 'erase' ? 'destructive' : 'default'}
-              disabled={!canSubmit}
-              onClick={() => {
-                if (confirm) void run(confirm);
-              }}
-            >
-              {busy ? 'Working…' : copy?.confirm}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </div>
+        ) : null}
+      </ConfirmDrawer>
     </>
   );
 }

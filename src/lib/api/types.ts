@@ -142,18 +142,31 @@ export type ApiSubscription = {
   status?: string;
   planCode?: string;
   planId?: string;
+  planName?: string;
   currentPeriodEnd?: string | null;
+  currentPeriodStart?: string | null;
+  createdAt?: string;
   productSlug?: string;
+  cancelAtPeriodEnd?: boolean;
 };
 
 export type ApiPayment = {
   id?: string;
   date?: string;
   createdAt?: string;
+  paidAt?: string;
   label?: string;
   description?: string;
+  planCode?: string;
+  planId?: string;
+  planName?: string;
+  kind?: string;
+  passDurationHours?: number | null;
   amount?: number;
+  amountCents?: number;
+  currency?: string;
   status?: string;
+  productSlug?: string;
 };
 
 export type ApiEntitlement = {

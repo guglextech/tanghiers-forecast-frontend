@@ -287,14 +287,85 @@ export function mapDelivery(row: ApiNotification, index = 0): Delivery {
   };
 }
 
-export function mapPayment(row: ApiPayment, index = 0): Invoice {
-  const raw = Number(row.amount ?? 0);
-  const amount = raw >= 100 ? raw / 100 : raw;
+function paymentMoney(row: ApiPayment) {
+  const currency = String(row.currency || 'USD').toUpperCase();
+  if (typeof row.amountCents === 'number' && Number.isFinite(row.amountCents)) {
+    return { amount: row.amountCents / 100, currency };
+  }
+  const raw = Number(row.amount);
+  if (!Number.isFinite(raw)) return { amount: 0, currency };
+  if (Number.isInteger(raw) && raw >= 100) return { amount: raw / 100, currency };
+  return { amount: raw, currency };
+}
+
+function isDayPassPayment(row: ApiPayment) {
+  if (row.passDurationHours === 24) return true;
+  const hint = [row.planCode, row.planId, row.planName, row.kind, row.label, row.description]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return hint.includes('day') || hint.includes('pass');
+}
+
+export type AccountSubscription = {
+  id: string;
+  planCode: string;
+  name: string;
+  status: string;
+  renewsAt: string | null;
+  active: boolean;
+};
+
+export type AccountPayment = {
+  id: string;
+  planCode: string;
+  label: string;
+  status: string;
+  amount: number;
+  currency: string;
+  at: string | null;
+  dayPass: boolean;
+};
+
+export function mapAccountSubscription(row: ApiSubscription, index = 0): AccountSubscription {
+  const status = String(row.status || '').toLowerCase();
+  const planCode = String(row.planCode || row.planId || '').toLowerCase();
+  const name =
+    row.planName ||
+    (planCode ? planCode.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Subscription');
+  return {
+    id: row.id || `sub-${index}`,
+    planCode,
+    name,
+    status: status || 'unknown',
+    renewsAt: row.currentPeriodEnd || null,
+    active: status === 'active' || status === 'trialing',
+  };
+}
+
+export function mapAccountPayment(row: ApiPayment, index = 0): AccountPayment {
+  const planCode = String(row.planCode || row.planId || '').toLowerCase();
+  const dayPass = isDayPassPayment(row);
+  const money = paymentMoney(row);
   return {
     id: row.id || `pay-${index}`,
-    date: (row.date || row.createdAt || '').slice(0, 10),
-    label: row.label || row.description || 'Subscription',
-    amount,
+    planCode,
+    label: row.planName || row.label || row.description || (dayPass ? 'One-day pass' : 'Payment'),
+    status: String(row.status || 'paid').toLowerCase(),
+    amount: money.amount,
+    currency: money.currency,
+    at: row.paidAt || row.createdAt || row.date || null,
+    dayPass,
+  };
+}
+
+export function mapPayment(row: ApiPayment, index = 0): Invoice {
+  const payment = mapAccountPayment(row, index);
+  return {
+    id: payment.id,
+    date: (payment.at || '').slice(0, 10),
+    label: payment.label,
+    amount: payment.amount,
     status: 'Paid',
   };
 }

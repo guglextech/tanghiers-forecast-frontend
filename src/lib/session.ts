@@ -1,3 +1,4 @@
+import { PRODUCT_SLUG } from '@/lib/api/config';
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
 import { readTokens, writeTokens } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
@@ -166,9 +167,11 @@ export async function hydrateSession(): Promise<SessionUser | null> {
       me.entitlements().catch(() => false),
     ]);
     const list = asList<ApiSubscription>(subscriptions);
+    const subscription =
+      list.find((row) => !row.productSlug || row.productSlug === PRODUCT_SLUG) ?? null;
     const user = mapSessionUser({
       profile,
-      subscription: list[0] ?? null,
+      subscription,
       payments: asList<ApiPayment>(payments),
       entitled: hasEntitlement(entitlement),
       smsConsent: await loadSmsConsent(),
@@ -390,10 +393,20 @@ export async function subscribeToPlan(userId: string, planId: PlanId) {
   return session;
 }
 
+function billingRedirect(payload: unknown) {
+  if (!payload || typeof payload !== 'object') return '';
+  const record = payload as Record<string, unknown>;
+  for (const key of ['url', 'portalUrl', 'redirectUrl', 'sessionUrl']) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
 export async function cancelSubscription(userId: string) {
   void userId;
   const portal = await billing.portal();
-  const url = portal.url || portal.portalUrl;
+  const url = billingRedirect(portal);
   if (!url) throw new Error('The billing portal is not available yet.');
   window.location.assign(url);
   const session = readSession();

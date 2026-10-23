@@ -11,16 +11,8 @@ import {
   publishForecastNow,
   unscheduleForecast,
 } from '@/lib/desk';
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { ConfirmDrawer } from '@/components/admin/ConfirmDrawer';
+import { formatLongDate } from '@/lib/dates';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -114,12 +106,7 @@ export function ForecastActions({
             </DropdownMenuItem>
           ) : null}
           {canPublish ? (
-            <DropdownMenuItem
-              onSelect={(event) => {
-                event.preventDefault();
-                setConfirm('publish');
-              }}
-            >
+            <DropdownMenuItem onSelect={() => setConfirm('publish')}>
               Publish now
             </DropdownMenuItem>
           ) : null}
@@ -136,12 +123,7 @@ export function ForecastActions({
           {canArchive ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={(event) => {
-                  event.preventDefault();
-                  setConfirm('archive');
-                }}
-              >
+              <DropdownMenuItem onSelect={() => setConfirm('archive')}>
                 Archive
               </DropdownMenuItem>
             </>
@@ -149,13 +131,7 @@ export function ForecastActions({
           {canDelete ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onSelect={(event) => {
-                  event.preventDefault();
-                  setConfirm('delete');
-                }}
-              >
+              <DropdownMenuItem variant="destructive" onSelect={() => setConfirm('delete')}>
                 Delete draft
               </DropdownMenuItem>
             </>
@@ -163,26 +139,21 @@ export function ForecastActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={Boolean(confirm)} onOpenChange={(open) => !open && !busy && setConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{copy?.title}</AlertDialogTitle>
-            <AlertDialogDescription>{copy?.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
-            <Button
-              variant={confirm === 'delete' ? 'destructive' : 'default'}
-              disabled={busy || !confirm}
-              onClick={() => {
-                if (confirm) void run(confirm);
-              }}
-            >
-              {busy ? 'Working…' : copy?.confirm}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDrawer
+        open={Boolean(confirm)}
+        title={copy?.title ?? ''}
+        description={copy?.description ?? ''}
+        subject={{ title: forecast.title, detail: formatLongDate(forecast.date) }}
+        confirmLabel={copy?.confirm ?? 'Confirm'}
+        busy={busy}
+        destructive={confirm === 'delete'}
+        onClose={() => {
+          if (!busy) setConfirm(null);
+        }}
+        onConfirm={() => {
+          if (confirm) void run(confirm);
+        }}
+      />
     </>
   );
 }
