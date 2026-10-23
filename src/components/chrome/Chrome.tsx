@@ -17,10 +17,19 @@ const appLinks = [
   { href: '/history', label: 'History' },
 ];
 
+const barClass = 'sticky top-0 z-20 bg-white/80 backdrop-blur-md';
+
 function navClass(active: boolean) {
   return cn(
     'text-sm transition-colors hover:text-[#101828]',
     active ? 'font-medium text-[#101828]' : 'text-[#667085]',
+  );
+}
+
+function footerLinkClass(active: boolean) {
+  return cn(
+    'text-[13px] transition-colors hover:text-[#101828]',
+    active ? 'font-medium text-[#101828]' : 'text-[#98a2b3]',
   );
 }
 
@@ -34,11 +43,11 @@ export function AppHeader() {
   const { user } = useSession();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white/95 backdrop-blur">
-      <div className={cn(shellClass, 'flex h-12 items-center justify-between gap-3 md:h-16')}>
+    <header className={barClass}>
+      <div className={cn(shellClass, 'flex h-14 items-center justify-between gap-3 md:h-16')}>
         <BrandLockup />
         <div className="hidden items-center gap-2 md:flex">
-          <nav aria-label="App" className="flex items-center gap-5">
+          <nav aria-label="App" className="flex items-center gap-6">
             {appLinks.map((link) => (
               <Link key={link.href} href={link.href} className={navClass(isAppActive(pathname, link.href))}>
                 {link.label}
@@ -63,10 +72,10 @@ export function PublicHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white/95 backdrop-blur">
-      <div className={cn(shellClass, 'flex h-12 items-center justify-between gap-4 md:h-16')}>
+    <header className={barClass}>
+      <div className={cn(shellClass, 'flex h-14 items-center justify-between gap-4 md:h-16')}>
         <BrandLockup />
-        <nav aria-label="Site" className="hidden items-center gap-5 md:flex">
+        <nav aria-label="Site" className="hidden items-center gap-6 md:flex">
           <Link href="/pricing" className={navClass(pathname.startsWith('/pricing'))}>
             Pricing
           </Link>
@@ -108,10 +117,10 @@ export function Disclaimer({ compact = false }: { compact?: boolean }) {
   return (
     <footer
       className={cn(
-        'mt-auto border-t border-[#eef0f3] text-center text-sm text-[#98a2b3]',
+        'mt-auto text-center text-[13px] text-[#98a2b3]',
         compact
-          ? 'px-4 py-6 md:px-10 md:py-8'
-          : 'pt-6 pb-[calc(1.25rem+3.5rem+env(safe-area-inset-bottom))] md:py-8',
+          ? 'px-4 pt-10 pb-6 md:px-10 md:pt-14 md:pb-8'
+          : 'pt-14 pb-[calc(1.25rem+3.5rem+env(safe-area-inset-bottom))] md:pb-8',
       )}
     >
       {SITE.disclaimer}
@@ -123,20 +132,18 @@ export function PublicFooter() {
   const pathname = usePathname();
 
   return (
-    <footer className="mt-auto border-t border-[#eef0f3] pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
-      <div className={cn(shellClass, 'flex flex-col gap-6 py-10')}>
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <p className="text-sm text-[#667085]">
-            A {SITE.project} product. {SITE.disclaimer}
-          </p>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
-            {footerNav.public.map((link) => (
-              <Link key={link.href} href={link.href} className={navClass(pathname === link.href)}>
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+    <footer className="mt-auto pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className={cn(shellClass, 'flex flex-col gap-3 pt-16 pb-8 sm:flex-row sm:items-center sm:justify-between')}>
+        <p className="text-[13px] leading-5 text-[#98a2b3]">
+          A {SITE.project} product. {SITE.disclaimer}
+        </p>
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-2">
+          {footerNav.public.map((link) => (
+            <Link key={link.href} href={link.href} className={footerLinkClass(pathname === link.href)}>
+              {link.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </footer>
   );

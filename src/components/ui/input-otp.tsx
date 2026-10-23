@@ -4,6 +4,7 @@ import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 import { MinusIcon } from "lucide-react"
 
+import { fieldActive } from "@/components/ui/field"
 import { cn } from "@/lib/utils"
 
 function InputOTP({
@@ -51,7 +52,8 @@ function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        "relative flex h-9 w-9 items-center justify-center rounded-md border border-input text-sm shadow-none outline-none transition-colors aria-invalid:border-destructive data-[active=true]:border-foreground data-[active=true]:aria-invalid:border-destructive dark:bg-input/30",
+        "relative flex h-9 w-9 items-center justify-center rounded-md border border-input text-sm shadow-none outline-none transition-[border-color,box-shadow] duration-150 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30",
+        fieldActive,
         className
       )}
       {...props}

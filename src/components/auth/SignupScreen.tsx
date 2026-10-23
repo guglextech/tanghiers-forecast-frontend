@@ -238,7 +238,7 @@ export function SignupScreen() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-[#e6e8ee]">
+      <header>
         <div className={cn(shellClass, 'flex h-12 items-center md:h-16')}>
           <BrandLockup />
         </div>

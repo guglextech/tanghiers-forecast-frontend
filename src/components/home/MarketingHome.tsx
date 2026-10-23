@@ -30,7 +30,7 @@ export function MarketingHome() {
 
   return (
     <PublicFrame>
-      <header className="border-b border-[#eef0f3] pb-6">
+      <header className="pb-2">
         <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Daily forecasts</h1>
         <p className="mt-2 max-w-md text-sm leading-6 text-[#667085]">{SITE.tagline}</p>
         <div className="mt-5 flex flex-wrap items-center gap-3">

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { fieldWithin } from "@/components/ui/field"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import {
@@ -102,11 +103,11 @@ export function PhoneInput({
       }))
 
   return (
-    <div className="flex h-9 overflow-hidden rounded-md border border-input bg-transparent">
+    <div className={cn("flex h-9 rounded-md border border-input bg-transparent", fieldWithin)}>
       <Select value={countryCode} onValueChange={onCountryChange} disabled={disabled}>
         <SelectTrigger
           aria-label="Country code"
-          className="h-9 w-[6.75rem] shrink-0 rounded-none border-0 border-r border-input px-2 shadow-none"
+          className="h-9 w-[6.75rem] shrink-0 rounded-none border-0 border-r border-input px-2 shadow-none focus:border-transparent focus:shadow-none data-[state=open]:border-transparent data-[state=open]:shadow-none"
         >
           <SelectValue />
         </SelectTrigger>
@@ -127,7 +128,7 @@ export function PhoneInput({
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value.replace(/[^\d]/g, ""))}
-        className={cn("h-9 rounded-none border-0 shadow-none focus-visible:border-transparent")}
+        className={cn("h-9 rounded-none border-0 shadow-none focus:border-transparent focus:shadow-none")}
       />
     </div>
   )

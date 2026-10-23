@@ -16,7 +16,7 @@ import { forgotPassword, resetPasswordToken, verifyEmailToken } from '@/lib/sess
 function Frame({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-[#e6e8ee]">
+      <header>
         <div className={cn(shellClass, 'flex h-12 items-center md:h-16')}>
           <BrandLockup />
         </div>
