@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
 import { useSession } from '@/components/app/SessionProvider';
@@ -31,6 +31,7 @@ export function AuthForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState<'google' | 'password' | null>(null);
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -43,18 +44,21 @@ export function AuthForm() {
 
   const onGoogle = async () => {
     setError('');
+    setBusy('google');
     try {
       const session = await continueWithGoogle();
       toast.success('Signed in with Google.');
       go(session.role);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not continue with Google.');
+      setBusy(null);
     }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
+    setBusy('password');
     try {
       const session = await login({ email, password });
       go(session.role);
@@ -62,6 +66,7 @@ export function AuthForm() {
       if (err instanceof ApiError && err.code === 'PENDING_VERIFICATION') {
         toast.success(err.message);
         setError(err.message);
+        setBusy(null);
         return;
       }
       if (err instanceof ApiError && (err.code === 'MFA_ENROLL' || err.code === 'MFA_VERIFY')) {
@@ -69,6 +74,7 @@ export function AuthForm() {
         return;
       }
       setError(err instanceof Error ? err.message : 'Could not continue.');
+      setBusy(null);
     }
   };
 
@@ -91,9 +97,14 @@ export function AuthForm() {
 
         {step === 'choose' ? (
           <div className="mt-6 space-y-2">
-            <button type="button" onClick={onGoogle} className={cn(choiceClass, 'border border-input bg-background text-foreground hover:bg-muted')}>
-              <GoogleMark />
-              Continue with Google
+            <button
+              type="button"
+              onClick={onGoogle}
+              disabled={busy === 'google'}
+              className={cn(choiceClass, 'border border-input bg-background text-foreground hover:bg-muted disabled:opacity-60')}
+            >
+              {busy === 'google' ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <GoogleMark />}
+              {busy === 'google' ? 'Logging in' : 'Continue with Google'}
             </button>
             <button
               type="button"
@@ -158,8 +169,8 @@ export function AuthForm() {
               </div>
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" className="w-full">
-              Log in
+            <Button type="submit" className="w-full" loading={busy === 'password'}>
+              {busy === 'password' ? 'Logging in' : 'Log in'}
             </Button>
             <p className="text-center text-sm">
               <Link

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import { House, Info, LogIn, Newspaper, Tag } from 'lucide-react';
+import { Flame, House, Info, LogIn, Tag } from 'lucide-react';
 import { useSession } from '@/components/app/SessionProvider';
 import { useNotifications } from '@/components/app/useNotifications';
 import { accountNav, deskNav, mainNav } from '@/components/chrome/app-nav';
@@ -17,6 +17,7 @@ type Tab = {
   icon: LucideIcon;
   match: (pathname: string) => boolean;
   badge?: number;
+  iconClassName?: string;
 };
 
 function TabBar({
@@ -54,7 +55,10 @@ function TabBar({
                 )}
               >
                 <span className="relative" aria-hidden>
-                  <Icon className="size-5" strokeWidth={active ? 2.15 : 1.7} />
+                  <Icon
+                    className={cn('size-5', tab.iconClassName)}
+                    strokeWidth={active ? 2.15 : 1.7}
+                  />
                   {tab.badge ? (
                     <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#f04438] ring-2 ring-white" />
                   ) : null}
@@ -86,6 +90,7 @@ export function AppBottomNav() {
     icon: item.icon,
     match: item.match,
     badge: item.badge === 'notifications' ? unreadCount : undefined,
+    iconClassName: 'text-[#0B3A82]',
   }));
 
   return <TabBar tabs={tabs} label="App" />;
@@ -101,7 +106,8 @@ export function PublicBottomNav() {
       ? {
           href: '/feed',
           label: 'Feed',
-          icon: Newspaper,
+          icon: Flame,
+          iconClassName: 'text-[#0B3A82]',
           match: (path) => path.startsWith('/feed'),
         }
       : {

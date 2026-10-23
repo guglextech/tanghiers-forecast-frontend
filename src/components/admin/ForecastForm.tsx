@@ -147,6 +147,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
     initial?.publishAt ? nearestTime(timeFromIso(initial.publishAt)) : '08:00',
   );
   const [error, setError] = React.useState('');
+  const [saving, setSaving] = React.useState<'draft' | 'publish' | 'schedule' | null>(null);
 
   React.useEffect(() => {
     if (titleTouched || !forecastDate) return;
@@ -162,6 +163,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
 
   const submit = async (mode: 'draft' | 'publish' | 'schedule') => {
     setError('');
+    setSaving(mode);
     try {
       if (!forecastDate) throw new Error('Choose the forecast date.');
       const publishAt =
@@ -191,6 +193,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
       router.replace(`/admin/forecasts/${saved.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save the forecast.');
+      setSaving(null);
     }
   };
 
@@ -368,11 +371,25 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
             <p className="text-sm text-[#667085]">This forecast is archived.</p>
           ) : (
             <>
-              <Button type="submit">
-                {intent === 'schedule' ? 'Schedule' : 'Publish now'}
+              <Button
+                type="submit"
+                loading={saving === 'publish' || saving === 'schedule'}
+                disabled={Boolean(saving)}
+              >
+                {saving === 'publish' || saving === 'schedule'
+                  ? 'Processing'
+                  : intent === 'schedule'
+                    ? 'Schedule'
+                    : 'Publish now'}
               </Button>
-              <Button type="button" variant="outline" onClick={() => void submit('draft')}>
-                Save draft
+              <Button
+                type="button"
+                variant="outline"
+                loading={saving === 'draft'}
+                disabled={Boolean(saving)}
+                onClick={() => void submit('draft')}
+              >
+                {saving === 'draft' ? 'Saving' : 'Save draft'}
               </Button>
             </>
           )}

@@ -7,6 +7,7 @@ import { Check, Copy, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { StepBars } from '@/components/auth/StepBars';
 import { BrandLockup } from '@/components/brand/Logo';
+import { LoadingState } from '@/components/app/LoadingState';
 import { useSession } from '@/components/app/SessionProvider';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -162,7 +163,7 @@ export function MfaVerifyScreen() {
   if (!allowed) {
     return (
       <AuthShell title="Authenticator code" description="Checking your sign-in…">
-        <div className="mt-8 h-12 animate-pulse rounded-xl bg-[#f7f8fa]" />
+        <LoadingState compact label="Checking your sign-in…" className="min-h-0 justify-start px-0" />
       </AuthShell>
     );
   }
@@ -178,8 +179,8 @@ export function MfaVerifyScreen() {
       >
         <OtpField value={code} onChange={setCode} onComplete={(value) => void submit(value)} disabled={busy} />
         {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-        <Button type="submit" className="h-12 w-full" disabled={busy || code.length !== 6}>
-          {busy ? 'Checking…' : 'Continue'}
+        <Button type="submit" className="h-12 w-full" loading={busy} disabled={code.length !== 6}>
+          {busy ? 'Checking' : 'Continue'}
         </Button>
       </form>
       <p className="mt-6 text-sm text-[#667085]">
@@ -275,8 +276,8 @@ function ConfirmStep({
         <Button type="button" variant="outline" className="h-11" onClick={onBack} disabled={busy}>
           Back
         </Button>
-        <Button type="submit" className="h-11 flex-1" disabled={busy || code.length !== 6}>
-          {busy ? 'Checking…' : 'Verify'}
+        <Button type="submit" className="h-11 flex-1" loading={busy} disabled={code.length !== 6}>
+          {busy ? 'Checking' : 'Verify'}
         </Button>
       </div>
     </form>
@@ -417,7 +418,7 @@ export function MfaSetupScreen() {
   if (!challenge) {
     return (
       <AuthShell title="Set up authenticator" description="Preparing your authenticator setup…">
-        <div className="mt-8 h-1 animate-pulse rounded-full bg-[#f2f4f7]" />
+        <LoadingState compact label="Preparing your authenticator…" className="min-h-0 justify-start px-0" />
       </AuthShell>
     );
   }

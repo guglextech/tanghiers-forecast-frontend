@@ -4,10 +4,19 @@ import type { Plan, PlanId } from '@/data/site';
 
 const DEFAULT_CURRENCY = 'USD';
 
+const ZERO_DECIMAL = new Set([
+  'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
+]);
+
+function majorUnits(amount: number, currency: string) {
+  return ZERO_DECIMAL.has(currency.toUpperCase()) ? amount : amount / 100;
+}
+
 function priceFor(plan: ApiPlan, currency = DEFAULT_CURRENCY): number | null {
   const table = plan.displayPrices ?? plan.amounts ?? {};
   const amount = table[currency] ?? table.USD ?? Object.values(table)[0];
-  return typeof amount === 'number' && Number.isFinite(amount) ? amount : null;
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) return null;
+  return majorUnits(amount, currency);
 }
 
 function periodFrom(plan: ApiPlan) {

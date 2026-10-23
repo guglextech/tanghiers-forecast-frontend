@@ -6,38 +6,60 @@ import { Check, X } from 'lucide-react';
 import { useSession } from '@/components/app/SessionProvider';
 import { hasForecastAccess } from '@/lib/session';
 import { getCatalogPlans, planFromList } from '@/lib/plans';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-function ResultMark({ ok }: { ok: boolean }) {
+function ResultMark({ tone }: { tone: 'ok' | 'wait' | 'bad' }) {
   return (
     <span
       className={cn(
-        'grid size-10 place-items-center rounded-full',
-        ok ? 'bg-[#ecfdf3] text-[#027a48]' : 'bg-[#fef3f2] text-[#b42318]',
+        'grid size-8 shrink-0 place-items-center rounded-full',
+        tone === 'ok' && 'bg-[#ecfdf3] text-[#027a48]',
+        tone === 'wait' && 'bg-[#f2f4f7] text-[#667085]',
+        tone === 'bad' && 'bg-[#fef3f2] text-[#b42318]',
       )}
       aria-hidden
     >
-      {ok ? <Check className="size-5" strokeWidth={2.25} /> : <X className="size-5" strokeWidth={2.25} />}
+      {tone === 'ok' ? <Check className="size-4" strokeWidth={2} /> : null}
+      {tone === 'bad' ? <X className="size-4" strokeWidth={2} /> : null}
+      {tone === 'wait' ? (
+        <span className="size-3.5 animate-spin rounded-full border-2 border-[#d0d5dd] border-t-[#667085]" />
+      ) : null}
     </span>
   );
 }
 
-function PrimaryLink({ href, children }: { href: string; children: React.ReactNode }) {
+function Notice({
+  tone,
+  title,
+  body,
+  primary,
+  secondary,
+}: {
+  tone: 'ok' | 'wait' | 'bad';
+  title: string;
+  body: string;
+  primary: { href: string; label: string };
+  secondary: { href: string; label: string };
+}) {
   return (
-    <Link
-      href={href}
-      className="inline-flex h-10 items-center justify-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white hover:bg-[#1d2939]"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function SecondaryLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link href={href} className="text-sm font-medium text-[#667085] hover:text-[#101828]">
-      {children}
-    </Link>
+    <section className="max-w-md rounded-2xl border border-[#e6e8ee] p-5">
+      <div className="flex items-start gap-3">
+        <ResultMark tone={tone} />
+        <div className="min-w-0 pt-0.5">
+          <h1 className="text-base font-semibold tracking-tight text-[#101828]">{title}</h1>
+          <p className="mt-1 text-sm leading-5 text-[#667085]">{body}</p>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button asChild size="sm">
+          <Link href={primary.href}>{primary.label}</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href={secondary.href}>{secondary.label}</Link>
+        </Button>
+      </div>
+    </section>
   );
 }
 
@@ -98,19 +120,19 @@ export function CheckoutSuccessScreen() {
         : 'Your payment went through. Log in to open the forecast.';
 
   return (
-    <div>
-      <ResultMark ok />
-      <h1 className="mt-5 text-[1.75rem] font-semibold tracking-tight text-[#101828]">{title}</h1>
-      <p className="mt-2 max-w-md text-sm leading-6 text-[#667085]">{body}</p>
-      <div className="mt-8 flex flex-wrap items-center gap-4">
-        <PrimaryLink href={signedIn ? '/feed' : `/login?next=${encodeURIComponent('/feed')}`}>
-          {signedIn ? 'Open forecast' : 'Log in'}
-        </PrimaryLink>
-        <SecondaryLink href={signedIn ? '/subscription' : '/pricing'}>
-          {signedIn ? 'Subscription' : 'See plans'}
-        </SecondaryLink>
-      </div>
-    </div>
+    <Notice
+      tone={confirming ? 'wait' : 'ok'}
+      title={title}
+      body={body}
+      primary={{
+        href: signedIn ? '/feed' : `/login?next=${encodeURIComponent('/feed')}`,
+        label: signedIn ? 'Open forecast' : 'Log in',
+      }}
+      secondary={{
+        href: signedIn ? '/subscription' : '/pricing',
+        label: signedIn ? 'Subscription' : 'See plans',
+      }}
+    />
   );
 }
 
@@ -118,16 +140,12 @@ export function CheckoutFailedScreen() {
   const { user } = useSession();
 
   return (
-    <div>
-      <ResultMark ok={false} />
-      <h1 className="mt-5 text-[1.75rem] font-semibold tracking-tight text-[#101828]">Payment not completed</h1>
-      <p className="mt-2 max-w-md text-sm leading-6 text-[#667085]">
-        Nothing was charged. You can try the same plan again, or pick a different one.
-      </p>
-      <div className="mt-8 flex flex-wrap items-center gap-4">
-        <PrimaryLink href={user ? '/subscription' : '/pricing'}>Try again</PrimaryLink>
-        <SecondaryLink href={user ? '/feed' : '/'}>Back</SecondaryLink>
-      </div>
-    </div>
+    <Notice
+      tone="bad"
+      title="Payment not completed"
+      body="Nothing was charged. You can try the same plan again, or pick a different one."
+      primary={{ href: user ? '/subscription' : '/pricing', label: 'Try again' }}
+      secondary={{ href: user ? '/feed' : '/', label: 'Back' }}
+    />
   );
 }

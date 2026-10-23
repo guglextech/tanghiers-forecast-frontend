@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
 import { GoogleMark } from '@/components/auth/AuthForm';
@@ -124,6 +124,7 @@ export function SignupScreen() {
   const [minAge, setMinAge] = React.useState(18);
   const [error, setError] = React.useState('');
   const [busy, setBusy] = React.useState(false);
+  const [googleBusy, setGoogleBusy] = React.useState(false);
   const [done, setDone] = React.useState(false);
 
   React.useEffect(() => {
@@ -164,10 +165,12 @@ export function SignupScreen() {
 
   const onGoogle = async () => {
     setError('');
+    setGoogleBusy(true);
     try {
       await continueWithGoogle();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not continue with Google.');
+      setGoogleBusy(false);
     }
   };
 
@@ -274,10 +277,11 @@ export function SignupScreen() {
                   <button
                     type="button"
                     onClick={onGoogle}
-                    className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-muted"
+                    disabled={googleBusy}
+                    className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-muted disabled:opacity-60"
                   >
-                    <GoogleMark />
-                    Continue with Google
+                    {googleBusy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <GoogleMark />}
+                    {googleBusy ? 'Logging in' : 'Continue with Google'}
                   </button>
                   <p className="text-center text-xs text-[#98a2b3]">or with email</p>
                   <div className="space-y-2">
@@ -440,8 +444,8 @@ export function SignupScreen() {
                     Continue
                   </Button>
                 ) : (
-                  <Button type="submit" className="flex-1" disabled={busy}>
-                    {busy ? 'Creating…' : 'Create account'}
+                  <Button type="submit" className="flex-1" loading={busy}>
+                    {busy ? 'Creating account' : 'Create account'}
                   </Button>
                 )}
               </div>

@@ -154,7 +154,7 @@ export type ApiPayment = {
   id?: string;
   date?: string;
   createdAt?: string;
-  paidAt?: string;
+  paidAt?: string | null;
   label?: string;
   description?: string;
   planCode?: string;
@@ -164,8 +164,12 @@ export type ApiPayment = {
   passDurationHours?: number | null;
   amount?: number;
   amountCents?: number;
+  amountDue?: number | null;
+  amountPaid?: number | null;
   currency?: string;
   status?: string;
+  invoiceNumber?: string | null;
+  invoiceUrl?: string | null;
   productSlug?: string;
 };
 

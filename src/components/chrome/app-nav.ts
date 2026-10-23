@@ -2,9 +2,9 @@ import {
   Bell,
   CircleHelp,
   CreditCard,
+  Flame,
   Grid2x2,
   History,
-  LayoutGrid,
   Settings,
   type LucideIcon,
 } from 'lucide-react';
@@ -22,7 +22,7 @@ export const mainNav: AppNavItem[] = [
   {
     href: '/feed',
     label: 'Feed',
-    icon: LayoutGrid,
+    icon: Flame,
     match: (path) => path === '/feed' || path.startsWith('/forecasts'),
   },
   {

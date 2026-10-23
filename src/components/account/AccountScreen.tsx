@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Clock, CreditCard, Download, Mail, Shield, Trash2 } from 'lucide-react';
+import { Bell, Clock, CreditCard, Download, Loader2, Mail, Shield, Trash2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
@@ -391,8 +391,8 @@ export function AccountScreen() {
             </div>
             {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
             <div className="flex justify-end">
-              <Button type="submit" size="sm" disabled={saving}>
-                {saving ? 'Saving…' : 'Save changes'}
+              <Button type="submit" size="sm" loading={saving}>
+                {saving ? 'Saving' : 'Save changes'}
               </Button>
             </div>
           </form>
@@ -456,8 +456,10 @@ export function AccountScreen() {
             <SettingRow
               icon={Download}
               title="Export data"
-              hint={exporting ? 'Preparing your download…' : 'Download a copy of your account'}
-            />
+              hint={exporting ? 'Preparing your download' : 'Download a copy of your account'}
+            >
+              {exporting ? <Loader2 className="size-4 animate-spin text-[#667085]" aria-hidden /> : null}
+            </SettingRow>
           </button>
           {showDelete ? (
             <form onSubmit={onDelete} className="space-y-3 px-1 py-4">
@@ -471,8 +473,8 @@ export function AccountScreen() {
                 onChange={(event) => setDeletePassword(event.target.value)}
               />
               <div className="flex items-center gap-4">
-                <Button type="submit" size="sm" variant="outline" disabled={deleting}>
-                  {deleting ? 'Deleting…' : 'Delete account'}
+                <Button type="submit" size="sm" variant="outline" loading={deleting}>
+                  {deleting ? 'Deleting' : 'Delete account'}
                 </Button>
                 <button
                   type="button"

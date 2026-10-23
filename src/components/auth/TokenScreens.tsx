@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { shellClass } from '@/components/chrome/Chrome';
 import { cn } from '@/lib/utils';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { notifications } from '@/lib/api/resources';
 import { forgotPassword, resetPasswordToken, verifyEmailToken } from '@/lib/session';
 
@@ -54,7 +54,10 @@ export function VerifyEmailScreen() {
 
   return (
     <Frame title="Verify email">
-      <p className="mt-2 text-sm leading-6 text-[#667085]">{message}</p>
+      <p className="mt-2 flex items-center gap-2 text-sm leading-6 text-[#667085]">
+        {status === 'working' ? <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden /> : null}
+        {message}
+      </p>
       {status !== 'working' ? (
         <Link href="/login" className="mt-6 inline-flex text-sm font-medium text-[#101828] hover:underline">
           Log in
@@ -115,8 +118,8 @@ export function ForgotPasswordScreen() {
               />
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? 'Sending…' : 'Send reset link'}
+            <Button type="submit" className="w-full" loading={busy}>
+              {busy ? 'Sending' : 'Send reset link'}
             </Button>
           </form>
           <p className="mt-6 text-sm text-[#667085]">
@@ -227,8 +230,8 @@ export function ResetPasswordScreen() {
               />
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? 'Saving…' : 'Save password'}
+            <Button type="submit" className="w-full" loading={busy}>
+              {busy ? 'Saving' : 'Save password'}
             </Button>
           </form>
         </>
@@ -263,7 +266,10 @@ export function UnsubscribeScreen() {
 
   return (
     <Frame title="Unsubscribe">
-      <p className="mt-2 text-sm leading-6 text-[#667085]">{message}</p>
+      <p className="mt-2 flex items-center gap-2 text-sm leading-6 text-[#667085]">
+        {status === 'working' ? <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden /> : null}
+        {message}
+      </p>
       {status !== 'working' ? (
         <Link href="/" className="mt-6 inline-flex text-sm font-medium text-[#101828] hover:underline">
           Back to Tanghiers
