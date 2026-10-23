@@ -3,29 +3,35 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  ArrowUpRight,
-  CalendarDays,
-  CirclePlus,
-  Grid2x2,
-  LogOut,
-  Send,
-  UsersRound,
-} from 'lucide-react';
 import { BrandLockup, LogoMark } from '@/components/brand/Logo';
 import { RequireAuth } from '@/components/app/RequireAuth';
 import { useSession } from '@/components/app/SessionProvider';
-import { DeskBottomNav } from '@/components/chrome/BottomNav';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { initialsFromName } from '@/lib/session';
 import { SITE } from '@/data/site';
 import { cn } from '@/lib/utils';
 
+type AdminIconName =
+  | 'grid-fill'
+  | 'calendar-event-fill'
+  | 'plus-circle-fill'
+  | 'send-fill'
+  | 'people-fill'
+  | 'box-arrow-up-right'
+  | 'box-arrow-right'
+  | 'list'
+  | 'x-lg';
+
+function AdminIcon({ name, className }: { name: AdminIconName; className?: string }) {
+  return <i className={cn('bi leading-none', `bi-${name}`, className)} aria-hidden />;
+}
+
 const deskLinks = [
-  { href: '/admin', label: 'Overview', icon: Grid2x2 },
-  { href: '/admin/forecasts', label: 'Forecasts', icon: CalendarDays },
-  { href: '/admin/forecasts/new', label: 'New forecast', icon: CirclePlus },
-  { href: '/admin/deliveries', label: 'Deliveries', icon: Send },
-  { href: '/admin/subscribers', label: 'Subscribers', icon: UsersRound },
+  { href: '/admin', label: 'Overview', icon: 'grid-fill' },
+  { href: '/admin/forecasts', label: 'Forecasts', icon: 'calendar-event-fill' },
+  { href: '/admin/forecasts/new', label: 'New forecast', icon: 'plus-circle-fill' },
+  { href: '/admin/deliveries', label: 'Deliveries', icon: 'send-fill' },
+  { href: '/admin/subscribers', label: 'Subscribers', icon: 'people-fill' },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -44,6 +50,10 @@ function pageTitle(pathname: string) {
   if (pathname.startsWith('/admin/deliveries')) return 'Deliveries';
   if (pathname.startsWith('/admin/subscribers')) return 'Subscribers';
   return 'Publishing desk';
+}
+
+function isDesktopNav() {
+  return typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -78,15 +88,74 @@ function AdminGate({ children }: { children: React.ReactNode }) {
 
 function AdminChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [desktopOpen, setDesktopOpen] = React.useState(true);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [isDesktop, setIsDesktop] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const sync = () => {
+      setIsDesktop(mq.matches);
+      if (mq.matches) setMobileOpen(false);
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  React.useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  const menuOpen = isDesktop ? desktopOpen : mobileOpen;
+
+  const toggleNav = () => {
+    if (isDesktopNav()) {
+      setDesktopOpen((open) => !open);
+      return;
+    }
+    setMobileOpen((open) => !open);
+  };
 
   return (
     <div className="min-h-screen bg-[#f6f7f9] text-[#101828]">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/10 bg-[#101828] lg:flex">
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent
+          side="left"
+          showCloseButton={false}
+          className="w-[280px] gap-0 border-0 bg-[#101828] p-0 shadow-xl sm:max-w-[280px]"
+        >
+          <SheetTitle className="sr-only">Publishing menu</SheetTitle>
+          <SidebarBody onClose={() => setMobileOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-[#101828] transition-transform duration-200 ease-out lg:flex',
+          desktopOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full',
+        )}
+      >
         <SidebarBody />
       </aside>
-      <div className="lg:pl-64">
+
+      <div
+        className={cn(
+          'min-h-screen transition-[padding] duration-200 ease-out',
+          desktopOpen ? 'lg:pl-64' : 'lg:pl-0',
+        )}
+      >
         <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white/90 backdrop-blur">
-          <div className="flex h-12 items-center gap-3 px-4 md:h-16 md:px-6">
+          <div className="flex h-14 items-center gap-2 px-3 md:h-16 md:px-5">
+            <button
+              type="button"
+              onClick={toggleNav}
+              aria-label={menuOpen ? 'Hide menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              className="grid size-9 shrink-0 place-items-center rounded-full text-[#667085] transition-colors hover:bg-[#f2f4f7] hover:text-[#101828]"
+            >
+              <AdminIcon name="list" className="text-[20px]" />
+            </button>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
                 {SITE.project} desk
@@ -95,26 +164,23 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             </div>
             <Link
               href="/admin/forecasts/new"
-              className="hidden h-9 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white lg:inline-flex"
+              className="inline-flex h-9 items-center rounded-full bg-[#101828] px-3.5 text-sm font-semibold text-white md:px-4"
             >
               New forecast
             </Link>
-            <Link href="/feed" className="text-sm text-[#667085] hover:text-[#101828]">
+            <Link href="/feed" className="hidden text-sm text-[#667085] hover:text-[#101828] sm:inline">
               Feed
             </Link>
           </div>
         </header>
-        <main className="px-4 py-6 pb-[calc(1.5rem+3.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-          {children}
-        </main>
-        <p className="hidden px-4 pb-8 text-center text-xs text-[#98a2b3] lg:block lg:px-6">{SITE.disclaimer}</p>
+        <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <p className="px-4 pb-8 text-center text-xs text-[#98a2b3] lg:px-6">{SITE.disclaimer}</p>
       </div>
-      <DeskBottomNav />
     </div>
   );
 }
 
-function SidebarBody() {
+function SidebarBody({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useSession();
@@ -123,37 +189,49 @@ function SidebarBody() {
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-2.5 px-5">
         <LogoMark className="size-8" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-white">{SITE.name}</p>
           <p className="text-[11px] text-white/50">Publishing</p>
         </div>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="grid size-8 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
+          >
+            <AdminIcon name="x-lg" className="text-[16px]" />
+          </button>
+        ) : null}
       </div>
-      <nav aria-label="Publishing" className="flex-1 space-y-1 px-3 py-4">
+      <nav aria-label="Publishing" className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
         {deskLinks.map((link) => {
-          const Icon = link.icon;
           const active = isActive(pathname, link.href);
           return (
             <Link
               key={link.href}
               href={link.href}
+              onClick={onClose}
               className={cn(
-                'flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors',
+                'flex h-10 items-center gap-3 rounded-xl px-3 text-sm transition-colors',
                 active ? 'bg-white/10 font-medium text-white' : 'text-white/70 hover:bg-white/5 hover:text-white',
               )}
             >
-              <Icon className="size-4 shrink-0" strokeWidth={1.75} />
+              <AdminIcon
+                name={link.icon}
+                className={cn('text-[16px]', active ? 'text-white' : 'text-white/45')}
+              />
               {link.label}
             </Link>
           );
         })}
-        <p className="px-3 pt-6 pb-2 text-[11px] font-medium tracking-[0.14em] text-white/35 uppercase">
-          Site
-        </p>
+        <div className="mx-3 my-3 h-px bg-white/10" />
         <Link
           href="/feed"
-          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-white/70 hover:bg-white/5 hover:text-white"
+          onClick={onClose}
+          className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm text-white/70 hover:bg-white/5 hover:text-white"
         >
-          <ArrowUpRight className="size-4 shrink-0" strokeWidth={1.75} />
+          <AdminIcon name="box-arrow-up-right" className="text-[16px] text-white/45" />
           Subscriber feed
         </Link>
       </nav>
@@ -175,7 +253,7 @@ function SidebarBody() {
             }}
             aria-label="Sign out"
           >
-            <LogOut className="size-4" strokeWidth={1.75} />
+            <AdminIcon name="box-arrow-right" className="text-[16px]" />
           </button>
         </div>
       </div>

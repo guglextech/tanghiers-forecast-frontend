@@ -3,18 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import {
-  CalendarDays,
-  CirclePlus,
-  Grid2x2,
-  House,
-  Info,
-  LogIn,
-  Newspaper,
-  Send,
-  Tag,
-  UsersRound,
-} from 'lucide-react';
+import { House, Info, LogIn, Newspaper, Tag } from 'lucide-react';
 import { useSession } from '@/components/app/SessionProvider';
 import { useNotifications } from '@/components/app/useNotifications';
 import { accountNav, deskNav, mainNav } from '@/components/chrome/app-nav';
@@ -126,40 +115,3 @@ export function PublicBottomNav() {
   return <TabBar tabs={tabs} label="Site" />;
 }
 
-export function DeskBottomNav() {
-  const tabs: Tab[] = [
-    {
-      href: '/admin',
-      label: 'Overview',
-      icon: Grid2x2,
-      match: (path) => path === '/admin',
-    },
-    {
-      href: '/admin/forecasts',
-      label: 'Forecasts',
-      icon: CalendarDays,
-      match: (path) =>
-        path === '/admin/forecasts' || /^\/admin\/forecasts\/(?!new$).+/.test(path),
-    },
-    {
-      href: '/admin/forecasts/new',
-      label: 'New',
-      icon: CirclePlus,
-      match: (path) => path === '/admin/forecasts/new',
-    },
-    {
-      href: '/admin/deliveries',
-      label: 'Sent',
-      icon: Send,
-      match: (path) => path.startsWith('/admin/deliveries'),
-    },
-    {
-      href: '/admin/subscribers',
-      label: 'People',
-      icon: UsersRound,
-      match: (path) => path.startsWith('/admin/subscribers'),
-    },
-  ];
-
-  return <TabBar tabs={tabs} label="Publishing" collapse="lg" />;
-}
