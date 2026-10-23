@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { formatMoney, planById, type Plan, type PlanId } from '@/data/site';
+import { formatMoney, formatPlanPrice, type Plan, type PlanId } from '@/data/site';
 import { formatLongDate } from '@/lib/dates';
 import { getCatalogPlans, planFromList } from '@/lib/plans';
 import { useSession } from '@/components/app/SessionProvider';
@@ -13,17 +13,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 function useCatalogPlans(initial?: Plan[]) {
-  const [plans, setPlans] = React.useState<Plan[] | null>(initial ?? null);
+  const [plans, setPlans] = React.useState<Plan[] | null>(initial && initial.length > 0 ? initial : null);
 
   React.useEffect(() => {
-    if (initial && initial.length > 0) {
-      setPlans(initial);
-      return;
-    }
     void getCatalogPlans()
       .then(setPlans)
-      .catch(() => setPlans([]));
-  }, [initial]);
+      .catch(() => setPlans((current) => current ?? []));
+  }, []);
 
   return plans;
 }
@@ -59,8 +55,8 @@ function PublicPlanCards({
 
   return (
     <div className="space-y-3">
-      {plans.map((plan) => {
-        const emphasized = highlight === plan.id || (!highlight && plan.featured);
+      {plans.map((plan, index) => {
+        const emphasized = highlight === plan.id || (!highlight && (plan.featured || index === 0));
         const href = user
           ? `/subscription?plan=${plan.id}`
           : `/signup?next=${encodeURIComponent(`/subscription?plan=${plan.id}`)}`;
@@ -79,13 +75,21 @@ function PublicPlanCards({
                   </span>
                 ) : null}
               </span>
-              <span className="mt-1 block text-sm leading-5 text-[#98a2b3]">{plan.blurb}</span>
+              {plan.blurb ? (
+                <span className="mt-1 block text-sm leading-5 text-[#98a2b3]">{plan.blurb}</span>
+              ) : null}
             </span>
             <span className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
-              <span className="text-[1.25rem] font-semibold tracking-tight tabular-nums text-[#101828]">
-                {formatMoney(plan.price, plan.currency)}
-                <span className="text-sm font-medium text-[#98a2b3]">/{plan.period}</span>
-              </span>
+              {typeof plan.price === 'number' ? (
+                <span className="text-[1.25rem] font-semibold tracking-tight tabular-nums text-[#101828]">
+                  {formatMoney(plan.price, plan.currency)}
+                  {plan.period ? (
+                    <span className="text-sm font-medium text-[#98a2b3]">/{plan.period}</span>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="text-sm text-[#98a2b3]">Price on request</span>
+              )}
               <span
                 className={cn(
                   'inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-semibold',
@@ -126,7 +130,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
   }
 
   const pending = Boolean(selected) && selected !== currentId;
-  const chosen = planFromList(plans, selected) ?? planById(selected);
+  const chosen = planFromList(plans, selected);
 
   const confirm = async () => {
     setError('');
@@ -173,8 +177,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
               <span className="min-w-0 flex-1 text-sm font-semibold text-[#101828]">{plan.name}</span>
               <span className="shrink-0 text-right">
                 <span className="text-sm font-medium tabular-nums text-[#101828]">
-                  {formatMoney(plan.price, plan.currency)}
-                  <span className="text-[#667085]">/{plan.period}</span>
+                  {formatPlanPrice(plan) ?? '—'}
                 </span>
                 {isCurrent ? (
                   <span className="ml-2 text-[11px] font-medium tracking-[0.12em] text-[#98a2b3] uppercase">
@@ -190,7 +193,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
       {pending && chosen ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-[#667085]">
-            {chosen.name} · {formatMoney(chosen.price, chosen.currency)}/{chosen.period}
+            {[chosen.name, formatPlanPrice(chosen)].filter(Boolean).join(' · ')}
           </p>
           <Button type="button" className="h-10 px-5" onClick={confirm}>
             Confirm
@@ -210,13 +213,13 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
 
   if (!ready || !user || !plans) return <LoadingState label="Loading subscription…" />;
 
-  const plan = planFromList(plans, user.planId) ?? planById(user.planId);
-  const active = user.subscriptionStatus === 'active' && plan;
+  const plan = planFromList(plans, user.planId);
+  const active = user.subscriptionStatus === 'active' && Boolean(plan);
 
-  const status = active
-    ? `${plan.name} · ${formatMoney(plan.price, plan.currency)}/${plan.period} · Renews ${
-        user.currentPeriodEnd ? formatLongDate(user.currentPeriodEnd) : 'soon'
-      }`
+  const status = active && plan
+    ? [plan.name, formatPlanPrice(plan), user.currentPeriodEnd ? `Renews ${formatLongDate(user.currentPeriodEnd)}` : null]
+        .filter(Boolean)
+        .join(' · ')
     : user.subscriptionStatus === 'canceled'
       ? 'Canceled'
       : 'No active plan';

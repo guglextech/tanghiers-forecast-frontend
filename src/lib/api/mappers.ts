@@ -5,11 +5,14 @@ import type {
   ApiEntitlement,
   ApiForecast,
   ApiForecastBody,
+  ApiForecastContent,
+  ApiForecastField,
   ApiNotification,
   ApiPayment,
   ApiSubscription,
   ApiUser,
 } from '@/lib/api/types';
+import type { ForecastField } from '@/data/forecasts';
 
 export function displayName(user: Partial<ApiUser> | null | undefined) {
   const joined = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
@@ -55,6 +58,128 @@ export function youtubeIdFromUrl(url?: string | null) {
 
 function flattenBody(body?: ApiForecastBody | null) {
   return [...(body?.banker ?? []), ...(body?.twoSure ?? []), ...(body?.threeDirect ?? [])];
+}
+
+function numbersFromValue(value: unknown): number[] {
+  if (typeof value === 'number' && Number.isFinite(value)) return [value];
+  if (typeof value === 'string') {
+    return value
+      .split(/[-,\s]+/)
+      .map((part) => Number(part))
+      .filter((part) => Number.isFinite(part));
+  }
+  if (!Array.isArray(value)) return [];
+  return value.map((part) => Number(part)).filter((part) => Number.isFinite(part));
+}
+
+function mapContentFields(fields: ApiForecastField[]): ForecastField[] {
+  return fields.map((field) => {
+    const key = field.key || field.label || 'field';
+    const type = field.type === 'text' ? 'text' : 'numbers';
+    const numbers = type === 'numbers' ? numbersFromValue(field.value) : [];
+    const text =
+      type === 'text'
+        ? String(field.value ?? '')
+        : numbers.join('-');
+    return {
+      key,
+      label: field.label || key,
+      type,
+      numbers,
+      text,
+    };
+  });
+}
+
+function bodyFromFields(fields: ForecastField[]): ApiForecastBody {
+  const value = (key: string) => fields.find((field) => field.key === key);
+  return {
+    banker: value('banker')?.numbers ?? [],
+    twoSure: value('twoSure')?.numbers ?? [],
+    threeDirect: value('threeDirect')?.numbers ?? [],
+    permutations: value('permutations')?.text || undefined,
+  };
+}
+
+function fieldsFromBody(body?: ApiForecastBody | null): ForecastField[] {
+  if (!body) return [];
+  const fields: ForecastField[] = [];
+  if (body.banker?.length) {
+    fields.push({ key: 'banker', label: 'Banker', type: 'numbers', numbers: body.banker, text: body.banker.join('-') });
+  }
+  if (body.twoSure?.length) {
+    fields.push({ key: 'twoSure', label: 'Two Sure', type: 'numbers', numbers: body.twoSure, text: body.twoSure.join('-') });
+  }
+  if (body.threeDirect?.length) {
+    fields.push({
+      key: 'threeDirect',
+      label: 'Three Direct',
+      type: 'numbers',
+      numbers: body.threeDirect,
+      text: body.threeDirect.join('-'),
+    });
+  }
+  if (body.permutations) {
+    fields.push({
+      key: 'permutations',
+      label: 'Permutations',
+      type: 'text',
+      numbers: [],
+      text: body.permutations,
+    });
+  }
+  return fields;
+}
+
+function videoIdFrom(row: ApiForecast, content?: ApiForecastContent | null) {
+  return (
+    content?.video?.videoId ||
+    youtubeIdFromUrl(content?.video?.watchUrl) ||
+    youtubeIdFromUrl(content?.video?.embedUrl) ||
+    youtubeIdFromUrl(row.videoUrl)
+  );
+}
+
+function readForecastContent(row: ApiForecast) {
+  if (row.locked === true || row.content === null) {
+    return {
+      locked: true,
+      body: null as ApiForecastBody | null,
+      fields: [] as ForecastField[],
+      videoId: null as string | null,
+      videoUrl: null as string | null,
+      message: row.message ?? null,
+      hasVideo: Boolean(row.hasVideo),
+    };
+  }
+
+  const content = row.content ?? null;
+  if (content?.fields?.length) {
+    const fields = mapContentFields(content.fields);
+    const body = bodyFromFields(fields);
+    const videoId = videoIdFrom(row, content);
+    return {
+      locked: false,
+      body,
+      fields,
+      videoId,
+      videoUrl: content.video?.watchUrl ?? row.videoUrl ?? null,
+      message: content.message ?? row.message ?? null,
+      hasVideo: Boolean(row.hasVideo || videoId),
+    };
+  }
+
+  const body = row.body ?? null;
+  const videoId = videoIdFrom(row, content);
+  return {
+    locked: false,
+    body,
+    fields: fieldsFromBody(body),
+    videoId,
+    videoUrl: content?.video?.watchUrl ?? row.videoUrl ?? null,
+    message: content?.message ?? row.message ?? null,
+    hasVideo: Boolean(row.hasVideo || videoId),
+  };
 }
 
 function gameFromNumbers(numbers: number[]): GameId {
@@ -107,20 +232,26 @@ function mapForecastStatus(value: string | undefined): Forecast['status'] {
 }
 
 export function mapForecast(row: ApiForecast): Forecast {
-  const numbers = flattenBody(row.body);
+  const content = readForecastContent(row);
+  const numbers = flattenBody(content.body);
+  const published = Boolean(row.publishedAt || row.status === 'published');
   return {
     id: row.id,
     title: row.title || 'Forecast',
     game: gameFromNumbers(numbers),
     numbers,
-    body: mappedBody(row.body),
+    body: mappedBody(content.body),
+    fields: content.fields,
     date: (row.drawDate || row.date || '').slice(0, 10),
-    status: mapForecastStatus(row.status),
+    status: mapForecastStatus(row.status) === 'draft' && published ? 'published' : mapForecastStatus(row.status),
     publishAt: row.publishAt ?? row.publishedAt ?? null,
-    createdAt: row.createdAt ?? row.publishAt ?? new Date().toISOString(),
+    createdAt: row.createdAt ?? row.publishedAt ?? row.publishAt ?? new Date().toISOString(),
     version: row.version,
-    videoUrl: row.videoUrl ?? null,
-    message: row.message ?? null,
+    videoUrl: content.videoUrl,
+    videoId: content.videoId,
+    hasVideo: content.hasVideo,
+    message: content.message,
+    locked: content.locked,
   };
 }
 

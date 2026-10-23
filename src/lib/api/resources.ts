@@ -114,19 +114,18 @@ export const billing = {
     }),
 };
 
+function forecastsQuery(extra?: Record<string, string>) {
+  const params = new URLSearchParams({ productSlug: PRODUCT_SLUG, ...extra });
+  return `/v1/forecasts?${params.toString()}`;
+}
+
 export const forecasts = {
-  list: () =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(
-      `/v1/forecasts?productSlug=${encodeURIComponent(PRODUCT_SLUG)}&limit=100`,
-    ),
+  list: (limit = 50) =>
+    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(forecastsQuery({ limit: String(limit) })),
   listPublic: () =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(
-      `/v1/forecasts?productSlug=${encodeURIComponent(PRODUCT_SLUG)}&limit=100`,
-      { auth: false },
-    ),
-  today: () =>
-    apiRequest<ApiForecast | null>(`/v1/forecasts/today?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
-  get: (id: string) => apiRequest<ApiForecast>(`/v1/forecasts/${id}`),
+    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(forecastsQuery({ limit: '20' }), { auth: false }),
+  today: () => apiRequest<ApiForecast | null>(`/v1/forecasts/today?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
+  get: (id: string) => apiRequest<ApiForecast>(`/v1/forecasts/${encodeURIComponent(id)}`),
 };
 
 export const notifications = {

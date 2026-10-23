@@ -1,12 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { gameById, type Forecast } from '@/data/forecasts';
-import { formatWeekdayDay } from '@/lib/dates';
-import { LogoMark } from '@/components/brand/Logo';
-import { SAMPLE_YOUTUBE_ID, YoutubeFrame } from '@/components/feed/YoutubeFrame';
+import type { Forecast, ForecastField } from '@/data/forecasts';
+import { formatLongDate, formatWeekdayDay } from '@/lib/dates';
+import { YoutubeFrame } from '@/components/feed/YoutubeFrame';
 import { youtubeIdFromUrl } from '@/lib/api/mappers';
 import { cn } from '@/lib/utils';
+
+const LOCKED_FIELDS: ForecastField[] = [
+  { key: 'banker', label: 'Banker', type: 'numbers', numbers: [], text: '' },
+  { key: 'twoSure', label: 'Two Sure', type: 'numbers', numbers: [], text: '' },
+  { key: 'threeDirect', label: 'Three Direct', type: 'numbers', numbers: [], text: '' },
+];
+
+const LOCKED_COUNTS: Record<string, number> = {
+  banker: 1,
+  twoSure: 2,
+  threeDirect: 3,
+};
 
 export function NumberPills({
   numbers,
@@ -18,15 +29,15 @@ export function NumberPills({
   size?: 'xs' | 'sm' | 'md';
 }) {
   return (
-    <div className={cn('flex flex-wrap', size === 'md' ? 'gap-3' : 'gap-1.5', className)}>
+    <div className={cn('flex flex-wrap', size === 'md' ? 'gap-2' : 'gap-1.5', className)}>
       {numbers.map((number, index) => (
         <span
           key={`${number}-${index}`}
           className={cn(
             'grid place-items-center rounded-full font-semibold tabular-nums text-[#101828]',
             size === 'xs' && 'size-7 border border-[#101828] text-[11px]',
-            size === 'sm' && 'size-9 border-2 border-[#101828] text-sm',
-            size === 'md' && 'size-[52px] border-2 border-[#101828] text-xl',
+            size === 'sm' && 'size-9 border border-[#101828] text-sm',
+            size === 'md' && 'size-10 border border-[#101828] text-sm',
           )}
         >
           {number}
@@ -36,80 +47,132 @@ export function NumberPills({
   );
 }
 
-export function ForecastPost({
-  forecast,
-  locked,
-  href,
-}: {
-  forecast: Forecast;
-  locked: boolean;
-  href?: string;
-}) {
-  const game = gameById(forecast.game);
-  const lockedCount = forecast.numbers.length || game.count;
-  const pills = locked ? (
-    <div className="flex gap-1.5" aria-label={`${game.label} numbers are locked`}>
-      {Array.from({ length: lockedCount }).map((_, index) => (
+function LockedPills({ count, size = 'md' }: { count: number; size?: 'xs' | 'md' }) {
+  return (
+    <div className="flex gap-1.5" aria-label="Numbers are locked">
+      {Array.from({ length: Math.max(count, 1) }).map((_, index) => (
         <span
           key={index}
-          className="grid size-[52px] place-items-center rounded-full border-2 border-[#d0d5dd] text-lg text-[#d0d5dd]"
+          className={cn(
+            'grid place-items-center rounded-full border border-[#d0d5dd] text-[#d0d5dd]',
+            size === 'xs' && 'size-7 text-[11px]',
+            size === 'md' && 'size-10 text-sm',
+          )}
         >
           •
         </span>
       ))}
     </div>
-  ) : (
-    <NumberPills numbers={forecast.numbers} />
   );
+}
 
-  const title = href && !locked ? (
-    <Link href={href} className="text-[15px] font-semibold text-[#101828] hover:underline">
-      {forecast.title}
-    </Link>
-  ) : (
-    <p className="text-[15px] font-semibold text-[#101828]">{forecast.title}</p>
-  );
+function FieldRow({ field, locked }: { field: ForecastField; locked: boolean }) {
+  const count = LOCKED_COUNTS[field.key] ?? Math.max(field.numbers.length, 1);
 
-  const card = (
-    <article
-      className={cn(
-        'group rounded-2xl border border-[#e6e8ee] bg-white p-4 sm:p-5',
-        'transition duration-300 ease-out',
-        'hover:-translate-y-1 hover:border-[#d0d5dd] hover:shadow-[0_18px_40px_-24px_rgba(16,24,40,0.35)]',
-        'focus-within:-translate-y-1 focus-within:border-[#d0d5dd] focus-within:shadow-[0_18px_40px_-24px_rgba(16,24,40,0.35)]',
+  return (
+    <div className="flex items-center justify-between gap-4 py-3">
+      <p className="shrink-0 text-sm text-[#667085]">{field.label}</p>
+      {field.type === 'text' ? (
+        locked ? (
+          <p className="text-sm tabular-nums text-[#d0d5dd]">••••••</p>
+        ) : (
+          <p className="text-sm font-medium tabular-nums text-[#101828]">{field.text}</p>
+        )
+      ) : locked ? (
+        <LockedPills count={count} />
+      ) : (
+        <NumberPills numbers={field.numbers} />
       )}
-    >
-      <div className="flex gap-3">
-        <LogoMark className="mt-0.5 size-10 shrink-0" />
-        <div className="min-w-0 flex-1">
-          {title}
-          <p className="mt-0.5 text-sm text-[#667085]">
-            {game.label} · {formatWeekdayDay(forecast.date)}
-          </p>
-        </div>
-      </div>
-      <div className="mt-4 origin-left transition duration-300 ease-out group-hover:scale-[1.03]">
-        {pills}
-      </div>
-      <div className="mt-4">
-        <YoutubeFrame
-          title={`${forecast.title} draw`}
-          locked={locked}
-          videoId={youtubeIdFromUrl(forecast.videoUrl) ?? SAMPLE_YOUTUBE_ID}
-        />
+    </div>
+  );
+}
+
+function fieldsFor(forecast: Forecast, locked: boolean): ForecastField[] {
+  if (forecast.fields?.length) return forecast.fields;
+  if (locked) return LOCKED_FIELDS;
+  const body = forecast.body;
+  if (!body) return [];
+  const fields: ForecastField[] = [];
+  if (body.banker.length) {
+    fields.push({ key: 'banker', label: 'Banker', type: 'numbers', numbers: body.banker, text: body.banker.join('-') });
+  }
+  if (body.twoSure.length) {
+    fields.push({ key: 'twoSure', label: 'Two Sure', type: 'numbers', numbers: body.twoSure, text: body.twoSure.join('-') });
+  }
+  if (body.threeDirect.length) {
+    fields.push({
+      key: 'threeDirect',
+      label: 'Three Direct',
+      type: 'numbers',
+      numbers: body.threeDirect,
+      text: body.threeDirect.join('-'),
+    });
+  }
+  if (body.permutations) {
+    fields.push({ key: 'permutations', label: 'Permutations', type: 'text', numbers: [], text: body.permutations });
+  }
+  return fields;
+}
+
+export function ForecastPost({
+  forecast,
+  locked,
+  subscribeHref = '/pricing',
+}: {
+  forecast: Forecast;
+  locked: boolean;
+  subscribeHref?: string;
+}) {
+  const videoId = locked ? null : forecast.videoId || youtubeIdFromUrl(forecast.videoUrl);
+  const fields = fieldsFor(forecast, locked);
+  const showVideo = locked ? Boolean(forecast.hasVideo) : Boolean(videoId);
+
+  return (
+    <article className="overflow-hidden rounded-[28px] bg-[#f4f6f8]">
+      {showVideo ? (
+        locked ? (
+          <div className="grid aspect-video place-items-center bg-[#eceef2]">
+            <p className="text-sm text-[#98a2b3]">Draw video is locked</p>
+          </div>
+        ) : videoId ? (
+          <YoutubeFrame title={`${forecast.title} draw`} videoId={videoId} />
+        ) : null
+      ) : null}
+
+      <div className="px-5 py-5 sm:px-6 sm:py-6">
+        <p className="text-sm text-[#98a2b3]">
+          {forecast.date ? formatWeekdayDay(forecast.date) : 'Forecast'}
+        </p>
+        <h2 className="mt-0.5 text-[1.25rem] font-semibold tracking-tight text-[#101828]">
+          {forecast.title || (forecast.date ? formatLongDate(forecast.date) : 'Today')}
+        </h2>
+
+        {fields.length ? (
+          <div className="mt-4 divide-y divide-[#e6e8ee]">
+            {fields.map((field) => (
+              <FieldRow key={field.key} field={field} locked={locked} />
+            ))}
+          </div>
+        ) : null}
+
+        {!locked && forecast.message ? (
+          <p className="mt-4 text-sm leading-6 text-[#667085]">{forecast.message}</p>
+        ) : null}
+
+        {locked ? (
+          <div className="mt-5 flex flex-wrap items-center gap-4">
+            <Link
+              href={subscribeHref}
+              className="inline-flex h-10 items-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white hover:bg-[#1d2939]"
+            >
+              Subscribe
+            </Link>
+            <p className="text-sm text-[#667085]">Open the numbers and the draw.</p>
+          </div>
+        ) : null}
       </div>
     </article>
   );
-
-  if (locked && href) {
-    return (
-      <Link href={href} className="block">
-        {card}
-      </Link>
-    );
-  }
-
-  return card;
 }
 
 export function ForecastArticle({

@@ -88,6 +88,26 @@ export type ApiForecastBody = {
   permutations?: string;
 };
 
+export type ApiForecastField = {
+  key?: string;
+  label?: string;
+  type?: string;
+  value?: unknown;
+};
+
+export type ApiForecastVideo = {
+  provider?: string;
+  videoId?: string;
+  embedUrl?: string;
+  watchUrl?: string;
+};
+
+export type ApiForecastContent = {
+  fields?: ApiForecastField[];
+  message?: string | null;
+  video?: ApiForecastVideo | null;
+};
+
 export type ApiForecast = {
   id: string;
   title?: string;
@@ -102,6 +122,9 @@ export type ApiForecast = {
   message?: string | null;
   accessLevel?: string;
   body?: ApiForecastBody | null;
+  content?: ApiForecastContent | null;
+  locked?: boolean;
+  hasVideo?: boolean;
 };
 
 export type ApiSubscription = {

@@ -9,12 +9,21 @@ export type ForecastBody = {
   permutations: string;
 };
 
+export type ForecastField = {
+  key: string;
+  label: string;
+  type: 'numbers' | 'text';
+  numbers: number[];
+  text: string;
+};
+
 export type Forecast = {
   id: string;
   title: string;
   game: GameId;
   numbers: number[];
   body?: ForecastBody;
+  fields?: ForecastField[];
   /** Calendar day the forecast belongs to, YYYY-MM-DD. */
   date: string;
   status: ForecastStatus;
@@ -23,7 +32,11 @@ export type Forecast = {
   createdAt: string;
   version?: number;
   videoUrl?: string | null;
+  videoId?: string | null;
+  hasVideo?: boolean;
   message?: string | null;
+  /** True when the API withheld numbers (`content: null`) or returned 403. */
+  locked?: boolean;
 };
 
 export type DeliveryChannel = 'web' | 'email' | 'sms';

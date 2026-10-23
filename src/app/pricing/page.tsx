@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Subscribe to Tanghiers. Stripe bills in USD.',
 };
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
 
 const faqs = [
   {
