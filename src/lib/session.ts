@@ -1,12 +1,12 @@
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
 import { readTokens, writeTokens } from '@/lib/api/client';
-import { PRODUCT_SLUG } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/errors';
 import {
   hasEntitlement,
   mapAdminUser,
   mapSessionUser,
   splitName,
+  type AdminAccount,
 } from '@/lib/api/mappers';
 import type { ApiPayment, ApiSubscription, ApiUser, LoginResult } from '@/lib/api/types';
 import type { PlanId } from '@/data/site';
@@ -46,6 +46,7 @@ export type SessionUser = {
   subscriptionStatus: SubscriptionStatus;
   currentPeriodEnd: string | null;
   invoices: Invoice[];
+  disabled?: boolean;
 };
 
 const SESSION_KEY = 'tg.session.v1';
@@ -98,6 +99,7 @@ function normalizeSession(parsed: Partial<SessionUser> | null | undefined): Sess
     subscriptionStatus: parsed.subscriptionStatus ?? 'inactive',
     currentPeriodEnd: parsed.currentPeriodEnd ?? null,
     invoices: parsed.invoices ?? [],
+    disabled: Boolean(parsed.disabled),
   };
 }
 
@@ -126,14 +128,14 @@ export function clearSession() {
   writeSession(null);
 }
 
-let accountCache: SessionUser[] = [];
+let accountCache: AdminAccount[] = [];
 
-export function listAccounts(): SessionUser[] {
+export function listAccounts(): AdminAccount[] {
   return accountCache;
 }
 
-export async function refreshAccounts() {
-  const rows = asList<ApiUser & { subscriptionStatus?: string; planCode?: string }>(await admin.users());
+export async function refreshAccounts(q?: string) {
+  const rows = asList<ApiUser>(await admin.users({ q, limit: 100 }));
   accountCache = rows.map(mapAdminUser).sort((a, b) => a.name.localeCompare(b.name));
   return accountCache;
 }
@@ -261,7 +263,6 @@ export async function signupAccount(input: SignupInput): Promise<SessionUser> {
     countryCode,
     dateOfBirth,
     phone,
-    productSlug: PRODUCT_SLUG,
     consents: {
       terms: input.consents.terms,
       privacy: input.consents.privacy,

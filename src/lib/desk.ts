@@ -1,6 +1,6 @@
 import { type Delivery, type Forecast } from '@/data/forecasts';
 import { admin, asList, forecasts as forecastApi, me } from '@/lib/api/resources';
-import { PRODUCT_SLUG } from '@/lib/api/config';
+import { ApiError } from '@/lib/api/errors';
 import { forecastBodyFrom, mapDelivery, mapForecast } from '@/lib/api/mappers';
 import { readSession } from '@/lib/session';
 import type { ApiForecast, ApiNotification } from '@/lib/api/types';
@@ -56,7 +56,15 @@ async function loadCustomerDesk(): Promise<DeskState> {
 }
 
 async function loadAdminDesk(): Promise<DeskState> {
-  const rows = asList<ApiForecast>(await admin.forecasts());
+  const first = await admin.forecasts({ limit: 100, offset: 0 });
+  let rows = asList<ApiForecast>(first);
+  const total =
+    first && typeof first === 'object' && !Array.isArray(first) && typeof (first as { total?: number }).total === 'number'
+      ? (first as { total: number }).total
+      : rows.length;
+  if (total > rows.length) {
+    rows = asList<ApiForecast>(await admin.forecasts({ limit: total, offset: 0 }));
+  }
   const forecasts = rows.map(mapForecast).sort(byDate);
   const published = forecasts.filter((item) => item.status === 'published').slice(0, 12);
   const groups = await Promise.all(
@@ -124,7 +132,6 @@ export async function saveForecast(input: ForecastDraft, mode: 'draft' | 'publis
     throw new Error('Choose a date and time to schedule publication.');
   }
   const payload = {
-    productSlug: PRODUCT_SLUG,
     drawDate: input.date,
     title: parsed.title,
     body: forecastBodyFrom({
@@ -158,6 +165,50 @@ export async function saveForecast(input: ForecastDraft, mode: 'draft' | 'publis
 
   await loadDesk();
   return mapForecast(saved);
+}
+
+async function versionOf(id: string) {
+  const cached = cache.forecasts.find((item) => item.id === id)?.version;
+  try {
+    const row = await admin.forecast(id);
+    return row.version ?? cached ?? 1;
+  } catch {
+    return cached ?? 1;
+  }
+}
+
+async function withVersion<T>(id: string, run: (version: number) => Promise<T>): Promise<T> {
+  const version = await versionOf(id);
+  try {
+    return await run(version);
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.code !== 'VERSION_CONFLICT') throw error;
+    const latest = await admin.forecast(id);
+    return run(latest.version ?? version + 1);
+  }
+}
+
+export async function publishForecastNow(id: string): Promise<Forecast> {
+  const saved = await withVersion(id, (version) => admin.publishForecast(id, version));
+  await loadDesk();
+  return mapForecast(saved);
+}
+
+export async function unscheduleForecast(id: string): Promise<Forecast> {
+  const saved = await withVersion(id, (version) => admin.unscheduleForecast(id, version));
+  await loadDesk();
+  return mapForecast(saved);
+}
+
+export async function archiveForecast(id: string): Promise<Forecast> {
+  const saved = await withVersion(id, (version) => admin.archiveForecast(id, version));
+  await loadDesk();
+  return mapForecast(saved);
+}
+
+export async function deleteDraft(id: string): Promise<void> {
+  await withVersion(id, (version) => admin.deleteForecast(id, version));
+  await loadDesk();
 }
 
 export function forecastById(id: string) {

@@ -3,7 +3,15 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Check, Copy, Download, ShieldCheck } from 'lucide-react';
+import { Check, Copy, Download } from 'lucide-react';
+import {
+  Stepper,
+  StepperIndicator,
+  StepperItem,
+  StepperSeparator,
+  StepperTitle,
+  type StepState,
+} from '@/components/ui/stepper';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
 import { useSession } from '@/components/app/SessionProvider';
@@ -182,6 +190,145 @@ export function MfaVerifyScreen() {
   );
 }
 
+const SETUP_STEPS = [
+  { title: 'Scan', description: 'Add Tanghiers in your authenticator app.' },
+  { title: 'Confirm', description: 'Enter the 6-digit code from the app.' },
+  { title: 'Save', description: 'Store these codes. They are shown once.' },
+] as const;
+
+function stepState(index: number, current: number): StepState {
+  if (index < current) return 'completed';
+  if (index === current) return 'active';
+  return 'pending';
+}
+
+function SetupStepper({ current }: { current: number }) {
+  return (
+    <Stepper orientation="horizontal" aria-label="Setup progress" className="mt-8">
+      {SETUP_STEPS.map((step, index) => (
+        <StepperItem
+          key={step.title}
+          state={stepState(index, current)}
+          aria-current={index === current ? 'step' : undefined}
+          className="gap-2"
+        >
+          <StepperIndicator>
+            {index < current ? <Check className="size-3.5" /> : index + 1}
+          </StepperIndicator>
+          <StepperTitle>{step.title}</StepperTitle>
+          <StepperSeparator className="mx-1 min-w-3 flex-1" />
+        </StepperItem>
+      ))}
+    </Stepper>
+  );
+}
+
+function ScanStep({ challenge, onContinue }: { challenge: MfaChallenge; onContinue: () => void }) {
+  const secret = formatSecret(challenge.secret);
+
+  return (
+    <div className="mt-8">
+      <div className="flex justify-center">
+        <div className="rounded-xl border border-[#e6e8ee] p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={challenge.qrCode} alt="Authenticator QR code" width={168} height={168} className="size-[168px]" />
+        </div>
+      </div>
+      {secret ? (
+        <div className="mt-5">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-[#667085]">
+              Or enter this key{challenge.email ? ` for ${challenge.email}` : ''}.
+            </p>
+            <CopyButton value={challenge.secret.replace(/\s+/g, '')} label="Setup key" />
+          </div>
+          <p className="mt-2 break-all rounded-xl bg-[#f7f8fa] px-3 py-2.5 font-mono text-sm tracking-[0.14em] text-[#101828]">
+            {secret}
+          </p>
+        </div>
+      ) : null}
+      <Button type="button" className="mt-6 h-11 w-full" onClick={onContinue}>
+        Continue
+      </Button>
+    </div>
+  );
+}
+
+function ConfirmStep({
+  code,
+  error,
+  busy,
+  onChange,
+  onBack,
+  onSubmit,
+}: {
+  code: string;
+  error: string;
+  busy: boolean;
+  onChange: (value: string) => void;
+  onBack: () => void;
+  onSubmit: (value: string) => void;
+}) {
+  return (
+    <form
+      className="mt-8 space-y-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit(code);
+      }}
+    >
+      <OtpField value={code} onChange={onChange} onComplete={onSubmit} disabled={busy} />
+      {error ? <p className="text-center text-sm text-[#b42318]">{error}</p> : null}
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" className="h-11" onClick={onBack} disabled={busy}>
+          Back
+        </Button>
+        <Button type="submit" className="h-11 flex-1" disabled={busy || code.length !== 6}>
+          {busy ? 'Checking…' : 'Verify'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function SaveStep({ codes, onContinue }: { codes: string[]; onContinue: () => void }) {
+  const download = () => {
+    const blob = new Blob([`Tanghiers recovery codes\n\n${codes.join('\n')}\n`], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'tanghiers-recovery-codes.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-end gap-4">
+        <CopyButton value={codes.join('\n')} label="Recovery codes" />
+        <button
+          type="button"
+          onClick={download}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#667085] hover:text-[#101828]"
+        >
+          <Download className="size-3.5" />
+          Download
+        </button>
+      </div>
+      <ul className="mt-3 grid grid-cols-2 gap-2">
+        {codes.map((item) => (
+          <li key={item} className="rounded-lg bg-[#f7f8fa] px-3 py-2 font-mono text-sm tracking-wide text-[#101828]">
+            {item}
+          </li>
+        ))}
+      </ul>
+      <Button type="button" className="mt-6 h-11 w-full" onClick={onContinue}>
+        I have saved these codes
+      </Button>
+    </div>
+  );
+}
+
 export function MfaSetupScreen() {
   const { user, ready, confirmMfaSetup } = useSession();
   const router = useRouter();
@@ -189,12 +336,14 @@ export function MfaSetupScreen() {
   const next = searchParams.get('next') || '';
   const [challenge, setChallenge] = React.useState<MfaChallenge | null>(null);
   const [loadError, setLoadError] = React.useState('');
+  const [step, setStep] = React.useState(0);
   const [code, setCode] = React.useState('');
   const [error, setError] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [recoveryCodes, setRecoveryCodes] = React.useState<string[] | null>(null);
   const [retry, setRetry] = React.useState(0);
   const holdRedirect = Boolean(recoveryCodes);
+  const current = recoveryCodes ? 2 : step;
 
   React.useEffect(() => {
     if (!ready) return;
@@ -225,6 +374,11 @@ export function MfaSetupScreen() {
     };
   }, [ready, user, holdRedirect, next, router, retry]);
 
+  const finish = (role: 'member' | 'admin') => {
+    toast.success('Authenticator is ready.');
+    router.replace(destination(next, role));
+  };
+
   const submit = async (value: string) => {
     if (busy || value.length < 6) return;
     setBusy(true);
@@ -236,8 +390,7 @@ export function MfaSetupScreen() {
         setBusy(false);
         return;
       }
-      toast.success('Authenticator is ready.');
-      router.replace(destination(next, result.user.role));
+      finish(result.user.role);
     } catch (err) {
       setCode('');
       setError(err instanceof Error ? err.message : 'That code did not match.');
@@ -245,28 +398,10 @@ export function MfaSetupScreen() {
     }
   };
 
-  if (recoveryCodes) {
-    return (
-      <AuthShell
-        wide
-        title="Save your recovery codes"
-        description="These codes are shown once. Store them offline. Each one can sign you in if you lose your authenticator."
-      >
-        <RecoveryCodesPanel
-          codes={recoveryCodes}
-          onContinue={() => {
-            toast.success('Authenticator is ready.');
-            router.replace(destination(next, user?.role ?? 'admin'));
-          }}
-        />
-      </AuthShell>
-    );
-  }
-
   if (loadError) {
     return (
-      <AuthShell title="Authenticator setup" description={loadError}>
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+      <AuthShell title="Set up authenticator" description={loadError}>
+        <div className="mt-6 flex items-center gap-5">
           <button
             type="button"
             className="text-sm font-medium text-[#101828] hover:underline"
@@ -277,7 +412,7 @@ export function MfaSetupScreen() {
           >
             Try again
           </button>
-          <Link href="/login" className="text-sm font-medium text-[#667085] hover:text-[#101828] hover:underline">
+          <Link href="/login" className="text-sm text-[#667085] hover:text-[#101828]">
             Back to log in
           </Link>
         </div>
@@ -287,128 +422,39 @@ export function MfaSetupScreen() {
 
   if (!challenge) {
     return (
-      <AuthShell title="Set up authenticator" description="Preparing a QR code for your authenticator app…">
-        <div className="mt-8 h-48 animate-pulse rounded-2xl border border-[#e6e8ee] bg-[#f7f8fa]" />
+      <AuthShell title="Set up authenticator" description="Preparing your authenticator setup…">
+        <div className="mt-8 h-8 animate-pulse rounded-full bg-[#f2f4f7]" />
       </AuthShell>
     );
   }
 
-  const secretDisplay = formatSecret(challenge.secret);
-
   return (
-    <AuthShell
-      wide
-      title="Set up authenticator"
-      description="Scan the code with Google Authenticator, 1Password, or Authy, then enter the 6-digit code it shows."
-    >
-      <ol className="mt-8 grid grid-cols-3 gap-2 text-center text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
-        <li className="rounded-full bg-[#101828] px-2 py-1.5 text-white">1 · Scan</li>
-        <li className="rounded-full bg-[#f2f4f7] px-2 py-1.5">2 · Confirm</li>
-        <li className="rounded-full bg-[#f2f4f7] px-2 py-1.5">3 · Recover</li>
-      </ol>
-
-      <div className="mt-6 overflow-hidden rounded-2xl border border-[#e6e8ee] bg-white">
-        <div className="flex flex-col items-center gap-5 px-5 py-6 sm:px-8">
-          <div className="rounded-2xl border border-[#e6e8ee] bg-white p-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={challenge.qrCode} alt="Authenticator QR code" width={220} height={220} className="size-[220px]" />
-          </div>
-          <div className="w-full">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-[#101828]">Can’t scan?</p>
-              {challenge.secret ? <CopyButton value={challenge.secret.replace(/\s+/g, '')} label="Setup key" /> : null}
-            </div>
-            <p className="mt-1 text-sm leading-6 text-[#667085]">
-              Enter this key in your app
-              {challenge.email ? ` for ${challenge.email}` : ''}.
-            </p>
-            {secretDisplay ? (
-              <p className="mt-3 break-all rounded-xl bg-[#f7f8fa] px-3 py-3 font-mono text-sm tracking-[0.18em] text-[#101828]">
-                {secretDisplay}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <form
-        className="mt-6 space-y-5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void submit(code);
-        }}
-      >
-        <div>
-          <p className="text-sm font-semibold text-[#101828]">Verification code</p>
-          <p className="mt-1 mb-3 text-sm text-[#667085]">Type the 6-digit code from the app.</p>
-          <OtpField value={code} onChange={setCode} onComplete={(value) => void submit(value)} disabled={busy} />
-        </div>
-        {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-        <Button type="submit" className="h-12 w-full" disabled={busy || code.length !== 6}>
-          {busy ? 'Verifying…' : 'Confirm and continue'}
-        </Button>
-      </form>
-      <p className="mt-6 text-sm text-[#667085]">
-        <Link href="/login" className="font-medium text-[#101828] hover:underline">
-          Use a different account
-        </Link>
-      </p>
+    <AuthShell title="Set up authenticator" description={SETUP_STEPS[current].description}>
+      <SetupStepper current={current} />
+      {current === 0 ? <ScanStep challenge={challenge} onContinue={() => setStep(1)} /> : null}
+      {current === 1 ? (
+        <ConfirmStep
+          code={code}
+          error={error}
+          busy={busy}
+          onChange={setCode}
+          onBack={() => {
+            setError('');
+            setStep(0);
+          }}
+          onSubmit={(value) => void submit(value)}
+        />
+      ) : null}
+      {current === 2 && recoveryCodes ? (
+        <SaveStep codes={recoveryCodes} onContinue={() => finish(user?.role ?? 'admin')} />
+      ) : null}
+      {current < 2 ? (
+        <p className="mt-5 text-sm text-[#667085]">
+          <Link href="/login" className="hover:text-[#101828]">
+            Use a different account
+          </Link>
+        </p>
+      ) : null}
     </AuthShell>
-  );
-}
-
-function RecoveryCodesPanel({ codes, onContinue }: { codes: string[]; onContinue: () => void }) {
-  const download = () => {
-    const blob = new Blob([`Tanghiers recovery codes\n\n${codes.join('\n')}\n`], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'tanghiers-recovery-codes.txt';
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <div className="mt-8">
-      <ol className="grid grid-cols-3 gap-2 text-center text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
-        <li className="rounded-full bg-[#f2f4f7] px-2 py-1.5">1 · Scan</li>
-        <li className="rounded-full bg-[#f2f4f7] px-2 py-1.5">2 · Confirm</li>
-        <li className="rounded-full bg-[#101828] px-2 py-1.5 text-white">3 · Recover</li>
-      </ol>
-
-      <div className="mt-6 rounded-2xl border border-[#e6e8ee] p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="size-4 text-[#101828]" />
-            <p className="text-sm font-semibold text-[#101828]">Recovery codes</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <CopyButton value={codes.join('\n')} label="Recovery codes" />
-            <button
-              type="button"
-              onClick={download}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#667085] hover:text-[#101828]"
-            >
-              <Download className="size-3.5" />
-              Download
-            </button>
-          </div>
-        </div>
-        <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {codes.map((item) => (
-            <li
-              key={item}
-              className="rounded-xl bg-[#f7f8fa] px-3 py-2.5 font-mono text-sm tracking-wide text-[#101828]"
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <Button type="button" className="mt-6 h-12 w-full" onClick={onContinue}>
-        I have saved these codes
-      </Button>
-    </div>
   );
 }

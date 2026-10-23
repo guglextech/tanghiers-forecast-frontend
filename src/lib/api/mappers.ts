@@ -228,6 +228,7 @@ function mapForecastStatus(value: string | undefined): Forecast['status'] {
   const status = String(value || '').toLowerCase();
   if (status === 'published') return 'published';
   if (status === 'scheduled') return 'scheduled';
+  if (status === 'archived') return 'archived';
   return 'draft';
 }
 
@@ -264,22 +265,25 @@ function mapChannel(value: string | undefined): Delivery['channel'] {
 
 function mapDeliveryStatus(value: string | undefined): Delivery['status'] {
   const status = String(value || '').toLowerCase();
-  if (status === 'sent' || status === 'delivered') return 'sent';
+  if (status === 'delivered') return 'delivered';
+  if (status === 'sent') return 'sent';
   if (status === 'queued' || status === 'pending') return 'queued';
   if (status === 'skipped' || status === 'failed') return 'skipped';
   return 'available';
 }
 
 export function mapDelivery(row: ApiNotification, index = 0): Delivery {
+  const destination = row.destination || row.userEmail || row.email || '';
   return {
     id: row.id || `delivery-${index}-${row.forecastId || 'x'}`,
     forecastId: row.forecastId || '',
     userId: row.userId || '',
-    userEmail: row.userEmail || row.email || '',
+    userEmail: row.userEmail || row.email || destination,
+    destination,
     channel: mapChannel(row.channel),
     status: mapDeliveryStatus(row.status),
-    detail: row.detail || row.message || '',
-    at: row.at || row.sentAt || row.createdAt || new Date().toISOString(),
+    detail: row.errorMessage || row.detail || row.message || '',
+    at: row.deliveredAt || row.sentAt || row.at || row.updatedAt || row.createdAt || new Date().toISOString(),
   };
 }
 
@@ -322,26 +326,128 @@ export function mapSessionUser(input: {
     subscriptionStatus: input.entitled && status === 'inactive' ? 'active' : status,
     currentPeriodEnd: input.subscription?.currentPeriodEnd ?? null,
     invoices: (input.payments ?? []).map(mapPayment),
+    disabled: isUserDisabled(input.profile),
   };
 }
 
-export function mapAdminUser(row: ApiUser & { subscriptionStatus?: string; planCode?: string }): SessionUser {
-  const names = splitName(displayName(row));
+export function isUserDisabled(row: Pick<ApiUser, 'disabled' | 'enabled' | 'status'>) {
+  if (row.disabled === true || row.enabled === false) return true;
+  const status = String(row.status || '').toLowerCase();
+  return status === 'disabled' || status === 'blocked';
+}
+
+export type AdminAccount = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  phone: string;
+  phoneVerified: boolean;
+  countryCode: string;
+  timezone: string;
+  role: Role;
+  roleLabel: string;
+  mfaEnabled: boolean;
+  status: string;
+  disabled: boolean;
+  planId: PlanId | null;
+  createdAt: string | null;
+  lastLoginAt: string | null;
+};
+
+function titleCase(value: string) {
+  const text = value.replace(/[_-]+/g, ' ').trim().toLowerCase();
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+export function mapAdminUser(row: ApiUser): AdminAccount {
+  const status = String(row.status || '').toLowerCase();
   return {
     id: row.id,
     name: displayName(row),
-    firstName: row.firstName || names.firstName,
-    lastName: row.lastName || names.lastName,
     email: row.email,
     emailVerified: Boolean(row.emailVerified),
-    role: mapRole(row.role),
     phone: row.phone || '',
-    timezone: row.timezone || '',
+    phoneVerified: Boolean(row.phoneVerified),
     countryCode: row.countryCode || '',
-    smsConsent: false,
-    planId: mapPlanId(row.planCode),
-    subscriptionStatus: mapSubscriptionStatus(row.subscriptionStatus),
-    currentPeriodEnd: null,
-    invoices: [],
+    timezone: row.timezone || '',
+    role: mapRole(row.role),
+    roleLabel: titleCase(row.role || 'user'),
+    mfaEnabled: Boolean(row.mfaEnabled),
+    status: status || 'unknown',
+    disabled: isUserDisabled(row),
+    planId: mapPlanId(row.planCode || row.planId),
+    createdAt: row.createdAt || null,
+    lastLoginAt: row.lastLoginAt || null,
+  };
+}
+
+export type OverviewStats = {
+  activeSubscribers: number;
+  publishedForecasts: number;
+  emailsSent: number;
+  smsQueued: number;
+  revenue: number;
+  revenueCurrency: string;
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function pickNumber(source: unknown, paths: string[]): number | null {
+  const root = asRecord(source);
+  if (!root) return null;
+  for (const path of paths) {
+    const value = path.split('.').reduce<unknown>((acc, key) => {
+      const record = asRecord(acc);
+      return record ? record[key] : undefined;
+    }, root);
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function pickRevenue(source: unknown): { amount: number; currency: string } | null {
+  const root = asRecord(source);
+  if (!root) return null;
+  const revenue = asRecord(root.revenue) ?? root;
+  const usd = revenue.USD ?? revenue.usd;
+  if (typeof usd === 'number' && Number.isFinite(usd)) return { amount: usd, currency: 'USD' };
+  const amount = pickNumber(revenue, ['amount', 'total', 'sum']);
+  if (amount == null) return null;
+  const currency = typeof revenue.currency === 'string' && revenue.currency ? revenue.currency : 'USD';
+  return { amount, currency };
+}
+
+export function mapOverviewReport(
+  report: Record<string, unknown> | null | undefined,
+  fallback: OverviewStats,
+): OverviewStats {
+  if (!report) return fallback;
+  const revenue = pickRevenue(report);
+  return {
+    activeSubscribers:
+      pickNumber(report, [
+        'subscriptions.active',
+        'subscribers.active',
+        'users.active',
+        'activeSubscribers',
+        'activeSubscriptions',
+      ]) ?? fallback.activeSubscribers,
+    publishedForecasts:
+      pickNumber(report, ['forecasts.published', 'publishedForecasts', 'forecasts.total']) ??
+      fallback.publishedForecasts,
+    emailsSent:
+      pickNumber(report, ['delivery.emailSent', 'delivery.emails', 'emailsSent', 'email.sent']) ??
+      fallback.emailsSent,
+    smsQueued:
+      pickNumber(report, ['delivery.smsQueued', 'delivery.sms', 'smsQueued', 'sms.queued']) ??
+      fallback.smsQueued,
+    revenue: revenue?.amount ?? fallback.revenue,
+    revenueCurrency: revenue?.currency ?? fallback.revenueCurrency,
   };
 }

@@ -1,4 +1,4 @@
-export type ForecastStatus = 'draft' | 'scheduled' | 'published';
+export type ForecastStatus = 'draft' | 'scheduled' | 'published' | 'archived';
 
 export type GameId = 'pick-2' | 'pick-3' | 'pick-4' | 'pick-5';
 
@@ -41,13 +41,14 @@ export type Forecast = {
 
 export type DeliveryChannel = 'web' | 'email' | 'sms';
 
-export type DeliveryStatus = 'available' | 'sent' | 'queued' | 'skipped';
+export type DeliveryStatus = 'available' | 'sent' | 'delivered' | 'queued' | 'skipped';
 
 export type Delivery = {
   id: string;
   forecastId: string;
   userId: string;
   userEmail: string;
+  destination: string;
   channel: DeliveryChannel;
   status: DeliveryStatus;
   detail: string;
@@ -156,6 +157,7 @@ export function seedDeliveries(): Delivery[] {
         forecastId: forecast.id,
         userId: DEMO_SUBSCRIBER.id,
         userEmail: DEMO_SUBSCRIBER.email,
+        destination: DEMO_SUBSCRIBER.email,
         channel: 'web' as const,
         status: 'available' as const,
         detail: 'Visible on the site',
@@ -166,6 +168,7 @@ export function seedDeliveries(): Delivery[] {
         forecastId: forecast.id,
         userId: DEMO_SUBSCRIBER.id,
         userEmail: DEMO_SUBSCRIBER.email,
+        destination: DEMO_SUBSCRIBER.email,
         channel: 'email' as const,
         status: 'sent' as const,
         detail: 'Sent to the subscriber inbox',
@@ -176,6 +179,7 @@ export function seedDeliveries(): Delivery[] {
         forecastId: forecast.id,
         userId: DEMO_SUBSCRIBER.id,
         userEmail: DEMO_SUBSCRIBER.email,
+        destination: DEMO_SUBSCRIBER.email,
         channel: 'sms' as const,
         status: 'queued' as const,
         detail: 'Recorded. Text delivery is not active yet.',

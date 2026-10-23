@@ -55,6 +55,16 @@ export type ApiUser = {
   countryCode?: string | null;
   dateOfBirth?: string | null;
   emailVerified?: boolean;
+  phoneVerified?: boolean;
+  disabled?: boolean;
+  enabled?: boolean;
+  status?: string;
+  subscriptionStatus?: string;
+  planCode?: string;
+  planId?: string;
+  mfaEnabled?: boolean;
+  createdAt?: string;
+  lastLoginAt?: string | null;
 };
 
 export type ApiConsentMap = Record<
@@ -163,9 +173,17 @@ export type ApiNotification = {
   userId?: string;
   userEmail?: string;
   email?: string;
+  destination?: string;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  attempts?: number;
   createdAt?: string;
   at?: string;
   sentAt?: string;
+  deliveredAt?: string;
+  updatedAt?: string;
 };
 
 export type Paginated<T> = T[] | { items?: T[]; data?: T[]; results?: T[] };
+
+export type ApiOverviewReport = Record<string, unknown>;

@@ -15,6 +15,7 @@ const channelLabel = {
 const statusLabel = {
   available: 'Available',
   sent: 'Sent',
+  delivered: 'Delivered',
   queued: 'Queued',
   skipped: 'Skipped',
 } as const;

@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 type AdminIconName =
   | 'grid-fill'
   | 'calendar-event-fill'
-  | 'plus-circle-fill'
   | 'send-fill'
   | 'people-fill'
   | 'box-arrow-up-right'
@@ -29,7 +28,6 @@ function AdminIcon({ name, className }: { name: AdminIconName; className?: strin
 const deskLinks = [
   { href: '/admin', label: 'Overview', icon: 'grid-fill' },
   { href: '/admin/forecasts', label: 'Forecasts', icon: 'calendar-event-fill' },
-  { href: '/admin/forecasts/new', label: 'New forecast', icon: 'plus-circle-fill' },
   { href: '/admin/deliveries', label: 'Deliveries', icon: 'send-fill' },
   { href: '/admin/subscribers', label: 'Subscribers', icon: 'people-fill' },
 ] as const;
@@ -40,16 +38,6 @@ function isActive(pathname: string, href: string) {
     return pathname === '/admin/forecasts' || /^\/admin\/forecasts\/(?!new$).+/.test(pathname);
   }
   return pathname === href;
-}
-
-function pageTitle(pathname: string) {
-  if (pathname === '/admin') return 'Overview';
-  if (pathname === '/admin/forecasts/new') return 'New forecast';
-  if (pathname.startsWith('/admin/forecasts/')) return 'Edit forecast';
-  if (pathname.startsWith('/admin/forecasts')) return 'Forecasts';
-  if (pathname.startsWith('/admin/deliveries')) return 'Deliveries';
-  if (pathname.startsWith('/admin/subscribers')) return 'Subscribers';
-  return 'Publishing desk';
 }
 
 function isDesktopNav() {
@@ -108,6 +96,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const menuOpen = isDesktop ? desktopOpen : mobileOpen;
+  const composing = pathname === '/admin/forecasts/new';
 
   const toggleNav = () => {
     if (isDesktopNav()) {
@@ -145,8 +134,8 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
           desktopOpen ? 'lg:pl-64' : 'lg:pl-0',
         )}
       >
-        <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white/90 backdrop-blur">
-          <div className="flex h-14 items-center gap-2 px-3 md:h-16 md:px-5">
+        <header className="sticky top-0 z-20 border-b border-[#e6e8ee] bg-white">
+          <div className="flex h-14 items-center gap-3 px-4 md:px-6">
             <button
               type="button"
               onClick={toggleNav}
@@ -156,25 +145,25 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             >
               <AdminIcon name="list" className="text-[20px]" />
             </button>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
-                {SITE.project} desk
-              </p>
-              <h1 className="truncate text-[15px] font-semibold md:text-base">{pageTitle(pathname)}</h1>
+            <div className="ml-auto flex items-center gap-2">
+              <Link
+                href="/feed"
+                className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-[#475467] hover:bg-[#f2f4f7] sm:inline-flex"
+              >
+                Subscriber feed
+              </Link>
+              {composing ? null : (
+                <Link
+                  href="/admin/forecasts/new"
+                  className="inline-flex h-9 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white"
+                >
+                  New forecast
+                </Link>
+              )}
             </div>
-            <Link
-              href="/admin/forecasts/new"
-              className="inline-flex h-9 items-center rounded-full bg-[#101828] px-3.5 text-sm font-semibold text-white md:px-4"
-            >
-              New forecast
-            </Link>
-            <Link href="/feed" className="hidden text-sm text-[#667085] hover:text-[#101828] sm:inline">
-              Feed
-            </Link>
           </div>
         </header>
-        <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
-        <p className="px-4 pb-8 text-center text-xs text-[#98a2b3] lg:px-6">{SITE.disclaimer}</p>
+        <main className="px-4 py-8 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );
