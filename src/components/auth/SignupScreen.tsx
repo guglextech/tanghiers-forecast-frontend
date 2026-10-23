@@ -94,10 +94,12 @@ function yearsAgo(years: number) {
   return date;
 }
 
+const CONSENT_NOTE = 'Agree to the terms, privacy policy, and age confirmation to continue.';
+
 const STEP_COPY = [
   { title: 'Join Tanghiers', hint: 'Continue with Google, or use email and a password.' },
   { title: 'Your details', hint: 'Used for your profile and to confirm you can join.' },
-  { title: 'Almost done', hint: 'Turn on each item to create the account.' },
+  { title: 'Almost done', hint: '' },
 ] as const;
 
 export function SignupScreen() {
@@ -191,7 +193,7 @@ export function SignupScreen() {
     }
     if (index === 2) {
       if (!agreeTerms || !agreePrivacy || !agreeAge) {
-        throw new Error('Agree to the terms, privacy policy, and age confirmation to continue.');
+        throw new Error(CONSENT_NOTE);
       }
     }
   };
@@ -259,7 +261,9 @@ export function SignupScreen() {
           <>
             <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">Create account</p>
             <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">{STEP_COPY[step].title}</h1>
-            <p className="mt-1 text-sm leading-6 text-[#667085]">{STEP_COPY[step].hint}</p>
+            {STEP_COPY[step].hint ? (
+              <p className="mt-1 text-sm leading-6 text-[#667085]">{STEP_COPY[step].hint}</p>
+            ) : null}
 
             <StepBars
               label="Signup progress"
@@ -423,7 +427,21 @@ export function SignupScreen() {
                 </div>
               ) : null}
 
-              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+              {step === 2 ? (
+                <p className={cn('text-xs leading-5', error === CONSENT_NOTE ? 'text-destructive' : 'text-[#98a2b3]')}>
+                  Agree to the{' '}
+                  <Link href="/terms" className="font-medium text-[#667085] hover:underline">
+                    terms
+                  </Link>
+                  ,{' '}
+                  <Link href="/privacy" className="font-medium text-[#667085] hover:underline">
+                    privacy policy
+                  </Link>
+                  , and age confirmation to continue.
+                </p>
+              ) : null}
+
+              {error && error !== CONSENT_NOTE ? <p className="text-sm text-destructive">{error}</p> : null}
 
               <div className="flex items-center gap-3 pt-1">
                 {step > 0 ? (
