@@ -8,7 +8,7 @@ import { LoadingState } from '@/components/app/LoadingState';
 import { ForecastPost } from '@/components/forecast/ForecastArticle';
 import { useDesk } from '@/components/forecast/useDesk';
 import { publishedForecasts } from '@/data/forecasts';
-import { SITE, formatMoney, type Plan } from '@/data/site';
+import { SITE, formatPlanPrice, type Plan } from '@/data/site';
 import { getCatalogPlans } from '@/lib/plans';
 
 export function MarketingHome() {
@@ -42,7 +42,7 @@ export function MarketingHome() {
               key={forecast.id}
               forecast={forecast}
               locked
-              href="/signup?next=/pricing"
+              subscribeHref="/signup?next=/pricing"
             />
           ))}
         </div>
@@ -74,7 +74,7 @@ export function MarketingHome() {
                     ) : null}
                   </span>
                   <span className="tabular-nums text-[#667085]">
-                    {formatMoney(plan.price, plan.currency)}/{plan.period}
+                    {formatPlanPrice(plan) ?? '—'}
                   </span>
                 </li>
               ))}

@@ -25,16 +25,18 @@ export function YoutubeFrame({
   videoId = SAMPLE_YOUTUBE_ID,
   title,
   locked = false,
+  className,
 }: {
   videoId?: string;
   title: string;
   locked?: boolean;
+  className?: string;
 }) {
   const [playing, setPlaying] = React.useState(false);
   const poster = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
   return (
-    <div className="group/video relative overflow-hidden rounded-2xl bg-[#0b1220]">
+    <div className={cn('group/video relative overflow-hidden bg-[#0b1220]', className)}>
       <div className="relative aspect-video">
         {playing && !locked ? (
           <iframe
@@ -52,14 +54,14 @@ export function YoutubeFrame({
               src={poster}
               alt=""
               fill
-              sizes="(min-width: 768px) 768px, 100vw"
-              className="object-cover transition duration-500 ease-out group-hover/video:scale-[1.04]"
+              sizes="(min-width: 640px) 320px, 100vw"
+              className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
+            <div className="absolute inset-0 bg-black/20" />
             {locked ? (
               <div className="absolute inset-0 grid place-items-center">
-                <span className="grid size-14 place-items-center rounded-full border border-white/20 bg-white/90 text-[#101828] shadow-lg">
-                  <span className="ml-1 block h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-[#d0d5dd]" />
+                <span className="grid size-8 place-items-center rounded-full bg-white/90 text-[#101828]">
+                  <span className="ml-0.5 block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-[#d0d5dd]" />
                 </span>
                 <span className="sr-only">Draw video is locked</span>
               </div>
@@ -70,19 +72,11 @@ export function YoutubeFrame({
                 className="absolute inset-0 grid place-items-center"
                 aria-label={`Play ${title}`}
               >
-                <span
-                  className={cn(
-                    'grid size-14 place-items-center rounded-full bg-white text-[#101828] shadow-lg',
-                    'transition duration-300 ease-out group-hover/video:scale-110',
-                  )}
-                >
-                  <span className="ml-1 block h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-[#101828]" />
+                <span className="grid size-8 place-items-center rounded-full bg-white text-[#101828]">
+                  <span className="ml-0.5 block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-[#101828]" />
                 </span>
               </button>
             )}
-            <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-medium tracking-wide text-white/90">
-              Draw video
-            </span>
           </>
         )}
       </div>

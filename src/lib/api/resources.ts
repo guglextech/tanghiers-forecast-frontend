@@ -1,10 +1,11 @@
 import { apiRequest, unwrapList } from '@/lib/api/client';
-import { PRODUCT_SLUG } from '@/lib/api/config';
+import { PRODUCT_SLUG, productBody, productResource, productUrl } from '@/lib/api/config';
 import type {
   ApiConsentMap,
   ApiEntitlement,
   ApiForecast,
   ApiNotification,
+  ApiOverviewReport,
   ApiPayment,
   ApiPlan,
   ApiSubscription,
@@ -15,12 +16,15 @@ import type {
 } from '@/lib/api/types';
 
 export const catalog = {
-  product: () =>
+  product: (productSlug = PRODUCT_SLUG) =>
     apiRequest<{ slug: string; name: string; timezone?: string; minAge?: number; supportEmail?: string }>(
-      `/v1/products/${PRODUCT_SLUG}`,
+      productResource('/v1/products', productSlug),
       { auth: false },
     ),
-  plans: () => apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(`/v1/products/${PRODUCT_SLUG}/plans`, { auth: false }),
+  plans: (productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(`${productResource('/v1/products', productSlug)}/plans`, {
+      auth: false,
+    }),
   countries: () =>
     apiRequest<Array<{ code: string; name: string; smsAvailable?: boolean; defaultTimezone?: string }>>(
       '/v1/countries',
@@ -31,7 +35,11 @@ export const catalog = {
 
 export const auth = {
   register: (body: Record<string, unknown>) =>
-    apiRequest<{ message?: string }>('/v1/auth/register', { method: 'POST', body, auth: false }),
+    apiRequest<{ message?: string }>('/v1/auth/register', {
+      method: 'POST',
+      body: productBody(body),
+      auth: false,
+    }),
   login: (email: string, password: string) =>
     apiRequest<LoginResult>('/v1/auth/login', { method: 'POST', body: { email, password }, auth: false }),
   logout: (refreshToken: string) =>
@@ -39,16 +47,16 @@ export const auth = {
   logoutAll: () => apiRequest<unknown>('/v1/auth/logout-all', { method: 'POST' }),
   verifyEmail: (token: string) =>
     apiRequest<unknown>('/v1/auth/email/verify', { method: 'POST', body: { token }, auth: false }),
-  resendVerification: (email: string) =>
+  resendVerification: (email: string, productSlug = PRODUCT_SLUG) =>
     apiRequest<unknown>('/v1/auth/email/resend', {
       method: 'POST',
-      body: { email, productSlug: PRODUCT_SLUG },
+      body: productBody({ email }, productSlug),
       auth: false,
     }),
-  forgotPassword: (email: string) =>
+  forgotPassword: (email: string, productSlug = PRODUCT_SLUG) =>
     apiRequest<unknown>('/v1/auth/password/forgot', {
       method: 'POST',
-      body: { email, productSlug: PRODUCT_SLUG },
+      body: productBody({ email }, productSlug),
       auth: false,
     }),
   resetPassword: (token: string, newPassword: string) =>
@@ -62,7 +70,11 @@ export const auth = {
   google: (idToken: string) =>
     apiRequest<LoginResult>('/v1/auth/social/google', { method: 'POST', body: { idToken }, auth: false }),
   completeSocial: (body: Record<string, unknown>) =>
-    apiRequest<LoginResult>('/v1/auth/social/complete', { method: 'POST', body, auth: false }),
+    apiRequest<LoginResult>('/v1/auth/social/complete', {
+      method: 'POST',
+      body: productBody(body),
+      auth: false,
+    }),
   mfaVerify: (mfaToken: string, code: string) =>
     apiRequest<LoginResult>('/v1/auth/mfa/verify', { method: 'POST', body: { mfaToken, code }, auth: false }),
   mfaEnrollStart: (mfaToken: string) =>
@@ -87,10 +99,18 @@ export const me = {
   setConsent: (key: string, granted: boolean, textVersion: string) =>
     apiRequest<unknown>(`/v1/me/consents/${key}`, { method: 'PUT', body: { granted, textVersion } }),
   exportData: () => apiRequest<unknown>('/v1/me/export'),
-  subscriptions: () => apiRequest<ApiSubscription[] | { items?: ApiSubscription[] }>('/v1/me/subscriptions'),
-  payments: () => apiRequest<ApiPayment[] | { items?: ApiPayment[] }>('/v1/me/payments'),
-  entitlements: () =>
-    apiRequest<ApiEntitlement | boolean>(`/v1/me/entitlements?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
+  subscriptions: () => apiRequest<ApiSubscription[] | { items?: ApiSubscription[]; subscriptions?: ApiSubscription[] }>('/v1/me/subscriptions'),
+  payments: (query: { limit?: number; offset?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (query.limit != null) params.set('limit', String(query.limit));
+    if (query.offset != null) params.set('offset', String(query.offset));
+    const search = params.toString();
+    return apiRequest<ApiPayment[] | { items?: ApiPayment[]; payments?: ApiPayment[] }>(
+      `/v1/me/payments${search ? `?${search}` : ''}`,
+    );
+  },
+  entitlements: (productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiEntitlement | boolean>(productUrl('/v1/me/entitlements', {}, productSlug)),
   notifications: () =>
     apiRequest<ApiNotification[] | { items?: ApiNotification[] }>('/v1/me/notifications?limit=100'),
   notificationPreferences: (email: boolean) =>
@@ -102,31 +122,37 @@ export const me = {
 };
 
 export const billing = {
-  checkout: (planCode: string, currency = 'USD') =>
+  checkout: (planCode: string, currency = 'USD', productSlug = PRODUCT_SLUG) =>
     apiRequest<{ url?: string; checkoutUrl?: string }>('/v1/billing/checkout', {
       method: 'POST',
-      body: { productSlug: PRODUCT_SLUG, planCode, currency },
+      body: productBody({ planCode, currency }, productSlug),
     }),
-  portal: () =>
+  portal: (productSlug = PRODUCT_SLUG) =>
     apiRequest<{ url?: string; portalUrl?: string }>('/v1/billing/portal', {
       method: 'POST',
-      body: { productSlug: PRODUCT_SLUG },
+      body: productBody({}, productSlug),
     }),
 };
 
+export type ForecastListQuery = {
+  productSlug?: string;
+  limit?: number;
+  offset?: number;
+};
+
 export const forecasts = {
-  list: () =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(
-      `/v1/forecasts?productSlug=${encodeURIComponent(PRODUCT_SLUG)}&limit=100`,
+  list: (query: ForecastListQuery = {}) =>
+    apiRequest<ApiForecast[] | { items?: ApiForecast[]; total?: number; limit?: number; offset?: number }>(
+      productUrl('/v1/forecasts', { limit: query.limit, offset: query.offset }, query.productSlug),
     ),
-  listPublic: () =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(
-      `/v1/forecasts?productSlug=${encodeURIComponent(PRODUCT_SLUG)}&limit=100`,
+  listPublic: (query: ForecastListQuery = {}) =>
+    apiRequest<ApiForecast[] | { items?: ApiForecast[]; total?: number }>(
+      productUrl('/v1/forecasts', { limit: query.limit, offset: query.offset }, query.productSlug),
       { auth: false },
     ),
-  today: () =>
-    apiRequest<ApiForecast | null>(`/v1/forecasts/today?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
-  get: (id: string) => apiRequest<ApiForecast>(`/v1/forecasts/${id}`),
+  today: (productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiForecast | null>(productUrl('/v1/forecasts/today', {}, productSlug)),
+  get: (id: string) => apiRequest<ApiForecast>(`/v1/forecasts/${encodeURIComponent(id)}`),
 };
 
 export const notifications = {
@@ -137,45 +163,116 @@ export const notifications = {
     }),
 };
 
+export type AdminForecastQuery = {
+  productSlug?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  offset?: number;
+};
+
+export type AdminReportQuery = {
+  productSlug?: string;
+  from?: string;
+  to?: string;
+};
+
+function adminForecastPath(id: string, suffix = '') {
+  return `/v1/admin/forecasts/${encodeURIComponent(id)}${suffix}`;
+}
+
+function adminUserPath(id: string, suffix = '') {
+  return `/v1/admin/users/${encodeURIComponent(id)}${suffix}`;
+}
+
 export const admin = {
-  forecasts: () =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(
-      `/v1/admin/forecasts?productSlug=${encodeURIComponent(PRODUCT_SLUG)}&limit=100`,
+  forecasts: (query: AdminForecastQuery = {}) =>
+    apiRequest<ApiForecast[] | { items?: ApiForecast[]; total?: number }>(
+      productUrl(
+        '/v1/admin/forecasts',
+        {
+          limit: query.limit ?? 100,
+          offset: query.offset ?? 0,
+          status: query.status,
+          from: query.from,
+          to: query.to,
+        },
+        query.productSlug,
+      ),
     ),
-  forecast: (id: string) => apiRequest<ApiForecast>(`/v1/admin/forecasts/${id}`),
-  createForecast: (body: Record<string, unknown>) =>
-    apiRequest<ApiForecast>('/v1/admin/forecasts', { method: 'POST', body }),
+  forecast: (id: string) => apiRequest<ApiForecast>(adminForecastPath(id)),
+  createForecast: (body: Record<string, unknown>, productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiForecast>('/v1/admin/forecasts', { method: 'POST', body: productBody(body, productSlug) }),
   updateForecast: (id: string, body: Record<string, unknown>) =>
-    apiRequest<ApiForecast>(`/v1/admin/forecasts/${id}`, { method: 'PATCH', body }),
+    apiRequest<ApiForecast>(adminForecastPath(id), { method: 'PATCH', body }),
   deleteForecast: (id: string, version: number) =>
-    apiRequest<unknown>(`/v1/admin/forecasts/${id}?version=${version}`, { method: 'DELETE' }),
+    apiRequest<unknown>(`${adminForecastPath(id)}?version=${encodeURIComponent(String(version))}`, {
+      method: 'DELETE',
+    }),
   publishForecast: (id: string, version: number) =>
-    apiRequest<ApiForecast>(`/v1/admin/forecasts/${id}/publish`, { method: 'POST', body: { version } }),
+    apiRequest<ApiForecast>(adminForecastPath(id, '/publish'), { method: 'POST', body: { version } }),
   scheduleForecast: (id: string, version: number, publishAt: string) =>
-    apiRequest<ApiForecast>(`/v1/admin/forecasts/${id}/schedule`, { method: 'POST', body: { version, publishAt } }),
+    apiRequest<ApiForecast>(adminForecastPath(id, '/schedule'), {
+      method: 'POST',
+      body: { version, publishAt },
+    }),
   unscheduleForecast: (id: string, version: number) =>
-    apiRequest<ApiForecast>(`/v1/admin/forecasts/${id}/unschedule`, { method: 'POST', body: { version } }),
+    apiRequest<ApiForecast>(adminForecastPath(id, '/unschedule'), { method: 'POST', body: { version } }),
   archiveForecast: (id: string, version: number) =>
-    apiRequest<ApiForecast>(`/v1/admin/forecasts/${id}/archive`, { method: 'POST', body: { version } }),
-  delivery: (forecastId: string) => apiRequest<unknown>(`/v1/admin/forecasts/${forecastId}/delivery`),
+    apiRequest<ApiForecast>(adminForecastPath(id, '/archive'), { method: 'POST', body: { version } }),
+  delivery: (forecastId: string) => apiRequest<unknown>(adminForecastPath(forecastId, '/delivery')),
   deliveryMessages: (forecastId: string) =>
     apiRequest<ApiNotification[] | { items?: ApiNotification[] }>(
-      `/v1/admin/forecasts/${forecastId}/delivery/messages`,
+      adminForecastPath(forecastId, '/delivery/messages'),
     ),
   retryDelivery: (forecastId: string, channel: string) =>
-    apiRequest<unknown>(`/v1/admin/forecasts/${forecastId}/delivery/retry`, {
+    apiRequest<unknown>(adminForecastPath(forecastId, '/delivery/retry'), {
       method: 'POST',
       body: { channel },
     }),
-  users: (limit = 100) =>
-    apiRequest<ApiUser[] | { items?: ApiUser[] }>(`/v1/admin/users?limit=${limit}`),
-  user: (id: string) => apiRequest<ApiUser>(`/v1/admin/users/${id}`),
-  overview: () =>
-    apiRequest<Record<string, unknown>>(`/v1/admin/reports/overview?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
+  users: (query: { q?: string; limit?: number; offset?: number } = {}) => {
+    const params = new URLSearchParams({
+      limit: String(query.limit ?? 100),
+      offset: String(query.offset ?? 0),
+    });
+    const search = query.q?.trim();
+    if (search) params.set('search', search);
+    return apiRequest<ApiUser[] | { items?: ApiUser[]; users?: ApiUser[]; total?: number }>(
+      `/v1/admin/users?${params.toString()}`,
+    );
+  },
+  user: (id: string) => apiRequest<ApiUser>(adminUserPath(id)),
+  disableUser: (id: string) =>
+    apiRequest<ApiUser>(adminUserPath(id, '/disable'), { method: 'POST' }),
+  enableUser: (id: string) =>
+    apiRequest<ApiUser>(adminUserPath(id, '/enable'), { method: 'POST' }),
+  eraseUser: (id: string) =>
+    apiRequest<unknown>(adminUserPath(id), { method: 'DELETE' }),
+  makeAdmin: (id: string, code: string) =>
+    apiRequest<ApiUser>(adminUserPath(id, '/make-admin'), { method: 'POST', body: { code } }),
+  removeAdmin: (id: string, code: string) =>
+    apiRequest<ApiUser>(adminUserPath(id, '/remove-admin'), { method: 'POST', body: { code } }),
+  overview: (query: AdminReportQuery = {}) =>
+    apiRequest<ApiOverviewReport>(
+      productUrl('/v1/admin/reports/overview', { from: query.from, to: query.to }, query.productSlug),
+    ),
+  timeseries: (query: AdminReportQuery = {}) =>
+    apiRequest<unknown>(
+      productUrl('/v1/admin/reports/timeseries', { from: query.from, to: query.to }, query.productSlug),
+    ),
+  exportSubscriptions: (query: AdminReportQuery = {}) =>
+    apiRequest<unknown>(
+      productUrl(
+        '/v1/admin/reports/export/subscriptions',
+        { from: query.from, to: query.to },
+        query.productSlug,
+      ),
+    ),
   readiness: () => apiRequest<unknown>('/v1/admin/readiness'),
-  product: () => apiRequest<unknown>(`/v1/admin/products/${PRODUCT_SLUG}`),
-  plans: () =>
-    apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(`/v1/admin/plans?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
+  product: (productSlug = PRODUCT_SLUG) => apiRequest<unknown>(productResource('/v1/admin/products', productSlug)),
+  plans: (productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(productUrl('/v1/admin/plans', {}, productSlug)),
 };
 
 export function asList<T>(value: T[] | { items?: T[] } | null | undefined): T[] {

@@ -30,7 +30,7 @@ export type PlanId = string;
 export type Plan = {
   id: PlanId;
   name: string;
-  price: number;
+  price: number | null;
   currency?: string;
   period: string;
   cadence: string;
@@ -40,49 +40,25 @@ export type Plan = {
   kind?: string;
 };
 
-export const PLANS: Plan[] = [
-  {
-    id: 'weekly',
-    name: 'Weekly',
-    price: 4,
-    period: 'week',
-    cadence: 'Billed every week',
-    blurb: 'A short run of daily forecasts, renewed each week.',
-  },
-  {
-    id: 'monthly',
-    name: 'Monthly',
-    price: 12,
-    period: 'month',
-    cadence: 'Billed every month',
-    blurb: 'The regular desk. One forecast every publishing day.',
-    featured: true,
-  },
-  {
-    id: 'quarterly',
-    name: 'Quarterly',
-    price: 30,
-    period: 'quarter',
-    cadence: 'Billed every three months',
-    blurb: 'A season of forecasts at a lower rate.',
-  },
-];
-
 export function planById(id: PlanId | null | undefined) {
   if (!id) return null;
-  const match = PLANS.find((plan) => plan.id === id);
-  if (match) return match;
   const name = id.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
-  return { id, name, price: 0, period: '', cadence: '', blurb: '' };
+  return { id, name, price: null, period: '', cadence: '', blurb: '' };
 }
 
 export function formatMoney(amount: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-    minimumFractionDigits: 0,
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
     maximumFractionDigits: 2,
   }).format(amount);
+}
+
+export function formatPlanPrice(plan: Pick<Plan, 'price' | 'currency' | 'period'>) {
+  if (typeof plan.price !== 'number') return null;
+  const amount = formatMoney(plan.price, plan.currency);
+  return plan.period ? `${amount}/${plan.period}` : amount;
 }
 
 export const homeFaqs = [

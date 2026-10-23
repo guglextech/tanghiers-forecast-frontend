@@ -1,2991 +1,10 @@
 {
   "info": {
-    "_postman_id": "87c23f14-7a8f-412c-8c70-4f90a2659d28",
+    "_postman_id": "c0c7360a-2df3-5a3f-83e0-14a29db8605e",
     "name": "Tanghiers Forecast API",
-    "description": "Generated from the OpenAPI spec by scripts/generate-postman.py.\n\n1. Import this collection and an environment (Local or Render) and select the environment.\n2. Set userEmail/userPassword (and adminEmail/adminPassword) in the environment.\n3. Sign in with *1. Auth → Login* (user) or folder *3* (admin). Tokens are saved for you; every other request picks them up automatically.\n\nResponses are wrapped: `{ success, data, timestamp }`.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "18324546"
+    "description": "Generated from the OpenAPI spec by scripts/generate-postman.py.\n\n1. Import this collection and an environment (Local or Render) and select the environment.\n2. Set userEmail/userPassword (and adminEmail/adminPassword) in the environment.\n3. Sign in with *1. Auth \u2192 Login* (user) or folder *3* (admin). Tokens are saved for you; every other request picks them up automatically.\n\nResponses are wrapped: `{ success, data, timestamp }`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "item": [
-    {
-      "name": "0. Public & catalogue",
-      "item": [
-        {
-          "name": "Email logo",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/brand/logo.png",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "brand",
-                "logo.png"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Worker health",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/health/worker",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "health",
-                "worker"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Health (DB + Redis)",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "health"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Product",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/products/{{productSlug}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "products",
-                "{{productSlug}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Plans & prices",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/products/{{productSlug}}/plans",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "products",
-                "{{productSlug}}",
-                "plans"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Countries",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/countries",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "countries"
-              ]
-            },
-            "description": "Countries that can sign up, and whether SMS delivery is available there"
-          },
-          "response": []
-        },
-        {
-          "name": "Consent texts (signup checkboxes)",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/legal/consents",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "legal",
-                "consents"
-              ]
-            },
-            "description": "Current consent wording + version ids — render verbatim at signup and send the version back"
-          },
-          "response": []
-        }
-      ],
-      "description": "No sign-in needed."
-    },
-    {
-      "name": "1. Auth",
-      "item": [
-        {
-          "name": "Register",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"countryCode\": \"US\",\n  \"dateOfBirth\": \"1990-04-21\",\n  \"phone\": \"+1 415 555 0100\",\n  \"productSlug\": \"{{productSlug}}\",\n  \"consents\": {\n    \"terms\": \"terms-2026-10\",\n    \"privacy\": \"privacy-2026-10\"\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "register"
-              ]
-            },
-            "description": "Create an account. Always answers 202 with the same message, whether or not the email is new."
-          },
-          "response": []
-        },
-        {
-          "name": "Verify email",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"{{emailVerifyToken}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/email/verify",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "email",
-                "verify"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Resend verification email",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"productSlug\": \"{{productSlug}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/email/resend",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "email",
-                "resend"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login (user or admin)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "if (d.tokens) {",
-                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
-                  "  console.log('Signed in — userToken saved');",
-                  "}",
-                  "if (d.mfaToken) {",
-                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
-                  "  console.log(d.mfaEnrollmentRequired",
-                  "    ? 'Admin: run \"Admin MFA — enrol start\" next'",
-                  "    : 'Admin: run \"Admin MFA — verify code\" next');",
-                  "}",
-                  "if (d.signupToken) {",
-                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
-                  "  console.log('New user — run \"Finish social sign-up\" next');",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "login"
-              ]
-            },
-            "description": "Password login. Admins get `mfaRequired` + `mfaToken` instead of tokens."
-          },
-          "response": []
-        },
-        {
-          "name": "Refresh tokens",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "if (d.accessToken) {",
-                  "  pm.collectionVariables.set('userToken', d.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', d.refreshToken);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/refresh",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "refresh"
-              ]
-            },
-            "description": "Rotate a refresh token. Reusing an old one signs out that whole session family."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "logout"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Logout everywhere",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/logout-all",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "logout-all"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Forgot password",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"productSlug\": \"{{productSlug}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/password/forgot",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "password",
-                "forgot"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reset password",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"{{passwordResetToken}}\",\n  \"newPassword\": \"another long and unremarkable passphrase\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/password/reset",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "password",
-                "reset"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Change password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"{{userPassword}}\",\n  \"newPassword\": \"another long and unremarkable passphrase\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/password/change",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "password",
-                "change"
-              ]
-            },
-            "description": "Change password — signs out every other session and returns fresh tokens"
-          },
-          "response": []
-        }
-      ],
-      "description": "Register → open the verify link from the email, paste its token into `emailVerifyToken` → Verify email → Login. Login saves `userToken` automatically."
-    },
-    {
-      "name": "2. Google / Apple sign-in",
-      "item": [
-        {
-          "name": "Finish social sign-up",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "if (d.tokens) {",
-                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
-                  "  console.log('Signed in — userToken saved');",
-                  "}",
-                  "if (d.mfaToken) {",
-                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
-                  "  console.log(d.mfaEnrollmentRequired",
-                  "    ? 'Admin: run \"Admin MFA — enrol start\" next'",
-                  "    : 'Admin: run \"Admin MFA — verify code\" next');",
-                  "}",
-                  "if (d.signupToken) {",
-                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
-                  "  console.log('New user — run \"Finish social sign-up\" next');",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"signupToken\": \"{{signupToken}}\",\n  \"countryCode\": \"US\",\n  \"dateOfBirth\": \"1990-04-21\",\n  \"productSlug\": \"{{productSlug}}\",\n  \"consents\": {\n    \"terms\": \"terms-2026-10\",\n    \"privacy\": \"privacy-2026-10\"\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/social/complete",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "social",
-                "complete"
-              ]
-            },
-            "description": "Finish a Google / Apple sign-up (country, date of birth, consents) and sign in"
-          },
-          "response": []
-        },
-        {
-          "name": "Sign in with Google",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "if (d.tokens) {",
-                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
-                  "  console.log('Signed in — userToken saved');",
-                  "}",
-                  "if (d.mfaToken) {",
-                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
-                  "  console.log(d.mfaEnrollmentRequired",
-                  "    ? 'Admin: run \"Admin MFA — enrol start\" next'",
-                  "    : 'Admin: run \"Admin MFA — verify code\" next');",
-                  "}",
-                  "if (d.signupToken) {",
-                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
-                  "  console.log('New user — run \"Finish social sign-up\" next');",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idToken\": \"{{googleIdToken}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/social/google",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "social",
-                "google"
-              ]
-            },
-            "description": "Sign in or up with a Google / Apple ID token. Existing users get tokens (admins: mfaToken); new users get signupRequired + signupToken."
-          },
-          "response": []
-        },
-        {
-          "name": "Sign in with Apple",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "if (d.tokens) {",
-                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
-                  "  console.log('Signed in — userToken saved');",
-                  "}",
-                  "if (d.mfaToken) {",
-                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
-                  "  console.log(d.mfaEnrollmentRequired",
-                  "    ? 'Admin: run \"Admin MFA — enrol start\" next'",
-                  "    : 'Admin: run \"Admin MFA — verify code\" next');",
-                  "}",
-                  "if (d.signupToken) {",
-                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
-                  "  console.log('New user — run \"Finish social sign-up\" next');",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"idToken\": \"{{appleIdToken}}\",\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/social/apple",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "social",
-                "apple"
-              ]
-            },
-            "description": "Sign in or up with a Google / Apple ID token. Existing users get tokens (admins: mfaToken); new users get signupRequired + signupToken."
-          },
-          "response": []
-        },
-        {
-          "name": "My sign-in methods",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/sign-in-methods",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "sign-in-methods"
-              ]
-            },
-            "description": "hasPassword (false for Google/Apple-only accounts — they can set one via forgot-password) and linked providers"
-          },
-          "response": []
-        }
-      ],
-      "description": "Paste a real ID token from Google Identity Services into `googleIdToken` (needs GOOGLE_CLIENT_IDS set on the server). New users get `signupToken` → run *Finish social sign-up*."
-    },
-    {
-      "name": "3. Admin login (MFA)",
-      "item": [
-        {
-          "name": "Admin login (step 1 — saves mfaToken)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "if (d.tokens) {",
-                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
-                  "  console.log('Signed in — userToken saved');",
-                  "}",
-                  "if (d.mfaToken) {",
-                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
-                  "  console.log(d.mfaEnrollmentRequired",
-                  "    ? 'Admin: run \"Admin MFA — enrol start\" next'",
-                  "    : 'Admin: run \"Admin MFA — verify code\" next');",
-                  "}",
-                  "if (d.signupToken) {",
-                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
-                  "  console.log('New user — run \"Finish social sign-up\" next');",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "login"
-              ]
-            },
-            "description": "Admin login (step 1)"
-          },
-          "response": []
-        },
-        {
-          "name": "Admin MFA — enrol start (first login: QR / secret)",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mfaToken\": \"{{mfaToken}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/mfa/enroll/start",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "mfa",
-                "enroll",
-                "start"
-              ]
-            },
-            "description": "Admin first login: get a TOTP secret / otpauth URL to scan"
-          },
-          "response": []
-        },
-        {
-          "name": "Admin MFA — enrol confirm (returns recovery codes)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "const t = d.tokens || d;",
-                  "if (t.accessToken) {",
-                  "  pm.collectionVariables.set('adminToken', t.accessToken);",
-                  "  pm.collectionVariables.set('adminRefreshToken', t.refreshToken);",
-                  "  console.log('Admin signed in — adminToken saved');",
-                  "}",
-                  "if (d.recoveryCodes) console.log('SAVE THESE RECOVERY CODES OFFLINE:', d.recoveryCodes);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mfaToken\": \"{{mfaToken}}\",\n  \"code\": \"{{mfaCode}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/mfa/enroll/confirm",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "mfa",
-                "enroll",
-                "confirm"
-              ]
-            },
-            "description": "Confirm TOTP enrolment — returns one-time recovery codes (shown once) and tokens"
-          },
-          "response": []
-        },
-        {
-          "name": "Admin MFA — verify code",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data || {};",
-                  "const t = d.tokens || d;",
-                  "if (t.accessToken) {",
-                  "  pm.collectionVariables.set('adminToken', t.accessToken);",
-                  "  pm.collectionVariables.set('adminRefreshToken', t.refreshToken);",
-                  "  console.log('Admin signed in — adminToken saved');",
-                  "}",
-                  "if (d.recoveryCodes) console.log('SAVE THESE RECOVERY CODES OFFLINE:', d.recoveryCodes);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"mfaToken\": \"{{mfaToken}}\",\n  \"code\": \"{{mfaCode}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/auth/mfa/verify",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "auth",
-                "mfa",
-                "verify"
-              ]
-            }
-          },
-          "response": []
-        }
-      ],
-      "description": "Run *Login* with the admin's email/password (switch the body to {{adminEmail}} / {{adminPassword}}), then *enrol start* (first time) or *verify code*, with the 6-digit code from the authenticator app in `mfaCode`. Saves `adminToken`."
-    },
-    {
-      "name": "4. My account",
-      "item": [
-        {
-          "name": "My profile",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update my profile",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"timezone\": \"America/New_York\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete my account",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"password\": \"{{userPassword}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me"
-              ]
-            },
-            "description": "Delete my account (anonymised; 409 ACTIVE_SUBSCRIPTION if still billing)"
-          },
-          "response": []
-        },
-        {
-          "name": "My consents",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/consents",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "consents"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Set a consent (e.g. SMS)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"granted\": true,\n  \"textVersion\": \"sms-2026-10\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/consents/SMS",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "consents",
-                "SMS"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Export my data",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/export",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "export"
-              ]
-            },
-            "description": "Download everything we hold about me (GDPR/CCPA)"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "5. Billing",
-      "item": [
-        {
-          "name": "Start checkout (Stripe)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productSlug\": \"{{productSlug}}\",\n  \"planCode\": \"monthly\",\n  \"currency\": \"USD\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/billing/checkout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "billing",
-                "checkout"
-              ]
-            },
-            "description": "Start a Stripe Checkout for a plan — redirect the user to the returned url"
-          },
-          "response": []
-        },
-        {
-          "name": "Billing portal (Stripe)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productSlug\": \"{{productSlug}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/billing/portal",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "billing",
-                "portal"
-              ]
-            },
-            "description": "Stripe Customer Portal — update card, change plan, cancel, invoices"
-          },
-          "response": []
-        },
-        {
-          "name": "My subscriptions",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/subscriptions",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "My payments",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/payments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "payments"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "20",
-                  "disabled": true
-                },
-                {
-                  "key": "offset",
-                  "value": "0",
-                  "disabled": true
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "My access",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/entitlements?productSlug={{productSlug}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "entitlements"
-              ],
-              "query": [
-                {
-                  "key": "productSlug",
-                  "value": "{{productSlug}}"
-                }
-              ]
-            },
-            "description": "Whether the user currently has access to a product"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "6. Forecasts (customer)",
-      "item": [
-        {
-          "name": "Forecast list (saves forecastId)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const d = (pm.response.json() || {}).data;",
-                  "const list = Array.isArray(d) ? d : (d && (d.items || d.data)) || [];",
-                  "if (list[0]) {",
-                  "  pm.collectionVariables.set('forecastId', list[0].id);",
-                  "  if (list[0].version !== undefined) pm.collectionVariables.set('forecastVersion', list[0].version);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/forecasts?productSlug={{productSlug}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "forecasts"
-              ],
-              "query": [
-                {
-                  "key": "productSlug",
-                  "value": "{{productSlug}}"
-                },
-                {
-                  "key": "from",
-                  "value": "2026-10-01",
-                  "disabled": true
-                },
-                {
-                  "key": "to",
-                  "value": "2026-10-31",
-                  "disabled": true
-                },
-                {
-                  "key": "limit",
-                  "value": "20",
-                  "disabled": true
-                },
-                {
-                  "key": "offset",
-                  "value": "0",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "Published forecasts, newest first. Locked items carry `content: null`."
-          },
-          "response": []
-        },
-        {
-          "name": "Today's forecast",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/forecasts/today?productSlug={{productSlug}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "forecasts",
-                "today"
-              ],
-              "query": [
-                {
-                  "key": "productSlug",
-                  "value": "{{productSlug}}"
-                }
-              ]
-            },
-            "description": "Today's forecast in the product's timezone, or null"
-          },
-          "response": []
-        },
-        {
-          "name": "Forecast detail",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/forecasts/{{forecastId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "forecasts",
-                "{{forecastId}}"
-              ]
-            },
-            "description": "403 SUBSCRIPTION_REQUIRED when locked; 404 for anything unpublished"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "7. Notifications & phone",
-      "item": [
-        {
-          "name": "My delivery history",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/notifications",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "notifications"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "20",
-                  "disabled": true
-                },
-                {
-                  "key": "offset",
-                  "value": "0",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "Delivery history: every forecast email/SMS sent to me and its status"
-          },
-          "response": []
-        },
-        {
-          "name": "Forecast emails on/off",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/notification-preferences",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "notification-preferences"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Send phone code",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/phone/verification",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "phone",
-                "verification"
-              ]
-            },
-            "description": "Text a one-time code to the phone number on my profile"
-          },
-          "response": []
-        },
-        {
-          "name": "Check phone code",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"000000\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/v1/me/phone/verification/check",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "me",
-                "phone",
-                "verification",
-                "check"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "One-click unsubscribe",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/v1/notifications/unsubscribe?token={{unsubscribeToken}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "v1",
-                "notifications",
-                "unsubscribe"
-              ],
-              "query": [
-                {
-                  "key": "token",
-                  "value": "{{unsubscribeToken}}"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "8. Admin",
-      "item": [
-        {
-          "name": "Countries",
-          "item": [
-            {
-              "name": "List countries",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/countries",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "countries"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Add country",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"code\": \"NG\",\n  \"name\": \"Nigeria\",\n  \"defaultTimezone\": \"Africa/Lagos\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/countries",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "countries"
-                  ]
-                },
-                "description": "Add a country (starts with sign-ups and SMS off)"
-              },
-              "response": []
-            },
-            {
-              "name": "Update country",
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"smsEnabled\": false,\n  \"smsUnitCostUsd\": 0.0083\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/countries/US",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "countries",
-                    "US"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Delivery",
-          "item": [
-            {
-              "name": "Delivery summary",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/delivery",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "delivery"
-                  ]
-                },
-                "description": "Per-channel delivery progress, counted live from message rows"
-              },
-              "response": []
-            },
-            {
-              "name": "Delivery messages",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/delivery/messages",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "delivery",
-                    "messages"
-                  ],
-                  "query": [
-                    {
-                      "key": "limit",
-                      "value": "20",
-                      "disabled": true
-                    },
-                    {
-                      "key": "offset",
-                      "value": "0",
-                      "disabled": true
-                    },
-                    {
-                      "key": "channel",
-                      "value": "",
-                      "disabled": true
-                    },
-                    {
-                      "key": "status",
-                      "value": "",
-                      "disabled": true
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Retry failed sends",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"channel\": \"email\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/delivery/retry",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "delivery",
-                    "retry"
-                  ]
-                },
-                "description": "Re-queue FAILED/UNDELIVERED messages (never touches sent or in-flight ones)"
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Email templates (account emails + layout)",
-          "item": [
-            {
-              "name": "List email templates + layout",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "email-templates"
-                  ]
-                },
-                "description": "Layout + every account email: current wording, variables, default or custom"
-              },
-              "response": []
-            },
-            {
-              "name": "Get email template",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "email-templates",
-                    "{{emailTemplateKey}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Save email template",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"subject\": \"Confirm your email for {{productName}}\",\n  \"bodyHtml\": \"<h1>Confirm your email</h1><p>Hi {{firstName}},</p>{{button link \\\"Confirm email\\\"}}\",\n  \"bodyText\": \"Hi {{firstName}}, confirm your email: {{link}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "email-templates",
-                    "{{emailTemplateKey}}"
-                  ]
-                },
-                "description": "Save (validated: safe Handlebars, required links, renders)"
-              },
-              "response": []
-            },
-            {
-              "name": "Reset email template",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "email-templates",
-                    "{{emailTemplateKey}}"
-                  ]
-                },
-                "description": "Revert to the built-in default"
-              },
-              "response": []
-            },
-            {
-              "name": "Preview email template",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"subject\": \"Confirm your email for {{productName}}\",\n  \"bodyHtml\": \"<h1>Confirm your email</h1><p>Hi {{firstName}},</p>{{button link \\\"Confirm email\\\"}}\",\n  \"bodyText\": \"Hi {{firstName}}, confirm your email: {{link}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}/preview",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "email-templates",
-                    "{{emailTemplateKey}}",
-                    "preview"
-                  ]
-                },
-                "description": "Validate + render with sample data and the product branding, without saving"
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Forecast message templates (email/SMS)",
-          "item": [
-            {
-              "name": "List forecast templates",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "templates"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Preview forecast template",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"subject\": \"{{productName}} forecast for {{drawDate}}: {{title}}\",\n  \"bodyText\": \"Hi {{firstName}}, ... Unsubscribe: {{unsubscribeUrl}} {{mailingAddress}}\",\n  \"bodyHtml\": \"<p>Hi {{firstName}}</p> ... <a href=\\\"{{unsubscribeUrl}}\\\">Unsubscribe</a>\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates/email/preview",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "templates",
-                    "email",
-                    "preview"
-                  ]
-                },
-                "description": "Validate + render with sample data (SMS: segment count) without saving"
-              },
-              "response": []
-            },
-            {
-              "name": "Save forecast template",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"subject\": \"{{productName}} forecast for {{drawDate}}: {{title}}\",\n  \"bodyText\": \"Hi {{firstName}}, ... Unsubscribe: {{unsubscribeUrl}} {{mailingAddress}}\",\n  \"bodyHtml\": \"<p>Hi {{firstName}}</p> ... <a href=\\\"{{unsubscribeUrl}}\\\">Unsubscribe</a>\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates/email",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "templates",
-                    "email"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Reset forecast template",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates/email",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}",
-                    "templates",
-                    "email"
-                  ]
-                },
-                "description": "Revert to the built-in default"
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Forecasts",
-          "item": [
-            {
-              "name": "List forecasts (saves forecastId)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data;",
-                      "const list = Array.isArray(d) ? d : (d && (d.items || d.data)) || [];",
-                      "if (list[0]) {",
-                      "  pm.collectionVariables.set('forecastId', list[0].id);",
-                      "  if (list[0].version !== undefined) pm.collectionVariables.set('forecastVersion', list[0].version);",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts?productSlug={{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts"
-                  ],
-                  "query": [
-                    {
-                      "key": "productSlug",
-                      "value": "{{productSlug}}"
-                    },
-                    {
-                      "key": "from",
-                      "value": "2026-10-01",
-                      "disabled": true
-                    },
-                    {
-                      "key": "to",
-                      "value": "2026-10-31",
-                      "disabled": true
-                    },
-                    {
-                      "key": "limit",
-                      "value": "20",
-                      "disabled": true
-                    },
-                    {
-                      "key": "offset",
-                      "value": "0",
-                      "disabled": true
-                    },
-                    {
-                      "key": "status",
-                      "value": "",
-                      "disabled": true
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create forecast draft (saves forecastId)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data || {};",
-                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
-                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"productSlug\": \"{{productSlug}}\",\n  \"drawDate\": \"2026-10-20\",\n  \"title\": \"Tuesday picks\",\n  \"body\": {\n    \"banker\": [\n      7\n    ],\n    \"twoSure\": [\n      12,\n      45\n    ],\n    \"threeDirect\": [\n      3,\n      18,\n      61\n    ],\n    \"permutations\": \"7-12-45\"\n  },\n  \"message\": \"Play responsibly.\",\n  \"videoUrl\": \"https://youtu.be/dQw4w9WgXcQ\",\n  \"accessLevel\": \"PREMIUM\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts"
-                  ]
-                },
-                "description": "Create a draft. Required fields are enforced at publish, not here."
-              },
-              "response": []
-            },
-            {
-              "name": "Get forecast",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update forecast",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data || {};",
-                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
-                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"version\": \"{{forecastVersion}}\",\n  \"title\": \"Tuesday picks (updated)\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete draft",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}?version={{forecastVersion}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "version",
-                      "value": "{{forecastVersion}}",
-                      "description": "The version you last read — stale edits are rejected (409 VERSION_CONFLICT)"
-                    }
-                  ]
-                },
-                "description": "Delete a draft (version in the query string)"
-              },
-              "response": []
-            },
-            {
-              "name": "Publish now (sends notifications)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data || {};",
-                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
-                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"version\": \"{{forecastVersion}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/publish",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "publish"
-                  ]
-                },
-                "description": "Make a draft visible to subscribers (notifications arrive in Phase 4)"
-              },
-              "response": []
-            },
-            {
-              "name": "Schedule publish",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data || {};",
-                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
-                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"version\": \"{{forecastVersion}}\",\n  \"publishAt\": \"2026-10-20T13:00:00Z\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/schedule",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "schedule"
-                  ]
-                },
-                "description": "Publish automatically at publishAt (validated now; the worker publishes within a minute)"
-              },
-              "response": []
-            },
-            {
-              "name": "Unschedule",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data || {};",
-                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
-                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"version\": \"{{forecastVersion}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/unschedule",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "unschedule"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Archive",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data || {};",
-                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
-                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"version\": \"{{forecastVersion}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/archive",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "forecasts",
-                    "{{forecastId}}",
-                    "archive"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Plans & prices",
-          "item": [
-            {
-              "name": "List plans (saves planId)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data;",
-                      "const list = Array.isArray(d) ? d : (d && (d.items || d.data || d.plans || d.users)) || [];",
-                      "if (list[0] && list[0].id) pm.collectionVariables.set('planId', list[0].id);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/plans?productSlug={{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "plans"
-                  ],
-                  "query": [
-                    {
-                      "key": "productSlug",
-                      "value": "{{productSlug}}"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Link an existing Stripe price as a plan",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"productSlug\": \"{{productSlug}}\",\n  \"code\": \"quarterly\",\n  \"name\": \"Quarterly\",\n  \"providerPriceId\": \"price_from_your_Stripe_dashboard\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/plans",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "plans"
-                  ]
-                },
-                "description": "Create a plan from a recurring Stripe Price (interval + amounts read from Stripe)"
-              },
-              "response": []
-            },
-            {
-              "name": "Update plan",
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"Monthly\",\n  \"description\": \"Every forecast, by email and SMS\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/plans/{{planId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "plans",
-                    "{{planId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Set price (all currencies)",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"amounts\": {\n    \"USD\": 999,\n    \"CAD\": 1299,\n    \"GBP\": 799,\n    \"EUR\": 899,\n    \"AUD\": 1499,\n    \"NZD\": 1599\n  }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/plans/{{planId}}/price",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "plans",
-                    "{{planId}}",
-                    "price"
-                  ]
-                },
-                "description": "Set prices (all currencies) — creates a new Stripe Price, switches the plan, archives the old one"
-              },
-              "response": []
-            },
-            {
-              "name": "Re-sync plan from Stripe",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/plans/{{planId}}/sync",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "plans",
-                    "{{planId}}",
-                    "sync"
-                  ]
-                },
-                "description": "Re-read interval and currency amounts from the Stripe Price"
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Product settings",
-          "item": [
-            {
-              "name": "Get product settings",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update product settings",
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"settings\": {\n    \"supportEmail\": \"support@lottoforecasts.com\",\n    \"mailingAddress\": \"<real postal address>\",\n    \"frontendUrls\": {\n      \"verifyEmail\": \"http://localhost:5173/verify-email?token={token}\",\n      \"resetPassword\": \"http://localhost:5173/reset-password?token={token}\",\n      \"account\": \"http://localhost:5173/account\"\n    },\n    \"branding\": {\n      \"accentColor\": \"#111111\"\n    }\n  }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "products",
-                    "{{productSlug}}"
-                  ]
-                },
-                "description": "Rename, change timezone, replace the forecast field list, or patch settings"
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Readiness",
-          "item": [
-            {
-              "name": "Go-live readiness",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/readiness",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "readiness"
-                  ]
-                },
-                "description": "Go-live checklist: what is still unconfigured"
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Reports",
-          "item": [
-            {
-              "name": "Overview report",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/reports/overview?productSlug={{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "reports",
-                    "overview"
-                  ],
-                  "query": [
-                    {
-                      "key": "productSlug",
-                      "value": "{{productSlug}}"
-                    },
-                    {
-                      "key": "from",
-                      "value": "2026-10-01",
-                      "description": "Inclusive, UTC. Default: 30 days before `to`.",
-                      "disabled": true
-                    },
-                    {
-                      "key": "to",
-                      "value": "2026-10-31",
-                      "description": "Inclusive, UTC. Default: today.",
-                      "disabled": true
-                    }
-                  ]
-                },
-                "description": "Users, subscriptions, revenue by currency, delivery and SMS cost for a date range"
-              },
-              "response": []
-            },
-            {
-              "name": "Daily time series",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/reports/timeseries?productSlug={{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "reports",
-                    "timeseries"
-                  ],
-                  "query": [
-                    {
-                      "key": "productSlug",
-                      "value": "{{productSlug}}"
-                    },
-                    {
-                      "key": "from",
-                      "value": "2026-10-01",
-                      "description": "Inclusive, UTC. Default: 30 days before `to`.",
-                      "disabled": true
-                    },
-                    {
-                      "key": "to",
-                      "value": "2026-10-31",
-                      "description": "Inclusive, UTC. Default: today.",
-                      "disabled": true
-                    }
-                  ]
-                },
-                "description": "Daily new users, subscriptions, cancellations, revenue and sends"
-              },
-              "response": []
-            },
-            {
-              "name": "CSV export",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/reports/export/subscriptions?productSlug={{productSlug}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "reports",
-                    "export",
-                    "subscriptions"
-                  ],
-                  "query": [
-                    {
-                      "key": "productSlug",
-                      "value": "{{productSlug}}"
-                    },
-                    {
-                      "key": "from",
-                      "value": "2026-10-01",
-                      "description": "Inclusive, UTC. Default: 30 days before `to`.",
-                      "disabled": true
-                    },
-                    {
-                      "key": "to",
-                      "value": "2026-10-31",
-                      "description": "Inclusive, UTC. Default: today.",
-                      "disabled": true
-                    }
-                  ]
-                },
-                "description": "CSV export (max 50k rows). Every export is audit-logged."
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Users",
-          "item": [
-            {
-              "name": "Search users (saves userId)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "const d = (pm.response.json() || {}).data;",
-                      "const list = Array.isArray(d) ? d : (d && (d.items || d.data || d.plans || d.users)) || [];",
-                      "if (list[0] && list[0].id) pm.collectionVariables.set('userId', list[0].id);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/users",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "users"
-                  ],
-                  "query": [
-                    {
-                      "key": "q",
-                      "value": "test",
-                      "description": "Email prefix, or exact user id",
-                      "disabled": true
-                    },
-                    {
-                      "key": "limit",
-                      "value": "20",
-                      "disabled": true
-                    },
-                    {
-                      "key": "offset",
-                      "value": "0",
-                      "disabled": true
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get user",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "users",
-                    "{{userId}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Erase user (privacy request)",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "users",
-                    "{{userId}}"
-                  ]
-                },
-                "description": "Erase a user on a verified privacy request (same rules as self-deletion)"
-              },
-              "response": []
-            },
-            {
-              "name": "Disable user",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/disable",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "users",
-                    "{{userId}}",
-                    "disable"
-                  ]
-                },
-                "description": "Block sign-in and end all sessions now (billing untouched)"
-              },
-              "response": []
-            },
-            {
-              "name": "Enable user",
-              "request": {
-                "method": "POST",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/enable",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "admin",
-                    "users",
-                    "{{userId}}",
-                    "enable"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        }
-      ],
-      "description": "Every request here uses `adminToken` (sign in through folder 3 first).",
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{adminToken}}",
-            "type": "string"
-          }
-        ]
-      }
-    }
-  ],
   "auth": {
     "type": "bearer",
     "bearer": [
@@ -3079,26 +98,3045 @@
     {
       "key": "unsubscribeToken",
       "value": "paste-the-token-from-an-unsubscribe-link"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Public & catalogue",
+      "item": [
+        {
+          "name": "Email logo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/brand/logo.png",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "brand",
+                "logo.png"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Worker health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/health/worker",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "worker"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Health (DB + Redis)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "products",
+                "{{productSlug}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Plans & prices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/products/{{productSlug}}/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "products",
+                "{{productSlug}}",
+                "plans"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/countries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "countries"
+              ]
+            },
+            "description": "Countries that can sign up, and whether SMS delivery is available there",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Consent texts (signup checkboxes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/legal/consents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "legal",
+                "consents"
+              ]
+            },
+            "description": "Current consent wording + version ids \u2014 render verbatim at signup and send the version back",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ],
+      "description": "No sign-in needed."
     },
     {
-      "key": "baseUrl",
-      "value": ""
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Create an account. Always answers 202 with the same message, whether or not the email is new.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"countryCode\": \"US\",\n  \"dateOfBirth\": \"1990-04-21\",\n  \"phone\": \"+1 415 555 0100\",\n  \"productSlug\": \"{{productSlug}}\",\n  \"consents\": {\n    \"terms\": \"terms-2026-10\",\n    \"privacy\": \"privacy-2026-10\",\n    \"age\": \"age-2026-10\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Verify email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/email/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "email",
+                "verify"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{emailVerifyToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Resend verification email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/email/resend",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "email",
+                "resend"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"productSlug\": \"{{productSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Login (user or admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Password login. Admins get `mfaRequired` + `mfaToken` instead of tokens.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "if (d.tokens) {",
+                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
+                  "  console.log('Signed in \u2014 userToken saved');",
+                  "}",
+                  "if (d.mfaToken) {",
+                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
+                  "  console.log(d.mfaEnrollmentRequired",
+                  "    ? 'Admin: run \"Admin MFA \u2014 enrol start\" next'",
+                  "    : 'Admin: run \"Admin MFA \u2014 verify code\" next');",
+                  "}",
+                  "if (d.signupToken) {",
+                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
+                  "  console.log('New user \u2014 run \"Finish social sign-up\" next');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh tokens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Rotate a refresh token. Reusing an old one signs out that whole session family.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "if (d.accessToken) {",
+                  "  pm.collectionVariables.set('userToken', d.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', d.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Logout everywhere",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/logout-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout-all"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/password/forgot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "password",
+                "forgot"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"productSlug\": \"{{productSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/password/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "password",
+                "reset"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{passwordResetToken}}\",\n  \"newPassword\": \"another long and unremarkable passphrase\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/password/change",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "password",
+                "change"
+              ]
+            },
+            "description": "Change password \u2014 signs out every other session and returns fresh tokens",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{userPassword}}\",\n  \"newPassword\": \"another long and unremarkable passphrase\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "Register \u2192 open the verify link from the email, paste its token into `emailVerifyToken` \u2192 Verify email \u2192 Login. Login saves `userToken` automatically."
     },
     {
-      "key": "userEmail",
-      "value": ""
+      "name": "2. Google / Apple sign-in",
+      "item": [
+        {
+          "name": "Finish social sign-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/social/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "social",
+                "complete"
+              ]
+            },
+            "description": "Finish a Google / Apple sign-up (country, date of birth, consents) and sign in",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signupToken\": \"{{signupToken}}\",\n  \"countryCode\": \"US\",\n  \"dateOfBirth\": \"1990-04-21\",\n  \"productSlug\": \"{{productSlug}}\",\n  \"consents\": {\n    \"terms\": \"terms-2026-10\",\n    \"privacy\": \"privacy-2026-10\",\n    \"age\": \"age-2026-10\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "if (d.tokens) {",
+                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
+                  "  console.log('Signed in \u2014 userToken saved');",
+                  "}",
+                  "if (d.mfaToken) {",
+                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
+                  "  console.log(d.mfaEnrollmentRequired",
+                  "    ? 'Admin: run \"Admin MFA \u2014 enrol start\" next'",
+                  "    : 'Admin: run \"Admin MFA \u2014 verify code\" next');",
+                  "}",
+                  "if (d.signupToken) {",
+                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
+                  "  console.log('New user \u2014 run \"Finish social sign-up\" next');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign in with Google",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/social/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "social",
+                "google"
+              ]
+            },
+            "description": "Sign in or up with a Google / Apple ID token. Existing users get tokens (admins: mfaToken); new users get signupRequired + signupToken.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"{{googleIdToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "if (d.tokens) {",
+                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
+                  "  console.log('Signed in \u2014 userToken saved');",
+                  "}",
+                  "if (d.mfaToken) {",
+                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
+                  "  console.log(d.mfaEnrollmentRequired",
+                  "    ? 'Admin: run \"Admin MFA \u2014 enrol start\" next'",
+                  "    : 'Admin: run \"Admin MFA \u2014 verify code\" next');",
+                  "}",
+                  "if (d.signupToken) {",
+                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
+                  "  console.log('New user \u2014 run \"Finish social sign-up\" next');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign in with Apple",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/social/apple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "social",
+                "apple"
+              ]
+            },
+            "description": "Sign in or up with a Google / Apple ID token. Existing users get tokens (admins: mfaToken); new users get signupRequired + signupToken.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"{{appleIdToken}}\",\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "if (d.tokens) {",
+                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
+                  "  console.log('Signed in \u2014 userToken saved');",
+                  "}",
+                  "if (d.mfaToken) {",
+                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
+                  "  console.log(d.mfaEnrollmentRequired",
+                  "    ? 'Admin: run \"Admin MFA \u2014 enrol start\" next'",
+                  "    : 'Admin: run \"Admin MFA \u2014 verify code\" next');",
+                  "}",
+                  "if (d.signupToken) {",
+                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
+                  "  console.log('New user \u2014 run \"Finish social sign-up\" next');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My sign-in methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/sign-in-methods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "sign-in-methods"
+              ]
+            },
+            "description": "hasPassword (false for Google/Apple-only accounts \u2014 they can set one via forgot-password) and linked providers"
+          }
+        }
+      ],
+      "description": "Paste a real ID token from Google Identity Services into `googleIdToken` (needs GOOGLE_CLIENT_IDS set on the server). New users get `signupToken` \u2192 run *Finish social sign-up*."
     },
     {
-      "key": "userPassword",
-      "value": ""
+      "name": "3. Admin login (MFA)",
+      "item": [
+        {
+          "name": "Admin login (step 1 \u2014 saves mfaToken)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Admin login (step 1)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "if (d.tokens) {",
+                  "  pm.collectionVariables.set('userToken', d.tokens.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', d.tokens.refreshToken);",
+                  "  console.log('Signed in \u2014 userToken saved');",
+                  "}",
+                  "if (d.mfaToken) {",
+                  "  pm.collectionVariables.set('mfaToken', d.mfaToken);",
+                  "  console.log(d.mfaEnrollmentRequired",
+                  "    ? 'Admin: run \"Admin MFA \u2014 enrol start\" next'",
+                  "    : 'Admin: run \"Admin MFA \u2014 verify code\" next');",
+                  "}",
+                  "if (d.signupToken) {",
+                  "  pm.collectionVariables.set('signupToken', d.signupToken);",
+                  "  console.log('New user \u2014 run \"Finish social sign-up\" next');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin MFA \u2014 enrol start (first login: QR / secret)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/mfa/enroll/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "mfa",
+                "enroll",
+                "start"
+              ]
+            },
+            "description": "Admin first login: get a TOTP secret / otpauth URL to scan",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mfaToken\": \"{{mfaToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Admin MFA \u2014 enrol confirm (returns recovery codes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/mfa/enroll/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "mfa",
+                "enroll",
+                "confirm"
+              ]
+            },
+            "description": "Confirm TOTP enrolment \u2014 returns one-time recovery codes (shown once) and tokens",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mfaToken\": \"{{mfaToken}}\",\n  \"code\": \"{{mfaCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "const t = d.tokens || d;",
+                  "if (t.accessToken) {",
+                  "  pm.collectionVariables.set('adminToken', t.accessToken);",
+                  "  pm.collectionVariables.set('adminRefreshToken', t.refreshToken);",
+                  "  console.log('Admin signed in \u2014 adminToken saved');",
+                  "}",
+                  "if (d.recoveryCodes) console.log('SAVE THESE RECOVERY CODES OFFLINE:', d.recoveryCodes);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin MFA \u2014 verify code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/mfa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "mfa",
+                "verify"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mfaToken\": \"{{mfaToken}}\",\n  \"code\": \"{{mfaCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data || {};",
+                  "const t = d.tokens || d;",
+                  "if (t.accessToken) {",
+                  "  pm.collectionVariables.set('adminToken', t.accessToken);",
+                  "  pm.collectionVariables.set('adminRefreshToken', t.refreshToken);",
+                  "  console.log('Admin signed in \u2014 adminToken saved');",
+                  "}",
+                  "if (d.recoveryCodes) console.log('SAVE THESE RECOVERY CODES OFFLINE:', d.recoveryCodes);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Run *Login* with the admin's email/password (switch the body to {{adminEmail}} / {{adminPassword}}), then *enrol start* (first time) or *verify code*, with the 6-digit code from the authenticator app in `mfaCode`. Saves `adminToken`."
     },
     {
-      "key": "adminEmail",
-      "value": ""
+      "name": "4. My account",
+      "item": [
+        {
+          "name": "My profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"timezone\": \"America/New_York\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete my account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me"
+              ]
+            },
+            "description": "Delete my account (anonymised; 409 ACTIVE_SUBSCRIPTION if still billing)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My consents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/consents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "consents"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Set a consent (e.g. SMS)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/consents/SMS",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "consents",
+                "SMS"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"granted\": true,\n  \"textVersion\": \"sms-2026-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Export my data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "export"
+              ]
+            },
+            "description": "Download everything we hold about me (GDPR/CCPA)"
+          }
+        }
+      ]
     },
     {
-      "key": "adminPassword",
-      "value": ""
+      "name": "5. Billing",
+      "item": [
+        {
+          "name": "Start checkout (Stripe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "billing",
+                "checkout"
+              ]
+            },
+            "description": "Start a Stripe Checkout for a plan \u2014 redirect the user to the returned url",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productSlug\": \"{{productSlug}}\",\n  \"planCode\": \"monthly\",\n  \"currency\": \"USD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Billing portal (Stripe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/billing/portal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "billing",
+                "portal"
+              ]
+            },
+            "description": "Stripe Customer Portal \u2014 update card, change plan, cancel, invoices",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productSlug\": \"{{productSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/subscriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "subscriptions"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "My payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "My access",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/entitlements?productSlug={{productSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "entitlements"
+              ],
+              "query": [
+                {
+                  "key": "productSlug",
+                  "value": "{{productSlug}}",
+                  "disabled": false,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Whether the user currently has access to a product"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Forecasts (customer)",
+      "item": [
+        {
+          "name": "Forecast list (saves forecastId)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/forecasts?productSlug={{productSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "forecasts"
+              ],
+              "query": [
+                {
+                  "key": "productSlug",
+                  "value": "{{productSlug}}",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "from",
+                  "value": "2026-10-01",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "to",
+                  "value": "2026-10-31",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Published forecasts, newest first. Locked items carry `content: null`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (pm.response.json() || {}).data;",
+                  "const list = Array.isArray(d) ? d : (d && (d.items || d.data)) || [];",
+                  "if (list[0]) {",
+                  "  pm.collectionVariables.set('forecastId', list[0].id);",
+                  "  if (list[0].version !== undefined) pm.collectionVariables.set('forecastVersion', list[0].version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Today's forecast",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/forecasts/today?productSlug={{productSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "forecasts",
+                "today"
+              ],
+              "query": [
+                {
+                  "key": "productSlug",
+                  "value": "{{productSlug}}",
+                  "disabled": false,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Today's forecast in the product's timezone, or null"
+          }
+        },
+        {
+          "name": "Forecast detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/forecasts/{{forecastId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "forecasts",
+                "{{forecastId}}"
+              ]
+            },
+            "description": "403 SUBSCRIPTION_REQUIRED when locked; 404 for anything unpublished"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Notifications & phone",
+      "item": [
+        {
+          "name": "My delivery history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Delivery history: every forecast email/SMS sent to me and its status"
+          }
+        },
+        {
+          "name": "Forecast emails on/off",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/notification-preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "notification-preferences"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Send phone code",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/phone/verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "phone",
+                "verification"
+              ]
+            },
+            "description": "Text a one-time code to the phone number on my profile"
+          }
+        },
+        {
+          "name": "Check phone code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/phone/verification/check",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "phone",
+                "verification",
+                "check"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "One-click unsubscribe",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/notifications/unsubscribe?token={{unsubscribeToken}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "notifications",
+                "unsubscribe"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{unsubscribeToken}}",
+                  "disabled": false,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Admin",
+      "item": [
+        {
+          "name": "Countries",
+          "item": [
+            {
+              "name": "List countries",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/countries",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "countries"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Add country",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/countries",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "countries"
+                  ]
+                },
+                "description": "Add a country (starts with sign-ups and SMS off)",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"NG\",\n  \"name\": \"Nigeria\",\n  \"defaultTimezone\": \"Africa/Lagos\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update country",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/countries/US",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "countries",
+                    "US"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"smsEnabled\": false,\n  \"smsUnitCostUsd\": 0.0083\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delivery",
+          "item": [
+            {
+              "name": "Delivery summary",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/delivery",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "delivery"
+                  ]
+                },
+                "description": "Per-channel delivery progress, counted live from message rows"
+              }
+            },
+            {
+              "name": "Delivery messages",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/delivery/messages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "delivery",
+                    "messages"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "channel",
+                      "value": "",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "status",
+                      "value": "",
+                      "disabled": true,
+                      "description": ""
+                    }
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Retry failed sends",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/delivery/retry",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "delivery",
+                    "retry"
+                  ]
+                },
+                "description": "Re-queue FAILED/UNDELIVERED messages (never touches sent or in-flight ones)",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"channel\": \"email\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Email templates (account emails + layout)",
+          "item": [
+            {
+              "name": "List email templates + layout",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "email-templates"
+                  ]
+                },
+                "description": "Layout + every account email: current wording, variables, default or custom"
+              }
+            },
+            {
+              "name": "Get email template",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "email-templates",
+                    "{{emailTemplateKey}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Save email template",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "email-templates",
+                    "{{emailTemplateKey}}"
+                  ]
+                },
+                "description": "Save (validated: safe Handlebars, required links, renders)",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subject\": \"Confirm your email for {{productName}}\",\n  \"bodyHtml\": \"<h1>Confirm your email</h1><p>Hi {{firstName}},</p>{{button link \\\"Confirm email\\\"}}\",\n  \"bodyText\": \"Hi {{firstName}}, confirm your email: {{link}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reset email template",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "email-templates",
+                    "{{emailTemplateKey}}"
+                  ]
+                },
+                "description": "Revert to the built-in default"
+              }
+            },
+            {
+              "name": "Preview email template",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/email-templates/{{emailTemplateKey}}/preview",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "email-templates",
+                    "{{emailTemplateKey}}",
+                    "preview"
+                  ]
+                },
+                "description": "Validate + render with sample data and the product branding, without saving",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subject\": \"Confirm your email for {{productName}}\",\n  \"bodyHtml\": \"<h1>Confirm your email</h1><p>Hi {{firstName}},</p>{{button link \\\"Confirm email\\\"}}\",\n  \"bodyText\": \"Hi {{firstName}}, confirm your email: {{link}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forecast message templates (email/SMS)",
+          "item": [
+            {
+              "name": "List forecast templates",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "templates"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Preview forecast template",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates/email/preview",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "templates",
+                    "email",
+                    "preview"
+                  ]
+                },
+                "description": "Validate + render with sample data (SMS: segment count) without saving",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subject\": \"{{productName}} forecast for {{drawDate}}: {{title}}\",\n  \"bodyText\": \"Hi {{firstName}}, ... Unsubscribe: {{unsubscribeUrl}} {{mailingAddress}}\",\n  \"bodyHtml\": \"<p>Hi {{firstName}}</p> ... <a href=\\\"{{unsubscribeUrl}}\\\">Unsubscribe</a>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Save forecast template",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates/email",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "templates",
+                    "email"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subject\": \"{{productName}} forecast for {{drawDate}}: {{title}}\",\n  \"bodyText\": \"Hi {{firstName}}, ... Unsubscribe: {{unsubscribeUrl}} {{mailingAddress}}\",\n  \"bodyHtml\": \"<p>Hi {{firstName}}</p> ... <a href=\\\"{{unsubscribeUrl}}\\\">Unsubscribe</a>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reset forecast template",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}/templates/email",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}",
+                    "templates",
+                    "email"
+                  ]
+                },
+                "description": "Revert to the built-in default"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forecasts",
+          "item": [
+            {
+              "name": "List forecasts (saves forecastId)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts?productSlug={{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts"
+                  ],
+                  "query": [
+                    {
+                      "key": "productSlug",
+                      "value": "{{productSlug}}",
+                      "disabled": false,
+                      "description": ""
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-10-01",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-10-31",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "status",
+                      "value": "",
+                      "disabled": true,
+                      "description": ""
+                    }
+                  ]
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data;",
+                      "const list = Array.isArray(d) ? d : (d && (d.items || d.data)) || [];",
+                      "if (list[0]) {",
+                      "  pm.collectionVariables.set('forecastId', list[0].id);",
+                      "  if (list[0].version !== undefined) pm.collectionVariables.set('forecastVersion', list[0].version);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create forecast draft (saves forecastId)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts"
+                  ]
+                },
+                "description": "Create a draft. Required fields are enforced at publish, not here.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productSlug\": \"{{productSlug}}\",\n  \"drawDate\": \"2026-10-20\",\n  \"title\": \"Tuesday picks\",\n  \"body\": {\n    \"banker\": [\n      7\n    ],\n    \"twoSure\": [\n      12,\n      45\n    ],\n    \"threeDirect\": [\n      3,\n      18,\n      61\n    ],\n    \"permutations\": \"7-12-45\"\n  },\n  \"message\": \"Play responsibly.\",\n  \"videoUrl\": \"https://youtu.be/dQw4w9WgXcQ\",\n  \"accessLevel\": \"PREMIUM\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data || {};",
+                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
+                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get forecast",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Update forecast",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version\": \"{{forecastVersion}}\",\n  \"title\": \"Tuesday picks (updated)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data || {};",
+                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
+                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete draft",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}?version={{forecastVersion}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "version",
+                      "value": "{{forecastVersion}}",
+                      "disabled": false,
+                      "description": "The version you last read \u2014 stale edits are rejected (409 VERSION_CONFLICT)"
+                    }
+                  ]
+                },
+                "description": "Delete a draft (version in the query string)"
+              }
+            },
+            {
+              "name": "Publish now (sends notifications)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/publish",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "publish"
+                  ]
+                },
+                "description": "Make a draft visible to subscribers (notifications arrive in Phase 4)",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version\": \"{{forecastVersion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data || {};",
+                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
+                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Schedule publish",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/schedule",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "schedule"
+                  ]
+                },
+                "description": "Publish automatically at publishAt (validated now; the worker publishes within a minute)",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version\": \"{{forecastVersion}}\",\n  \"publishAt\": \"2026-10-20T13:00:00Z\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data || {};",
+                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
+                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Unschedule",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/unschedule",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "unschedule"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version\": \"{{forecastVersion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data || {};",
+                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
+                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Archive",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/forecasts/{{forecastId}}/archive",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "forecasts",
+                    "{{forecastId}}",
+                    "archive"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"version\": \"{{forecastVersion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data || {};",
+                      "if (d.id) pm.collectionVariables.set('forecastId', d.id);",
+                      "if (d.version !== undefined) pm.collectionVariables.set('forecastVersion', d.version);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Plans & prices",
+          "item": [
+            {
+              "name": "List plans (saves planId)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/plans?productSlug={{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "plans"
+                  ],
+                  "query": [
+                    {
+                      "key": "productSlug",
+                      "value": "{{productSlug}}",
+                      "disabled": false,
+                      "description": ""
+                    }
+                  ]
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data;",
+                      "const list = Array.isArray(d) ? d : (d && (d.items || d.data || d.plans || d.users)) || [];",
+                      "if (list[0] && list[0].id) pm.collectionVariables.set('planId', list[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Link an existing Stripe price as a plan",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/plans",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "plans"
+                  ]
+                },
+                "description": "Create a plan from a recurring Stripe Price (interval + amounts read from Stripe)",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productSlug\": \"{{productSlug}}\",\n  \"code\": \"quarterly\",\n  \"name\": \"Quarterly\",\n  \"providerPriceId\": \"price_from_your_Stripe_dashboard\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Update plan",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/plans/{{planId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "plans",
+                    "{{planId}}"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Monthly\",\n  \"description\": \"Every forecast, by email and SMS\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Set price (all currencies)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/plans/{{planId}}/price",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "plans",
+                    "{{planId}}",
+                    "price"
+                  ]
+                },
+                "description": "Set prices (all currencies) \u2014 creates a new Stripe Price, switches the plan, archives the old one",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amounts\": {\n    \"USD\": 999,\n    \"CAD\": 1299,\n    \"GBP\": 799,\n    \"EUR\": 899,\n    \"AUD\": 1499,\n    \"NZD\": 1599\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Re-sync plan from Stripe",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/plans/{{planId}}/sync",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "plans",
+                    "{{planId}}",
+                    "sync"
+                  ]
+                },
+                "description": "Re-read interval and currency amounts from the Stripe Price"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Product settings",
+          "item": [
+            {
+              "name": "Get product settings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Update product settings",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/products/{{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "products",
+                    "{{productSlug}}"
+                  ]
+                },
+                "description": "Rename, change timezone, replace the forecast field list, or patch settings",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"settings\": {\n    \"supportEmail\": \"support@lottoforecasts.com\",\n    \"mailingAddress\": \"<real postal address>\",\n    \"frontendUrls\": {\n      \"verifyEmail\": \"http://localhost:5173/verify-email?token={token}\",\n      \"resetPassword\": \"http://localhost:5173/reset-password?token={token}\",\n      \"account\": \"http://localhost:5173/account\"\n    },\n    \"branding\": {\n      \"accentColor\": \"#111111\"\n    }\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Readiness",
+          "item": [
+            {
+              "name": "Go-live readiness",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/readiness",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "readiness"
+                  ]
+                },
+                "description": "Go-live checklist: what is still unconfigured"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reports",
+          "item": [
+            {
+              "name": "Overview report",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/reports/overview?productSlug={{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "reports",
+                    "overview"
+                  ],
+                  "query": [
+                    {
+                      "key": "productSlug",
+                      "value": "{{productSlug}}",
+                      "disabled": false,
+                      "description": ""
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-10-01",
+                      "disabled": true,
+                      "description": "Inclusive, UTC. Default: 30 days before `to`."
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-10-31",
+                      "disabled": true,
+                      "description": "Inclusive, UTC. Default: today."
+                    }
+                  ]
+                },
+                "description": "Users, subscriptions, revenue by currency, delivery and SMS cost for a date range"
+              }
+            },
+            {
+              "name": "Daily time series",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/reports/timeseries?productSlug={{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "reports",
+                    "timeseries"
+                  ],
+                  "query": [
+                    {
+                      "key": "productSlug",
+                      "value": "{{productSlug}}",
+                      "disabled": false,
+                      "description": ""
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-10-01",
+                      "disabled": true,
+                      "description": "Inclusive, UTC. Default: 30 days before `to`."
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-10-31",
+                      "disabled": true,
+                      "description": "Inclusive, UTC. Default: today."
+                    }
+                  ]
+                },
+                "description": "Daily new users, subscriptions, cancellations, revenue and sends"
+              }
+            },
+            {
+              "name": "CSV export",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/reports/export/subscriptions?productSlug={{productSlug}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "reports",
+                    "export",
+                    "subscriptions"
+                  ],
+                  "query": [
+                    {
+                      "key": "productSlug",
+                      "value": "{{productSlug}}",
+                      "disabled": false,
+                      "description": ""
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-10-01",
+                      "disabled": true,
+                      "description": "Inclusive, UTC. Default: 30 days before `to`."
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-10-31",
+                      "disabled": true,
+                      "description": "Inclusive, UTC. Default: today."
+                    }
+                  ]
+                },
+                "description": "CSV export (max 50k rows). Every export is audit-logged."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "Search users (saves userId)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "stevenfianu99",
+                      "disabled": true,
+                      "description": "Start of an email address (case-insensitive), or an exact user id. Encode \"+\" as %2B."
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20",
+                      "disabled": true,
+                      "description": ""
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "disabled": true,
+                      "description": ""
+                    }
+                  ]
+                },
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const d = (pm.response.json() || {}).data;",
+                      "const list = Array.isArray(d) ? d : (d && (d.items || d.data || d.plans || d.users)) || [];",
+                      "if (list[0] && list[0].id) pm.collectionVariables.set('userId', list[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get user",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Erase user (privacy request)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}"
+                  ]
+                },
+                "description": "Erase a user on a verified privacy request (same rules as self-deletion)"
+              }
+            },
+            {
+              "name": "Disable user",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/disable",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "disable"
+                  ]
+                },
+                "description": "Block sign-in and end all sessions now (billing untouched)"
+              }
+            },
+            {
+              "name": "Enable user",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/enable",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "enable"
+                  ]
+                },
+                "description": ""
+              }
+            },
+            {
+              "name": "Make admin (needs your authenticator code)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/make-admin",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "make-admin"
+                  ]
+                },
+                "description": "Grant admin rights to a verified user. Needs your current authenticator code. Their sessions end; they must enrol TOTP at next login.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"{{mfaCode}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Remove admin (needs your authenticator code)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/v1/admin/users/{{userId}}/remove-admin",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "admin",
+                    "users",
+                    "{{userId}}",
+                    "remove-admin"
+                  ]
+                },
+                "description": "Remove admin rights (never the last admin, never yourself). Needs your current authenticator code.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"{{mfaCode}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Every request here uses `adminToken` (sign in through folder 3 first).",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminToken}}",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }

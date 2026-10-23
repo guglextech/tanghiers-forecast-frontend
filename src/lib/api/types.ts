@@ -55,6 +55,16 @@ export type ApiUser = {
   countryCode?: string | null;
   dateOfBirth?: string | null;
   emailVerified?: boolean;
+  phoneVerified?: boolean;
+  disabled?: boolean;
+  enabled?: boolean;
+  status?: string;
+  subscriptionStatus?: string;
+  planCode?: string;
+  planId?: string;
+  mfaEnabled?: boolean;
+  createdAt?: string;
+  lastLoginAt?: string | null;
 };
 
 export type ApiConsentMap = Record<
@@ -88,6 +98,26 @@ export type ApiForecastBody = {
   permutations?: string;
 };
 
+export type ApiForecastField = {
+  key?: string;
+  label?: string;
+  type?: string;
+  value?: unknown;
+};
+
+export type ApiForecastVideo = {
+  provider?: string;
+  videoId?: string;
+  embedUrl?: string;
+  watchUrl?: string;
+};
+
+export type ApiForecastContent = {
+  fields?: ApiForecastField[];
+  message?: string | null;
+  video?: ApiForecastVideo | null;
+};
+
 export type ApiForecast = {
   id: string;
   title?: string;
@@ -102,6 +132,9 @@ export type ApiForecast = {
   message?: string | null;
   accessLevel?: string;
   body?: ApiForecastBody | null;
+  content?: ApiForecastContent | null;
+  locked?: boolean;
+  hasVideo?: boolean;
 };
 
 export type ApiSubscription = {
@@ -109,18 +142,31 @@ export type ApiSubscription = {
   status?: string;
   planCode?: string;
   planId?: string;
+  planName?: string;
   currentPeriodEnd?: string | null;
+  currentPeriodStart?: string | null;
+  createdAt?: string;
   productSlug?: string;
+  cancelAtPeriodEnd?: boolean;
 };
 
 export type ApiPayment = {
   id?: string;
   date?: string;
   createdAt?: string;
+  paidAt?: string;
   label?: string;
   description?: string;
+  planCode?: string;
+  planId?: string;
+  planName?: string;
+  kind?: string;
+  passDurationHours?: number | null;
   amount?: number;
+  amountCents?: number;
+  currency?: string;
   status?: string;
+  productSlug?: string;
 };
 
 export type ApiEntitlement = {
@@ -140,9 +186,17 @@ export type ApiNotification = {
   userId?: string;
   userEmail?: string;
   email?: string;
+  destination?: string;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  attempts?: number;
   createdAt?: string;
   at?: string;
   sentAt?: string;
+  deliveredAt?: string;
+  updatedAt?: string;
 };
 
 export type Paginated<T> = T[] | { items?: T[]; data?: T[]; results?: T[] };
+
+export type ApiOverviewReport = Record<string, unknown>;

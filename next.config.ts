@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
       { source: '/app', destination: '/feed', permanent: false },
       { source: '/dashboard', destination: '/feed', permanent: false },
       { source: '/settings', destination: '/account', permanent: false },
+      { source: '/billing/cancel', destination: '/billing/failed', permanent: false },
+      { source: '/billing/failure', destination: '/billing/failed', permanent: false },
       { source: '/notification', destination: '/notifications', permanent: false },
       { source: '/courses', destination: '/', permanent: false },
       { source: '/library', destination: '/', permanent: false },

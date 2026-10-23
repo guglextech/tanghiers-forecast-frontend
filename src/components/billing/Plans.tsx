@@ -4,26 +4,27 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { formatMoney, planById, type Plan, type PlanId } from '@/data/site';
+import { formatMoney, formatPlanPrice, type Plan, type PlanId } from '@/data/site';
 import { formatLongDate } from '@/lib/dates';
+import { PRODUCT_SLUG } from '@/lib/api/config';
+import { mapAccountPayment, mapAccountSubscription, type AccountPayment, type AccountSubscription } from '@/lib/api/mappers';
+import { asList, me } from '@/lib/api/resources';
+import type { ApiPayment, ApiSubscription } from '@/lib/api/types';
 import { getCatalogPlans, planFromList } from '@/lib/plans';
 import { useSession } from '@/components/app/SessionProvider';
+import { ConfirmDrawer } from '@/components/admin/ConfirmDrawer';
 import { LoadingState } from '@/components/app/LoadingState';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 function useCatalogPlans(initial?: Plan[]) {
-  const [plans, setPlans] = React.useState<Plan[] | null>(initial ?? null);
+  const [plans, setPlans] = React.useState<Plan[] | null>(initial && initial.length > 0 ? initial : null);
 
   React.useEffect(() => {
-    if (initial && initial.length > 0) {
-      setPlans(initial);
-      return;
-    }
     void getCatalogPlans()
       .then(setPlans)
-      .catch(() => setPlans([]));
-  }, [initial]);
+      .catch(() => setPlans((current) => current ?? []));
+  }, []);
 
   return plans;
 }
@@ -59,8 +60,8 @@ function PublicPlanCards({
 
   return (
     <div className="space-y-3">
-      {plans.map((plan) => {
-        const emphasized = highlight === plan.id || (!highlight && plan.featured);
+      {plans.map((plan, index) => {
+        const emphasized = highlight === plan.id || (!highlight && (plan.featured || index === 0));
         const href = user
           ? `/subscription?plan=${plan.id}`
           : `/signup?next=${encodeURIComponent(`/subscription?plan=${plan.id}`)}`;
@@ -79,13 +80,21 @@ function PublicPlanCards({
                   </span>
                 ) : null}
               </span>
-              <span className="mt-1 block text-sm leading-5 text-[#98a2b3]">{plan.blurb}</span>
+              {plan.blurb ? (
+                <span className="mt-1 block text-sm leading-5 text-[#98a2b3]">{plan.blurb}</span>
+              ) : null}
             </span>
             <span className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
-              <span className="text-[1.25rem] font-semibold tracking-tight tabular-nums text-[#101828]">
-                {formatMoney(plan.price, plan.currency)}
-                <span className="text-sm font-medium text-[#98a2b3]">/{plan.period}</span>
-              </span>
+              {typeof plan.price === 'number' ? (
+                <span className="text-[1.25rem] font-semibold tracking-tight tabular-nums text-[#101828]">
+                  {formatMoney(plan.price, plan.currency)}
+                  {plan.period ? (
+                    <span className="text-sm font-medium text-[#98a2b3]">/{plan.period}</span>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="text-sm text-[#98a2b3]">Price on request</span>
+              )}
               <span
                 className={cn(
                   'inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-semibold',
@@ -126,7 +135,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
   }
 
   const pending = Boolean(selected) && selected !== currentId;
-  const chosen = planFromList(plans, selected) ?? planById(selected);
+  const chosen = planFromList(plans, selected);
 
   const confirm = async () => {
     setError('');
@@ -173,8 +182,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
               <span className="min-w-0 flex-1 text-sm font-semibold text-[#101828]">{plan.name}</span>
               <span className="shrink-0 text-right">
                 <span className="text-sm font-medium tabular-nums text-[#101828]">
-                  {formatMoney(plan.price, plan.currency)}
-                  <span className="text-[#667085]">/{plan.period}</span>
+                  {formatPlanPrice(plan) ?? '—'}
                 </span>
                 {isCurrent ? (
                   <span className="ml-2 text-[11px] font-medium tracking-[0.12em] text-[#98a2b3] uppercase">
@@ -190,7 +198,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
       {pending && chosen ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-[#667085]">
-            {chosen.name} · {formatMoney(chosen.price, chosen.currency)}/{chosen.period}
+            {[chosen.name, formatPlanPrice(chosen)].filter(Boolean).join(' · ')}
           </p>
           <Button type="button" className="h-10 px-5" onClick={confirm}>
             Confirm
@@ -202,24 +210,114 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
   );
 }
 
+function forThisProduct(row: { productSlug?: string }) {
+  return !row.productSlug || row.productSlug === PRODUCT_SLUG;
+}
+
+function dated(value: string | null) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}/.test(value)) return null;
+  return formatLongDate(value);
+}
+
+function BillingRows({
+  rows,
+}: {
+  rows: { id: string; title: string; detail: string; amount?: string; status: string }[];
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <ul className="mt-3 overflow-hidden rounded-2xl border border-[#e6e8ee]">
+      {rows.map((row) => (
+        <li
+          key={row.id}
+          className="flex items-center justify-between gap-4 border-t border-[#eef0f3] px-4 py-3 first:border-t-0"
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-[#101828]">{row.title}</span>
+            <span className="text-sm text-[#98a2b3]">{row.detail}</span>
+          </span>
+          <span className="shrink-0 text-right">
+            {row.amount ? <span className="block text-sm font-medium tabular-nums">{row.amount}</span> : null}
+            <span className="text-[11px] font-medium tracking-[0.12em] text-[#667085] uppercase">{row.status}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null }) {
   const { user, ready, cancelSubscription } = useSession();
   const plans = useCatalogPlans();
   const [confirmCancel, setConfirmCancel] = React.useState(false);
+  const [canceling, setCanceling] = React.useState(false);
   const [error, setError] = React.useState('');
+  const [subscriptions, setSubscriptions] = React.useState<AccountSubscription[] | null>(null);
+  const [payments, setPayments] = React.useState<AccountPayment[] | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void Promise.all([me.subscriptions(), me.payments({ limit: 50 })])
+      .then(([subscriptionRows, paymentRows]) => {
+        if (cancelled) return;
+        setSubscriptions(
+          asList<ApiSubscription>(subscriptionRows).filter(forThisProduct).map(mapAccountSubscription),
+        );
+        setPayments(asList<ApiPayment>(paymentRows).filter(forThisProduct).map(mapAccountPayment));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setSubscriptions([]);
+        setPayments([]);
+        setError(err instanceof Error ? err.message : 'Could not load billing.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!ready || !user || !plans) return <LoadingState label="Loading subscription…" />;
 
-  const plan = planFromList(plans, user.planId) ?? planById(user.planId);
-  const active = user.subscriptionStatus === 'active' && plan;
+  const live = subscriptions?.find((row) => row.active) ?? null;
+  const plan = planFromList(plans, live?.planCode || user.planId);
+  const active = subscriptions ? Boolean(live) : user.subscriptionStatus === 'active';
+  const renews = dated(live?.renewsAt || user.currentPeriodEnd);
 
   const status = active
-    ? `${plan.name} · ${formatMoney(plan.price, plan.currency)}/${plan.period} · Renews ${
-        user.currentPeriodEnd ? formatLongDate(user.currentPeriodEnd) : 'soon'
-      }`
+    ? [plan?.name || live?.name, plan ? formatPlanPrice(plan) : null, renews ? `Renews ${renews}` : null]
+        .filter(Boolean)
+        .join(' · ') || 'Active'
     : user.subscriptionStatus === 'canceled'
       ? 'Canceled'
       : 'No active plan';
+
+  const named = (code: string, fallback: string) => planFromList(plans, code)?.name || fallback;
+  const subscriptionRows = (subscriptions ?? []).map((row) => ({
+    id: row.id,
+    title: named(row.planCode, row.name),
+    detail: dated(row.renewsAt) ? `${row.active ? 'Renews' : 'Ended'} ${dated(row.renewsAt)}` : 'Subscription',
+    status: row.status,
+  }));
+  const dayPasses = (payments ?? []).filter((row) => row.dayPass);
+  const shownPayments = dayPasses.length > 0 ? dayPasses : (payments ?? []);
+  const paymentRows = shownPayments.map((row) => ({
+    id: row.id,
+    title: named(row.planCode, row.label || 'One-day pass'),
+    detail: dated(row.at) || 'Payment',
+    amount: formatMoney(row.amount, row.currency),
+    status: row.status,
+  }));
+
+  const cancel = async () => {
+    setCanceling(true);
+    setError('');
+    try {
+      await cancelSubscription();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open billing.');
+      setCanceling(false);
+    }
+  };
 
   return (
     <div>
@@ -229,73 +327,49 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
           <p className="mt-1 text-sm text-[#667085]">{status}</p>
         </div>
         {active ? (
-          confirmCancel ? (
-            <div className="flex shrink-0 items-center gap-3">
-              <button
-                type="button"
-                className="text-sm font-medium text-[#b42318] hover:underline"
-                onClick={() => {
-                  void (async () => {
-                    try {
-                      await cancelSubscription();
-                      setConfirmCancel(false);
-                      toast.success('Continue in the billing portal.');
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Could not cancel.');
-                    }
-                  })();
-                }}
-              >
-                Confirm cancel
-              </button>
-              <button
-                type="button"
-                className="text-sm font-medium text-[#667085] hover:underline"
-                onClick={() => setConfirmCancel(false)}
-              >
-                Keep
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="shrink-0 text-sm font-medium text-[#667085] hover:text-[#101828]"
-              onClick={() => setConfirmCancel(true)}
-            >
-              Cancel
-            </button>
-          )
+          <Button type="button" variant="outline" className="shrink-0" onClick={() => setConfirmCancel(true)}>
+            Cancel
+          </Button>
         ) : null}
       </div>
       {error ? <p className="mt-3 text-sm text-[#b42318]">{error}</p> : null}
+      <ConfirmDrawer
+        open={confirmCancel}
+        title="Cancel this subscription?"
+        description="You’ll finish in billing. Forecast access stays through the end of the current period."
+        subject={plan ? { title: plan.name, detail: formatPlanPrice(plan) ?? undefined } : undefined}
+        confirmLabel="Continue to billing"
+        busy={canceling}
+        onClose={() => {
+          if (!canceling) setConfirmCancel(false);
+        }}
+        onConfirm={() => {
+          void cancel();
+        }}
+      />
 
       <div className="mt-6">
         <AccountPlanSelector highlight={highlight} />
       </div>
 
-      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">Payments</h2>
-      {user.invoices.length === 0 ? (
-        <p className="mt-3 text-sm text-[#667085]">No payments yet.</p>
+      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">Subscriptions</h2>
+      {subscriptions === null ? (
+        <p className="mt-3 text-sm text-[#667085]">Loading subscriptions…</p>
+      ) : subscriptionRows.length === 0 ? (
+        <p className="mt-3 text-sm text-[#667085]">No subscriptions yet.</p>
       ) : (
-        <ul className="mt-3 overflow-hidden rounded-2xl border border-[#e6e8ee]">
-          {user.invoices.map((invoice) => (
-            <li
-              key={invoice.id}
-              className="flex items-center justify-between gap-4 border-t border-[#eef0f3] px-4 py-3 first:border-t-0"
-            >
-              <span className="min-w-0">
-                <span className="block text-sm font-medium text-[#101828]">{invoice.label}</span>
-                <span className="text-sm text-[#98a2b3]">{formatLongDate(invoice.date)}</span>
-              </span>
-              <span className="shrink-0 text-right">
-                <span className="block text-sm font-medium tabular-nums">{formatMoney(invoice.amount)}</span>
-                <span className="text-[11px] font-medium tracking-[0.12em] text-[#027a48] uppercase">
-                  {invoice.status}
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        <BillingRows rows={subscriptionRows} />
+      )}
+
+      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">
+        {dayPasses.length > 0 || paymentRows.length === 0 ? 'One-day pass' : 'Payments'}
+      </h2>
+      {payments === null ? (
+        <p className="mt-3 text-sm text-[#667085]">Loading payments…</p>
+      ) : paymentRows.length === 0 ? (
+        <p className="mt-3 text-sm text-[#667085]">No one-day pass payments yet.</p>
+      ) : (
+        <BillingRows rows={paymentRows} />
       )}
     </div>
   );

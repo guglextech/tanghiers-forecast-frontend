@@ -1,4 +1,4 @@
-export type ForecastStatus = 'draft' | 'scheduled' | 'published';
+export type ForecastStatus = 'draft' | 'scheduled' | 'published' | 'archived';
 
 export type GameId = 'pick-2' | 'pick-3' | 'pick-4' | 'pick-5';
 
@@ -9,12 +9,21 @@ export type ForecastBody = {
   permutations: string;
 };
 
+export type ForecastField = {
+  key: string;
+  label: string;
+  type: 'numbers' | 'text';
+  numbers: number[];
+  text: string;
+};
+
 export type Forecast = {
   id: string;
   title: string;
   game: GameId;
   numbers: number[];
   body?: ForecastBody;
+  fields?: ForecastField[];
   /** Calendar day the forecast belongs to, YYYY-MM-DD. */
   date: string;
   status: ForecastStatus;
@@ -23,18 +32,23 @@ export type Forecast = {
   createdAt: string;
   version?: number;
   videoUrl?: string | null;
+  videoId?: string | null;
+  hasVideo?: boolean;
   message?: string | null;
+  /** True when the API withheld numbers (`content: null`) or returned 403. */
+  locked?: boolean;
 };
 
 export type DeliveryChannel = 'web' | 'email' | 'sms';
 
-export type DeliveryStatus = 'available' | 'sent' | 'queued' | 'skipped';
+export type DeliveryStatus = 'available' | 'sent' | 'delivered' | 'queued' | 'skipped';
 
 export type Delivery = {
   id: string;
   forecastId: string;
   userId: string;
   userEmail: string;
+  destination: string;
   channel: DeliveryChannel;
   status: DeliveryStatus;
   detail: string;
@@ -143,6 +157,7 @@ export function seedDeliveries(): Delivery[] {
         forecastId: forecast.id,
         userId: DEMO_SUBSCRIBER.id,
         userEmail: DEMO_SUBSCRIBER.email,
+        destination: DEMO_SUBSCRIBER.email,
         channel: 'web' as const,
         status: 'available' as const,
         detail: 'Visible on the site',
@@ -153,6 +168,7 @@ export function seedDeliveries(): Delivery[] {
         forecastId: forecast.id,
         userId: DEMO_SUBSCRIBER.id,
         userEmail: DEMO_SUBSCRIBER.email,
+        destination: DEMO_SUBSCRIBER.email,
         channel: 'email' as const,
         status: 'sent' as const,
         detail: 'Sent to the subscriber inbox',
@@ -163,6 +179,7 @@ export function seedDeliveries(): Delivery[] {
         forecastId: forecast.id,
         userId: DEMO_SUBSCRIBER.id,
         userEmail: DEMO_SUBSCRIBER.email,
+        destination: DEMO_SUBSCRIBER.email,
         channel: 'sms' as const,
         status: 'queued' as const,
         detail: 'Recorded. Text delivery is not active yet.',

@@ -2,57 +2,45 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
-import { publishedForecasts, gameById, type Forecast } from '@/data/forecasts';
+import type { Forecast } from '@/data/forecasts';
 import { formatMonthYear, formatWeekdayDay } from '@/lib/dates';
-import { hasForecastAccess } from '@/lib/session';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
-import { ForecastPost, NumberPills } from '@/components/forecast/ForecastArticle';
-import { useDesk } from '@/components/forecast/useDesk';
-import { fetchForecastById } from '@/lib/desk';
-import { SITE, planById } from '@/data/site';
+import { ForecastPost } from '@/components/forecast/ForecastArticle';
+import { useForecasts } from '@/components/forecast/useForecasts';
+import { fetchForecastDetail } from '@/lib/customer-forecasts';
+import { SITE } from '@/data/site';
 
 export function FeedScreen() {
   const { user, ready } = useSession();
-  const desk = useDesk();
+  const { items, loaded, error } = useForecasts();
 
-  if (!ready || !desk || !user) return <LoadingState label="Loading the forecast…" />;
-
-  const items = publishedForecasts(desk.forecasts);
-  const locked = !hasForecastAccess(user);
-  const plan = planById(user.planId);
+  if (!ready || !user || !loaded) return <LoadingState label="Loading the forecast…" />;
 
   return (
     <div>
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Feed</h1>
-          <p className="mt-1 text-sm text-[#667085]">
-            {locked
-              ? 'Numbers and the draw stay locked until a plan is active.'
-              : plan
-                ? `${plan.name} · ${SITE.disclaimer}`
-                : SITE.disclaimer}
-          </p>
+          <p className="mt-1 text-sm text-[#667085]">{SITE.disclaimer}</p>
         </div>
-        {locked ? (
-          <Link href="/pricing" className="text-sm font-medium text-[#101828] hover:underline">
-            Unlock
-          </Link>
-        ) : null}
+        <Link href="/history" className="shrink-0 text-sm font-medium text-[#667085] hover:text-[#101828]">
+          History
+        </Link>
       </div>
 
+      {error ? <p className="mt-6 text-sm text-[#b42318]">{error}</p> : null}
+
       {items.length === 0 ? (
-        <p className="mt-8 text-sm text-[#667085]">No forecast has been published yet.</p>
+        <p className="mt-8 text-sm text-[#667085]">No forecasts yet.</p>
       ) : (
-        <div className="mt-6 space-y-4">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {items.map((forecast) => (
             <ForecastPost
               key={forecast.id}
               forecast={forecast}
-              locked={locked}
-              href={locked ? '/pricing' : `/forecasts/${forecast.id}`}
+              locked={Boolean(forecast.locked)}
+              compact
             />
           ))}
         </div>
@@ -63,69 +51,52 @@ export function FeedScreen() {
 
 export function HistoryScreen() {
   const { user, ready } = useSession();
-  const desk = useDesk();
+  const { items, loaded, error } = useForecasts();
 
-  if (!ready || !desk || !user) return <LoadingState label="Loading history…" />;
+  if (!ready || !user || !loaded) return <LoadingState label="Loading history…" />;
 
-  const locked = !hasForecastAccess(user);
-  const items = publishedForecasts(desk.forecasts);
   const groups = groupByMonth(items);
 
   return (
     <div>
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-[1.75rem] font-semibold tracking-tight">History</h1>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">History</h1>
           <p className="mt-1 text-sm text-[#667085]">
-            {items.length === 0
-              ? 'No published forecasts yet.'
-              : `${items.length} published`}
+            {items.length === 0 ? 'No published forecasts yet.' : 'Past forecasts'}
           </p>
         </div>
-        {locked ? (
-          <Link href="/pricing" className="text-sm font-medium text-[#101828] hover:underline">
-            Unlock
-          </Link>
-        ) : null}
+        <Link href="/feed" className="shrink-0 text-sm font-medium text-[#667085] hover:text-[#101828]">
+          Today
+        </Link>
       </div>
 
+      {error ? <p className="mt-4 text-sm text-[#b42318]">{error}</p> : null}
+
       {items.length === 0 ? null : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[#e6e8ee]">
+        <div className="mt-4 space-y-5">
           {groups.map((group) => (
-            <section key={group.month} className="border-t border-[#eef0f3] first:border-t-0">
-              <h2 className="bg-[#f7f8fa] px-4 py-2 text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
-                {group.label}
-              </h2>
-              <ul>
+            <section key={group.month}>
+              <h2 className="mb-2 text-xs text-[#98a2b3]">{group.label}</h2>
+              <ul className="overflow-hidden rounded-2xl bg-[#f4f6f8]">
                 {group.items.map((forecast) => {
-                  const game = gameById(forecast.game);
+                  const locked = Boolean(forecast.locked);
+                  const numbers = forecast.numbers.join(' · ');
                   return (
-                    <li key={forecast.id} className="border-t border-[#eef0f3] first:border-t-0">
+                    <li key={forecast.id} className="border-t border-white first:border-t-0">
                       <Link
                         href={`/forecasts/${forecast.id}`}
-                        className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#f7f8fa] sm:gap-4"
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/60"
                       >
-                        <span className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm tabular-nums text-[#667085]">
+                        <span className="w-[3.75rem] shrink-0 text-xs tabular-nums text-[#98a2b3]">
                           {formatWeekdayDay(forecast.date)}
                         </span>
-                        <span className="w-[3.75rem] shrink-0 text-sm text-[#98a2b3]">{game.label}</span>
-                        <span className="min-w-0 flex-1">
-                          {locked ? (
-                            <span className="flex gap-1.5" aria-label="Numbers locked">
-                              {Array.from({ length: game.count }).map((_, index) => (
-                                <span
-                                  key={index}
-                                  className="grid size-7 place-items-center rounded-full border border-[#d0d5dd] text-[11px] text-[#d0d5dd]"
-                                >
-                                  •
-                                </span>
-                              ))}
-                            </span>
-                          ) : (
-                            <NumberPills numbers={forecast.numbers} size="xs" />
-                          )}
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#101828]">
+                          {forecast.title}
                         </span>
-                        <ChevronRight className="size-4 shrink-0 text-[#d0d5dd] transition-colors group-hover:text-[#667085]" />
+                        <span className="shrink-0 text-xs tabular-nums text-[#667085]">
+                          {locked ? 'Locked' : numbers || '—'}
+                        </span>
                       </Link>
                     </li>
                   );
@@ -142,12 +113,16 @@ export function HistoryScreen() {
 function groupByMonth(forecasts: Forecast[]) {
   const groups: { month: string; label: string; items: Forecast[] }[] = [];
   for (const forecast of forecasts) {
-    const month = forecast.date.slice(0, 7);
+    const month = forecast.date.slice(0, 7) || 'unknown';
     const last = groups[groups.length - 1];
     if (last?.month === month) {
       last.items.push(forecast);
     } else {
-      groups.push({ month, label: formatMonthYear(forecast.date), items: [forecast] });
+      groups.push({
+        month,
+        label: forecast.date ? formatMonthYear(forecast.date) : 'Forecasts',
+        items: [forecast],
+      });
     }
   }
   return groups;
@@ -155,41 +130,58 @@ function groupByMonth(forecasts: Forecast[]) {
 
 export function ForecastScreen({ id }: { id: string }) {
   const { user, ready } = useSession();
-  const desk = useDesk();
-  const [fetched, setFetched] = React.useState<Forecast | null>(null);
+  const [forecast, setForecast] = React.useState<Forecast | null>(null);
+  const [locked, setLocked] = React.useState(false);
+  const [missing, setMissing] = React.useState(false);
+  const [loaded, setLoaded] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   React.useEffect(() => {
-    if (!desk) return;
-    const local = desk.forecasts.find((item) => item.id === id) ?? null;
-    if (local) {
-      setFetched(local);
-      return;
-    }
-    void fetchForecastById(id).then(setFetched);
-  }, [desk, id]);
+    let cancelled = false;
+    setLoaded(false);
+    void fetchForecastDetail(id)
+      .then((result) => {
+        if (cancelled) return;
+        setForecast(result.forecast);
+        setLocked(result.locked);
+        setMissing(result.missing);
+        setError('');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setForecast(null);
+        setMissing(true);
+        setError(err instanceof Error ? err.message : 'Could not load this forecast.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
-  if (!ready || !desk || !user) return <LoadingState label="Loading the forecast…" />;
+  if (!ready || !user || !loaded) return <LoadingState label="Loading the forecast…" />;
 
-  const forecast = fetched ?? desk.forecasts.find((item) => item.id === id);
-  if (!forecast || forecast.status !== 'published') {
+  if (missing || !forecast) {
     return (
       <div>
-        <h1 className="text-[1.75rem] font-semibold tracking-tight">Forecast</h1>
-        <p className="mt-3 text-sm leading-6 text-[#667085]">This forecast is not published.</p>
+        <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Forecast</h1>
+        <p className="mt-3 text-sm leading-6 text-[#667085]">
+          {error || 'This forecast is not published.'}
+        </p>
         <Link href="/history" className="mt-6 inline-flex text-sm font-medium text-[#101828] hover:underline">
-          Back to history
+          All forecasts
         </Link>
       </div>
     );
   }
 
-  const locked = !hasForecastAccess(user);
-
   return (
     <div>
-      <ForecastPost forecast={forecast} locked={locked} />
-      <p className="pt-4 text-sm">
-        <Link href="/history" className="font-medium text-[#101828] hover:underline">
+      <ForecastPost forecast={forecast} locked={locked || Boolean(forecast.locked)} />
+      <p className="pt-5 text-sm">
+        <Link href="/history" className="font-medium text-[#667085] hover:text-[#101828]">
           All forecasts
         </Link>
       </p>

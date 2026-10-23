@@ -1,12 +1,13 @@
+import { PRODUCT_SLUG } from '@/lib/api/config';
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
 import { readTokens, writeTokens } from '@/lib/api/client';
-import { PRODUCT_SLUG } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/errors';
 import {
   hasEntitlement,
   mapAdminUser,
   mapSessionUser,
   splitName,
+  type AdminAccount,
 } from '@/lib/api/mappers';
 import type { ApiPayment, ApiSubscription, ApiUser, LoginResult } from '@/lib/api/types';
 import type { PlanId } from '@/data/site';
@@ -46,6 +47,7 @@ export type SessionUser = {
   subscriptionStatus: SubscriptionStatus;
   currentPeriodEnd: string | null;
   invoices: Invoice[];
+  disabled?: boolean;
 };
 
 const SESSION_KEY = 'tg.session.v1';
@@ -98,6 +100,7 @@ function normalizeSession(parsed: Partial<SessionUser> | null | undefined): Sess
     subscriptionStatus: parsed.subscriptionStatus ?? 'inactive',
     currentPeriodEnd: parsed.currentPeriodEnd ?? null,
     invoices: parsed.invoices ?? [],
+    disabled: Boolean(parsed.disabled),
   };
 }
 
@@ -126,14 +129,14 @@ export function clearSession() {
   writeSession(null);
 }
 
-let accountCache: SessionUser[] = [];
+let accountCache: AdminAccount[] = [];
 
-export function listAccounts(): SessionUser[] {
+export function listAccounts(): AdminAccount[] {
   return accountCache;
 }
 
-export async function refreshAccounts() {
-  const rows = asList<ApiUser & { subscriptionStatus?: string; planCode?: string }>(await admin.users());
+export async function refreshAccounts(q?: string) {
+  const rows = asList<ApiUser>(await admin.users({ q, limit: 100 }));
   accountCache = rows.map(mapAdminUser).sort((a, b) => a.name.localeCompare(b.name));
   return accountCache;
 }
@@ -164,9 +167,11 @@ export async function hydrateSession(): Promise<SessionUser | null> {
       me.entitlements().catch(() => false),
     ]);
     const list = asList<ApiSubscription>(subscriptions);
+    const subscription =
+      list.find((row) => !row.productSlug || row.productSlug === PRODUCT_SLUG) ?? null;
     const user = mapSessionUser({
       profile,
-      subscription: list[0] ?? null,
+      subscription,
       payments: asList<ApiPayment>(payments),
       entitled: hasEntitlement(entitlement),
       smsConsent: await loadSmsConsent(),
@@ -261,7 +266,6 @@ export async function signupAccount(input: SignupInput): Promise<SessionUser> {
     countryCode,
     dateOfBirth,
     phone,
-    productSlug: PRODUCT_SLUG,
     consents: {
       terms: input.consents.terms,
       privacy: input.consents.privacy,
@@ -389,10 +393,20 @@ export async function subscribeToPlan(userId: string, planId: PlanId) {
   return session;
 }
 
+function billingRedirect(payload: unknown) {
+  if (!payload || typeof payload !== 'object') return '';
+  const record = payload as Record<string, unknown>;
+  for (const key of ['url', 'portalUrl', 'redirectUrl', 'sessionUrl']) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
 export async function cancelSubscription(userId: string) {
   void userId;
   const portal = await billing.portal();
-  const url = portal.url || portal.portalUrl;
+  const url = billingRedirect(portal);
   if (!url) throw new Error('The billing portal is not available yet.');
   window.location.assign(url);
   const session = readSession();

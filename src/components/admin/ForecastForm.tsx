@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Clapperboard } from 'lucide-react';
 import { type Forecast } from '@/data/forecasts';
+import { ForecastActions } from '@/components/admin/ForecastActions';
 import {
   combineDateAndTime,
   fromIsoDate,
@@ -195,18 +196,23 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
-          {initial ? 'Edit forecast' : 'New forecast'}
-        </h2>
-        <p className="mt-1 max-w-xl text-sm leading-6 text-[#667085] sm:text-[15px]">
-          Banker, two sure, and three direct for the draw date. Publishing makes it available on the
-          site and records email and SMS for every active subscriber.
-        </p>
-        {initial?.status === 'published' ? (
-          <Link href={`/forecasts/${initial.id}`} className="mt-3 inline-flex text-sm font-medium hover:underline">
-            View on the site
-          </Link>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
+            {initial ? 'Edit forecast' : 'New forecast'}
+          </h2>
+          <p className="mt-1 max-w-xl text-sm leading-6 text-[#667085] sm:text-[15px]">
+            Banker, two sure, and three direct for the draw date. Publishing makes it available on the
+            site and records email and SMS for every active subscriber.
+          </p>
+          {initial?.status === 'published' ? (
+            <Link href={`/forecasts/${initial.id}`} className="mt-3 inline-flex text-sm font-medium hover:underline">
+              View on the site
+            </Link>
+          ) : null}
+        </div>
+        {initial ? (
+          <ForecastActions forecast={initial} onDeleted={() => router.push('/admin/forecasts')} />
         ) : null}
       </div>
 
@@ -358,12 +364,18 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
         <Separator />
 
         <div className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:p-6">
-          <Button type="submit">
-            {intent === 'schedule' ? 'Schedule' : 'Publish now'}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => void submit('draft')}>
-            Save draft
-          </Button>
+          {initial?.status === 'archived' ? (
+            <p className="text-sm text-[#667085]">This forecast is archived.</p>
+          ) : (
+            <>
+              <Button type="submit">
+                {intent === 'schedule' ? 'Schedule' : 'Publish now'}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => void submit('draft')}>
+                Save draft
+              </Button>
+            </>
+          )}
         </div>
       </form>
     </div>
