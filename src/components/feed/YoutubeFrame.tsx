@@ -54,14 +54,14 @@ export function YoutubeFrame({
               src={poster}
               alt=""
               fill
-              sizes="(min-width: 768px) 768px, 100vw"
+              sizes="(min-width: 640px) 320px, 100vw"
               className="object-cover"
             />
             <div className="absolute inset-0 bg-black/20" />
             {locked ? (
               <div className="absolute inset-0 grid place-items-center">
-                <span className="grid size-12 place-items-center rounded-full bg-white/90 text-[#101828]">
-                  <span className="ml-0.5 block h-0 w-0 border-y-[7px] border-l-[12px] border-y-transparent border-l-[#d0d5dd]" />
+                <span className="grid size-8 place-items-center rounded-full bg-white/90 text-[#101828]">
+                  <span className="ml-0.5 block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-[#d0d5dd]" />
                 </span>
                 <span className="sr-only">Draw video is locked</span>
               </div>
@@ -72,8 +72,8 @@ export function YoutubeFrame({
                 className="absolute inset-0 grid place-items-center"
                 aria-label={`Play ${title}`}
               >
-                <span className="grid size-12 place-items-center rounded-full bg-white text-[#101828]">
-                  <span className="ml-0.5 block h-0 w-0 border-y-[7px] border-l-[12px] border-y-transparent border-l-[#101828]" />
+                <span className="grid size-8 place-items-center rounded-full bg-white text-[#101828]">
+                  <span className="ml-0.5 block h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-[#101828]" />
                 </span>
               </button>
             )}

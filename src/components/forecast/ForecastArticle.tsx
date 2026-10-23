@@ -35,9 +35,9 @@ export function NumberPills({
           key={`${number}-${index}`}
           className={cn(
             'grid place-items-center rounded-full font-semibold tabular-nums text-[#101828]',
-            size === 'xs' && 'size-7 border border-[#101828] text-[11px]',
-            size === 'sm' && 'size-9 border border-[#101828] text-sm',
-            size === 'md' && 'size-10 border border-[#101828] text-sm',
+            size === 'xs' && 'size-6 border border-[#101828] text-[10px]',
+            size === 'sm' && 'size-8 border border-[#101828] text-xs',
+            size === 'md' && 'size-8 border border-[#101828] text-xs',
           )}
         >
           {number}
@@ -55,8 +55,8 @@ function LockedPills({ count, size = 'md' }: { count: number; size?: 'xs' | 'md'
           key={index}
           className={cn(
             'grid place-items-center rounded-full border border-[#d0d5dd] text-[#d0d5dd]',
-            size === 'xs' && 'size-7 text-[11px]',
-            size === 'md' && 'size-10 text-sm',
+            size === 'xs' && 'size-6 text-[10px]',
+            size === 'md' && 'size-8 text-xs',
           )}
         >
           •
@@ -66,22 +66,31 @@ function LockedPills({ count, size = 'md' }: { count: number; size?: 'xs' | 'md'
   );
 }
 
-function FieldRow({ field, locked }: { field: ForecastField; locked: boolean }) {
+function FieldRow({
+  field,
+  locked,
+  compact,
+}: {
+  field: ForecastField;
+  locked: boolean;
+  compact?: boolean;
+}) {
   const count = LOCKED_COUNTS[field.key] ?? Math.max(field.numbers.length, 1);
+  const pillSize = compact ? 'xs' : 'md';
 
   return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <p className="shrink-0 text-sm text-[#667085]">{field.label}</p>
+    <div className={cn('flex items-center justify-between gap-3', compact ? 'py-1.5' : 'py-2')}>
+      <p className="shrink-0 text-xs text-[#667085]">{field.label}</p>
       {field.type === 'text' ? (
         locked ? (
-          <p className="text-sm tabular-nums text-[#d0d5dd]">••••••</p>
+          <p className="text-xs tabular-nums text-[#d0d5dd]">••••••</p>
         ) : (
-          <p className="text-sm font-medium tabular-nums text-[#101828]">{field.text}</p>
+          <p className="text-xs font-medium tabular-nums text-[#101828]">{field.text}</p>
         )
       ) : locked ? (
-        <LockedPills count={count} />
+        <LockedPills count={count} size={pillSize} />
       ) : (
-        <NumberPills numbers={field.numbers} />
+        <NumberPills numbers={field.numbers} size={pillSize} />
       )}
     </div>
   );
@@ -118,56 +127,58 @@ export function ForecastPost({
   forecast,
   locked,
   subscribeHref = '/pricing',
+  compact = false,
 }: {
   forecast: Forecast;
   locked: boolean;
   subscribeHref?: string;
+  compact?: boolean;
 }) {
   const videoId = locked ? null : forecast.videoId || youtubeIdFromUrl(forecast.videoUrl);
   const fields = fieldsFor(forecast, locked);
   const showVideo = locked ? Boolean(forecast.hasVideo) : Boolean(videoId);
 
   return (
-    <article className="overflow-hidden rounded-[28px] bg-[#f4f6f8]">
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#f4f6f8]">
       {showVideo ? (
         locked ? (
           <div className="grid aspect-video place-items-center bg-[#eceef2]">
-            <p className="text-sm text-[#98a2b3]">Draw video is locked</p>
+            <p className="text-xs text-[#98a2b3]">Draw video is locked</p>
           </div>
         ) : videoId ? (
           <YoutubeFrame title={`${forecast.title} draw`} videoId={videoId} />
         ) : null
       ) : null}
 
-      <div className="px-5 py-5 sm:px-6 sm:py-6">
-        <p className="text-sm text-[#98a2b3]">
+      <div className={cn('flex-1', compact ? 'px-3 py-3' : 'px-4 py-4')}>
+        <p className="text-xs text-[#98a2b3]">
           {forecast.date ? formatWeekdayDay(forecast.date) : 'Forecast'}
         </p>
-        <h2 className="mt-0.5 text-[1.25rem] font-semibold tracking-tight text-[#101828]">
+        <h2 className={cn('mt-0.5 font-semibold tracking-tight text-[#101828]', compact ? 'text-sm' : 'text-base')}>
           {forecast.title || (forecast.date ? formatLongDate(forecast.date) : 'Today')}
         </h2>
 
         {fields.length ? (
-          <div className="mt-4 divide-y divide-[#e6e8ee]">
+          <div className={cn('divide-y divide-[#e6e8ee]', compact ? 'mt-2' : 'mt-3')}>
             {fields.map((field) => (
-              <FieldRow key={field.key} field={field} locked={locked} />
+              <FieldRow key={field.key} field={field} locked={locked} compact={compact} />
             ))}
           </div>
         ) : null}
 
         {!locked && forecast.message ? (
-          <p className="mt-4 text-sm leading-6 text-[#667085]">{forecast.message}</p>
+          <p className="mt-3 text-xs leading-5 text-[#667085]">{forecast.message}</p>
         ) : null}
 
         {locked ? (
-          <div className="mt-5 flex flex-wrap items-center gap-4">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link
               href={subscribeHref}
-              className="inline-flex h-10 items-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white hover:bg-[#1d2939]"
+              className="inline-flex h-8 items-center rounded-full bg-[#101828] px-3.5 text-xs font-semibold text-white hover:bg-[#1d2939]"
             >
               Subscribe
             </Link>
-            <p className="text-sm text-[#667085]">Open the numbers and the draw.</p>
+            <p className="text-xs text-[#667085]">Open the numbers and the draw.</p>
           </div>
         ) : null}
       </div>

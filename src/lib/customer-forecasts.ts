@@ -11,9 +11,25 @@ function asForecast(value: unknown): ApiForecast | null {
   return asList<ApiForecast>(value)[0] ?? null;
 }
 
-export async function fetchForecastList(): Promise<Forecast[]> {
-  const rows = asList<ApiForecast>(await forecastApi.list());
-  return rows.map(mapForecast);
+function readForecastPage(payload: unknown): { items: Forecast[]; total: number } {
+  const rows = asList<ApiForecast>(payload);
+  const meta = payload && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as { total?: number })
+    : {};
+  return {
+    items: rows.map(mapForecast),
+    total: typeof meta.total === 'number' ? meta.total : rows.length,
+  };
+}
+
+export async function fetchForecastList(query?: { limit?: number; offset?: number }): Promise<Forecast[]> {
+  return readForecastPage(await forecastApi.list(query)).items;
+}
+
+export async function fetchAllForecasts(): Promise<Forecast[]> {
+  const first = readForecastPage(await forecastApi.list());
+  if (first.total <= first.items.length) return first.items;
+  return readForecastPage(await forecastApi.list({ limit: first.total, offset: 0 })).items;
 }
 
 export async function fetchTodayForecast(): Promise<Forecast | null> {

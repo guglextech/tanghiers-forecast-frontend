@@ -114,16 +114,20 @@ export const billing = {
     }),
 };
 
-function forecastsQuery(extra?: Record<string, string>) {
-  const params = new URLSearchParams({ productSlug: PRODUCT_SLUG, ...extra });
+function forecastsQuery(extra?: { limit?: number; offset?: number }) {
+  const params = new URLSearchParams({ productSlug: PRODUCT_SLUG });
+  if (extra?.limit != null) params.set('limit', String(extra.limit));
+  if (extra?.offset != null) params.set('offset', String(extra.offset));
   return `/v1/forecasts?${params.toString()}`;
 }
 
 export const forecasts = {
-  list: (limit = 50) =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(forecastsQuery({ limit: String(limit) })),
-  listPublic: () =>
-    apiRequest<ApiForecast[] | { items?: ApiForecast[] }>(forecastsQuery({ limit: '20' }), { auth: false }),
+  list: (query?: { limit?: number; offset?: number }) =>
+    apiRequest<ApiForecast[] | { items?: ApiForecast[]; total?: number; limit?: number; offset?: number }>(
+      forecastsQuery(query),
+    ),
+  listPublic: (query?: { limit?: number; offset?: number }) =>
+    apiRequest<ApiForecast[] | { items?: ApiForecast[]; total?: number }>(forecastsQuery(query), { auth: false }),
   today: () => apiRequest<ApiForecast | null>(`/v1/forecasts/today?productSlug=${encodeURIComponent(PRODUCT_SLUG)}`),
   get: (id: string) => apiRequest<ApiForecast>(`/v1/forecasts/${encodeURIComponent(id)}`),
 };

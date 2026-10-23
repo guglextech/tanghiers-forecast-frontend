@@ -2,23 +2,20 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
 import type { Forecast } from '@/data/forecasts';
 import { formatMonthYear, formatWeekdayDay } from '@/lib/dates';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
-import { ForecastPost, NumberPills } from '@/components/forecast/ForecastArticle';
+import { ForecastPost } from '@/components/forecast/ForecastArticle';
 import { useForecasts } from '@/components/forecast/useForecasts';
 import { fetchForecastDetail } from '@/lib/customer-forecasts';
 import { SITE } from '@/data/site';
 
 export function FeedScreen() {
   const { user, ready } = useSession();
-  const { today, loaded, error } = useForecasts();
+  const { items, loaded, error } = useForecasts();
 
   if (!ready || !user || !loaded) return <LoadingState label="Loading the forecast…" />;
-
-  const locked = Boolean(today?.locked);
 
   return (
     <div>
@@ -34,11 +31,18 @@ export function FeedScreen() {
 
       {error ? <p className="mt-6 text-sm text-[#b42318]">{error}</p> : null}
 
-      {!today ? (
-        <p className="mt-8 text-sm text-[#667085]">No forecast for today yet.</p>
+      {items.length === 0 ? (
+        <p className="mt-8 text-sm text-[#667085]">No forecasts yet.</p>
       ) : (
-        <div className="mt-6">
-          <ForecastPost forecast={today} locked={locked} />
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {items.map((forecast) => (
+            <ForecastPost
+              key={forecast.id}
+              forecast={forecast}
+              locked={Boolean(forecast.locked)}
+              compact
+            />
+          ))}
         </div>
       )}
     </div>
@@ -59,7 +63,7 @@ export function HistoryScreen() {
         <div>
           <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">History</h1>
           <p className="mt-1 text-sm text-[#667085]">
-            {items.length === 0 ? 'No published forecasts yet.' : `${items.length} published`}
+            {items.length === 0 ? 'No published forecasts yet.' : 'Past forecasts'}
           </p>
         </div>
         <Link href="/feed" className="shrink-0 text-sm font-medium text-[#667085] hover:text-[#101828]">
@@ -67,38 +71,32 @@ export function HistoryScreen() {
         </Link>
       </div>
 
-      {error ? <p className="mt-6 text-sm text-[#b42318]">{error}</p> : null}
+      {error ? <p className="mt-4 text-sm text-[#b42318]">{error}</p> : null}
 
       {items.length === 0 ? null : (
-        <div className="mt-6 overflow-hidden rounded-[28px] bg-[#f4f6f8]">
+        <div className="mt-4 space-y-5">
           {groups.map((group) => (
-            <section key={group.month} className="border-t border-white first:border-t-0">
-              <h2 className="px-4 py-2 text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">
-                {group.label}
-              </h2>
-              <ul>
+            <section key={group.month}>
+              <h2 className="mb-2 text-xs text-[#98a2b3]">{group.label}</h2>
+              <ul className="overflow-hidden rounded-2xl bg-[#f4f6f8]">
                 {group.items.map((forecast) => {
                   const locked = Boolean(forecast.locked);
+                  const numbers = forecast.numbers.join(' · ');
                   return (
-                    <li key={forecast.id} className="border-t border-white">
+                    <li key={forecast.id} className="border-t border-white first:border-t-0">
                       <Link
                         href={`/forecasts/${forecast.id}`}
-                        className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-white/70 sm:gap-4"
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/60"
                       >
-                        <span className="w-[4.5rem] shrink-0 whitespace-nowrap text-sm tabular-nums text-[#667085]">
+                        <span className="w-[3.75rem] shrink-0 text-xs tabular-nums text-[#98a2b3]">
                           {formatWeekdayDay(forecast.date)}
                         </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-[#101828]">{forecast.title}</span>
-                          {locked ? (
-                            <span className="mt-0.5 block text-sm text-[#98a2b3]">Locked</span>
-                          ) : forecast.numbers.length ? (
-                            <span className="mt-1 block">
-                              <NumberPills numbers={forecast.numbers} size="xs" />
-                            </span>
-                          ) : null}
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#101828]">
+                          {forecast.title}
                         </span>
-                        <ChevronRight className="size-4 shrink-0 text-[#d0d5dd] transition-colors group-hover:text-[#667085]" />
+                        <span className="shrink-0 text-xs tabular-nums text-[#667085]">
+                          {locked ? 'Locked' : numbers || '—'}
+                        </span>
                       </Link>
                     </li>
                   );
