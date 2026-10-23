@@ -12,44 +12,16 @@ function checkoutHref(planId: string) {
   return `/signup?next=${encodeURIComponent(`/checkout/${planId}`)}`;
 }
 
-const FORECAST_ROWS = [
-  { label: 'Banker', count: 1 },
-  { label: 'Two sure', count: 2 },
-  { label: 'Three direct', count: 3 },
-] as const;
-
-function ForecastPlaceholder() {
-  return (
-    <div className="bg-[#eef0f3] px-3 py-3" aria-hidden>
-      <p className="text-[10px] tracking-wide text-[#98a2b3] uppercase">Today</p>
-      <p className="mt-0.5 text-xs font-semibold text-[#101828]">Lotto forecast</p>
-      <div className="mt-2.5 space-y-1.5">
-        {FORECAST_ROWS.map((row) => (
-          <div key={row.label} className="flex items-center justify-between gap-2">
-            <span className="text-[10px] text-[#98a2b3]">{row.label}</span>
-            <span className="flex gap-1">
-              {Array.from({ length: row.count }).map((_, index) => (
-                <span
-                  key={index}
-                  className="grid size-5 place-items-center rounded-full border border-[#d0d5dd] text-[9px] text-[#c5cad3]"
-                >
-                  •
-                </span>
-              ))}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function AccessCard({ plan }: { plan: Plan }) {
   const amount = typeof plan.price === 'number' ? formatMoney(plan.price, plan.currency) : null;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#f4f6f8]">
-      <ForecastPlaceholder />
+      <img
+        src="/images/lotto-forecast.jpg"
+        alt=""
+        className="aspect-[4/3] w-full object-cover"
+      />
       <div className="flex flex-1 flex-col px-3 pt-3 pb-3">
         <p className="text-sm font-semibold text-[#101828]">{plan.name}</p>
         <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums text-[#101828]">
