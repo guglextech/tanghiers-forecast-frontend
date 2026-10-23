@@ -275,7 +275,9 @@ export const admin = {
     apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(productUrl('/v1/admin/plans', {}, productSlug)),
 };
 
-export function asList<T>(value: T[] | { items?: T[] } | null | undefined): T[] {
+export function asList<T>(value: T[] | { items?: T[] } | null | undefined): T[];
+export function asList<T>(value: unknown): T[];
+export function asList<T>(value: unknown): T[] {
   return unwrapList<T>(value);
 }
 
