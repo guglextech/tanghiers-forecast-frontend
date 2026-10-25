@@ -119,6 +119,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
     user?.subscriptionStatus === 'active' ? user.planId : null;
   const [selected, setSelected] = React.useState<PlanId>(highlight ?? currentId ?? '');
   const [error, setError] = React.useState('');
+  const [subscribing, setSubscribing] = React.useState(false);
 
   React.useEffect(() => {
     if (highlight) setSelected(highlight);
@@ -139,12 +140,14 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
 
   const confirm = async () => {
     setError('');
+    setSubscribing(true);
     try {
       await subscribeToPlan(selected);
       toast.success('Continue in checkout to finish.');
       router.push('/feed');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start that plan.');
+      setSubscribing(false);
     }
   };
 
@@ -200,8 +203,8 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
           <p className="text-sm text-[#667085]">
             {[chosen.name, formatPlanPrice(chosen)].filter(Boolean).join(' · ')}
           </p>
-          <Button type="button" className="h-10 px-5" onClick={confirm}>
-            Confirm
+          <Button type="button" className="h-10 px-5" loading={subscribing} onClick={confirm}>
+            {subscribing ? 'Processing' : 'Confirm'}
           </Button>
         </div>
       ) : null}
@@ -222,7 +225,7 @@ function dated(value: string | null) {
 function BillingRows({
   rows,
 }: {
-  rows: { id: string; title: string; detail: string; amount?: string; status: string }[];
+  rows: { id: string; title: string; detail: string; amount?: string; status: string; href?: string | null }[];
 }) {
   if (rows.length === 0) return null;
   return (
@@ -233,7 +236,13 @@ function BillingRows({
           className="flex items-center justify-between gap-4 border-t border-[#eef0f3] px-4 py-3 first:border-t-0"
         >
           <span className="min-w-0">
-            <span className="block text-sm font-medium text-[#101828]">{row.title}</span>
+            {row.href ? (
+              <a href={row.href} className="block text-sm font-medium text-[#101828] hover:underline" target="_blank" rel="noreferrer">
+                {row.title}
+              </a>
+            ) : (
+              <span className="block text-sm font-medium text-[#101828]">{row.title}</span>
+            )}
             <span className="text-sm text-[#98a2b3]">{row.detail}</span>
           </span>
           <span className="shrink-0 text-right">
@@ -298,14 +307,13 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
     detail: dated(row.renewsAt) ? `${row.active ? 'Renews' : 'Ended'} ${dated(row.renewsAt)}` : 'Subscription',
     status: row.status,
   }));
-  const dayPasses = (payments ?? []).filter((row) => row.dayPass);
-  const shownPayments = dayPasses.length > 0 ? dayPasses : (payments ?? []);
-  const paymentRows = shownPayments.map((row) => ({
+  const paymentRows = (payments ?? []).map((row) => ({
     id: row.id,
     title: named(row.planCode, row.label || 'One-day pass'),
     detail: dated(row.at) || 'Payment',
     amount: formatMoney(row.amount, row.currency),
     status: row.status,
+    href: row.invoiceUrl,
   }));
 
   const cancel = async () => {
@@ -354,18 +362,16 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
 
       <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">Subscriptions</h2>
       {subscriptions === null ? (
-        <p className="mt-3 text-sm text-[#667085]">Loading subscriptions…</p>
+        <LoadingState compact label="Loading subscriptions…" className="min-h-0 justify-start px-0 py-3" />
       ) : subscriptionRows.length === 0 ? (
         <p className="mt-3 text-sm text-[#667085]">No subscriptions yet.</p>
       ) : (
         <BillingRows rows={subscriptionRows} />
       )}
 
-      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">
-        {dayPasses.length > 0 || paymentRows.length === 0 ? 'One-day pass' : 'Payments'}
-      </h2>
+      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">One-day pass</h2>
       {payments === null ? (
-        <p className="mt-3 text-sm text-[#667085]">Loading payments…</p>
+        <LoadingState compact label="Loading payments…" className="min-h-0 justify-start px-0 py-3" />
       ) : paymentRows.length === 0 ? (
         <p className="mt-3 text-sm text-[#667085]">No one-day pass payments yet.</p>
       ) : (

@@ -3,10 +3,11 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Check, Copy, Download } from 'lucide-react';
+import { Check, Copy, Download, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { StepBars } from '@/components/auth/StepBars';
 import { BrandLockup } from '@/components/brand/Logo';
+import { LoadingState } from '@/components/app/LoadingState';
 import { useSession } from '@/components/app/SessionProvider';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -14,16 +15,44 @@ import { shellClass } from '@/components/chrome/Chrome';
 import { fetchMfaChallenge, formatSecret, mfaPathFor, readPendingMfa, type MfaChallenge } from '@/lib/mfa';
 import { cn } from '@/lib/utils';
 
+function HintTip({ text }: { text: string }) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        aria-label="Instructions"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="grid size-7 place-items-center rounded-full text-[#98a2b3] hover:bg-[#f4f6f8] hover:text-[#101828]"
+      >
+        <Info className="size-4" strokeWidth={1.75} />
+      </button>
+      {open ? (
+        <span
+          role="tooltip"
+          className="absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2 rounded-md bg-[#101828] px-2.5 py-1.5 text-left text-xs leading-4 font-normal text-white"
+        >
+          {text}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function AuthShell({
   title,
   description,
+  hint,
   children,
   wide = false,
   kicker,
   align = 'center',
 }: {
   title: string;
-  description: string;
+  description?: string;
+  hint?: string;
   children: React.ReactNode;
   wide?: boolean;
   kicker?: string;
@@ -31,7 +60,7 @@ function AuthShell({
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-[#e6e8ee]">
+      <header>
         <div className={cn(shellClass, 'flex h-12 items-center md:h-16')}>
           <BrandLockup />
         </div>
@@ -46,8 +75,11 @@ function AuthShell({
         {kicker ? (
           <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">{kicker}</p>
         ) : null}
-        <h1 className={cn('text-[1.75rem] font-semibold tracking-tight', kicker && 'mt-2')}>{title}</h1>
-        <p className="mt-1 text-sm leading-6 text-[#667085]">{description}</p>
+        <div className={cn('flex items-center gap-2', kicker && 'mt-2')}>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight">{title}</h1>
+          {hint ? <HintTip text={hint} /> : null}
+        </div>
+        {description ? <p className="mt-1 text-sm leading-6 text-[#667085]">{description}</p> : null}
         {children}
       </main>
     </div>
@@ -74,14 +106,14 @@ function OtpField({
       disabled={disabled}
       autoFocus
       inputMode="numeric"
-      containerClassName="flex w-full justify-center"
+      containerClassName="w-full"
     >
-      <InputOTPGroup className="gap-2.5">
+      <InputOTPGroup className="grid w-full grid-cols-6 gap-2">
         {Array.from({ length: 6 }).map((_, index) => (
           <InputOTPSlot
             key={index}
             index={index}
-            className="h-9 w-9 rounded-md text-sm font-medium shadow-none sm:w-10"
+            className="h-12 w-full rounded-lg text-base font-medium"
           />
         ))}
       </InputOTPGroup>
@@ -162,13 +194,16 @@ export function MfaVerifyScreen() {
   if (!allowed) {
     return (
       <AuthShell title="Authenticator code" description="Checking your sign-in…">
-        <div className="mt-8 h-12 animate-pulse rounded-xl bg-[#f7f8fa]" />
+        <LoadingState compact label="Checking your sign-in…" className="min-h-0 justify-start px-0" />
       </AuthShell>
     );
   }
 
   return (
-    <AuthShell title="Authenticator code" description="Open your authenticator app and enter the 6-digit code for Tanghiers.">
+    <AuthShell
+      title="Authenticator code"
+      hint="Open your authenticator app and enter the 6-digit code for Tanghiers."
+    >
       <form
         className="mt-8 space-y-6"
         onSubmit={(event) => {
@@ -178,8 +213,8 @@ export function MfaVerifyScreen() {
       >
         <OtpField value={code} onChange={setCode} onComplete={(value) => void submit(value)} disabled={busy} />
         {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-        <Button type="submit" className="h-12 w-full" disabled={busy || code.length !== 6}>
-          {busy ? 'Checking…' : 'Continue'}
+        <Button type="submit" className="h-12 w-full" loading={busy} disabled={code.length !== 6}>
+          {busy ? 'Checking' : 'Continue'}
         </Button>
       </form>
       <p className="mt-6 text-sm text-[#667085]">
@@ -270,13 +305,13 @@ function ConfirmStep({
       }}
     >
       <OtpField value={code} onChange={onChange} onComplete={onSubmit} disabled={busy} />
-      {error ? <p className="text-center text-sm text-[#b42318]">{error}</p> : null}
+      {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
       <div className="flex gap-2">
         <Button type="button" variant="outline" className="h-11" onClick={onBack} disabled={busy}>
           Back
         </Button>
-        <Button type="submit" className="h-11 flex-1" disabled={busy || code.length !== 6}>
-          {busy ? 'Checking…' : 'Verify'}
+        <Button type="submit" className="h-11 flex-1" loading={busy} disabled={code.length !== 6}>
+          {busy ? 'Checking' : 'Verify'}
         </Button>
       </div>
     </form>
@@ -417,7 +452,7 @@ export function MfaSetupScreen() {
   if (!challenge) {
     return (
       <AuthShell title="Set up authenticator" description="Preparing your authenticator setup…">
-        <div className="mt-8 h-1 animate-pulse rounded-full bg-[#f2f4f7]" />
+        <LoadingState compact label="Preparing your authenticator…" className="min-h-0 justify-start px-0" />
       </AuthShell>
     );
   }

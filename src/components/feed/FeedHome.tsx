@@ -157,7 +157,7 @@ export function FeedHome() {
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder="What's happening in the cohort?"
                 rows={3}
-                className="min-h-[72px] resize-none border-0 bg-transparent px-0 text-[17px] shadow-none focus-visible:ring-0 dark:bg-transparent"
+                className="min-h-[72px] resize-none border-0 bg-transparent px-0 text-[17px] shadow-none focus:border-transparent focus:shadow-none focus-visible:ring-0 dark:bg-transparent"
               />
               <div className="flex justify-end pt-2">
                 <Button type="submit" disabled={!draft.trim()} className="h-9 rounded-full px-5">

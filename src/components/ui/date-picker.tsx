@@ -4,6 +4,7 @@ import * as React from "react"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 
+import { fieldFocus, fieldOpen } from "@/components/ui/field"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -80,7 +81,9 @@ export function DatePicker({
           type="button"
           variant="outline"
           className={cn(
-            "h-9 w-full justify-start rounded-md border-input bg-transparent px-3 text-left text-sm font-normal shadow-none hover:bg-transparent focus-visible:border-foreground focus-visible:ring-0",
+            "h-9 w-full justify-start rounded-md border-input bg-transparent px-3 text-left text-sm font-normal shadow-none hover:bg-transparent focus-visible:ring-0",
+            fieldFocus,
+            fieldOpen,
             !value && "text-muted-foreground",
             className,
           )}

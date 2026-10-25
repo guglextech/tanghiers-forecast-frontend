@@ -2,6 +2,17 @@
 @import "tw-animate-css";
 @import "bootstrap-icons/font/bootstrap-icons.css";
 
+@source inline("focus:border-[var(--field-ring)]");
+@source inline("focus:shadow-[var(--field-shadow)]");
+@source inline("focus-within:border-[var(--field-ring)]");
+@source inline("focus-within:shadow-[var(--field-shadow)]");
+@source inline("data-[state=open]:border-[var(--field-ring)]");
+@source inline("data-[state=open]:shadow-[var(--field-shadow)]");
+@source inline("data-[active=true]:border-[var(--field-ring)]");
+@source inline("data-[active=true]:shadow-[var(--field-shadow)]");
+@source inline("aria-invalid:focus:border-destructive");
+@source inline("aria-invalid:focus:shadow-[var(--field-shadow-invalid)]");
+
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -43,6 +54,9 @@
   --border: #e6e8ee;
   --input: #d0d5dd;
   --ring: #101828;
+  --field-ring: #3b6cf6;
+  --field-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--field-ring);
+  --field-shadow-invalid: 0 0 0 1px #ffffff, 0 0 0 3px var(--destructive);
 }
 
 .dark {
@@ -69,6 +83,8 @@
   --border: #1f2937;
   --input: #1f2937;
   --ring: #008dff;
+  --field-shadow: 0 0 0 1px #0b0f14, 0 0 0 3px var(--field-ring);
+  --field-shadow-invalid: 0 0 0 1px #0b0f14, 0 0 0 3px var(--destructive);
 }
 
 @layer base {

@@ -59,10 +59,11 @@ export function ConfirmDrawer({
           <Button
             type="button"
             variant={destructive ? 'destructive' : 'default'}
-            disabled={disabled || busy}
+            loading={busy}
+            disabled={disabled}
             onClick={onConfirm}
           >
-            {busy ? 'Working…' : confirmLabel}
+            {busy ? 'Processing' : confirmLabel}
           </Button>
         </SheetFooter>
       </SheetContent>

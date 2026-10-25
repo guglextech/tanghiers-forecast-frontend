@@ -35,7 +35,7 @@ function NavLink({
       )}
     >
       <span className="relative shrink-0">
-        <Icon className="size-[18px]" strokeWidth={active ? 2.1 : 1.75} />
+        <Icon className="size-[18px] text-[#0B3A82]" strokeWidth={active ? 2.1 : 1.75} />
         {showBadge ? (
           <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#f04438] ring-2 ring-white" />
         ) : null}

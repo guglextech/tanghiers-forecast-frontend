@@ -287,14 +287,25 @@ export function mapDelivery(row: ApiNotification, index = 0): Delivery {
   };
 }
 
+const ZERO_DECIMAL = new Set(['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF']);
+
+function fromMinor(value: number, currency: string) {
+  return ZERO_DECIMAL.has(currency) ? value : value / 100;
+}
+
 function paymentMoney(row: ApiPayment) {
   const currency = String(row.currency || 'USD').toUpperCase();
+  const paid = typeof row.amountPaid === 'number' ? fromMinor(row.amountPaid, currency) : null;
+  const due = typeof row.amountDue === 'number' ? fromMinor(row.amountDue, currency) : null;
+  if (paid != null && paid > 0) return { amount: paid, currency };
+  if (due != null) return { amount: due, currency };
+  if (paid != null) return { amount: paid, currency };
   if (typeof row.amountCents === 'number' && Number.isFinite(row.amountCents)) {
-    return { amount: row.amountCents / 100, currency };
+    return { amount: fromMinor(row.amountCents, currency), currency };
   }
   const raw = Number(row.amount);
   if (!Number.isFinite(raw)) return { amount: 0, currency };
-  if (Number.isInteger(raw) && raw >= 100) return { amount: raw / 100, currency };
+  if (Number.isInteger(raw) && raw >= 100) return { amount: fromMinor(raw, currency), currency };
   return { amount: raw, currency };
 }
 
@@ -324,6 +335,7 @@ export type AccountPayment = {
   amount: number;
   currency: string;
   at: string | null;
+  invoiceUrl: string | null;
   dayPass: boolean;
 };
 
@@ -345,16 +357,18 @@ export function mapAccountSubscription(row: ApiSubscription, index = 0): Account
 
 export function mapAccountPayment(row: ApiPayment, index = 0): AccountPayment {
   const planCode = String(row.planCode || row.planId || '').toLowerCase();
-  const dayPass = isDayPassPayment(row);
+  const dayPass = isDayPassPayment(row) || (!planCode && !row.planName && !row.label && !row.description);
   const money = paymentMoney(row);
+  const invoice = row.invoiceNumber?.trim();
   return {
     id: row.id || `pay-${index}`,
     planCode,
-    label: row.planName || row.label || row.description || (dayPass ? 'One-day pass' : 'Payment'),
+    label: row.planName || row.label || row.description || (invoice ? `Invoice ${invoice}` : 'One-day pass'),
     status: String(row.status || 'paid').toLowerCase(),
     amount: money.amount,
     currency: money.currency,
     at: row.paidAt || row.createdAt || row.date || null,
+    invoiceUrl: row.invoiceUrl?.trim() || null,
     dayPass,
   };
 }
