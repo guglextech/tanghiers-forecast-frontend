@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils';
 const STEPS = [
   { id: 0, title: 'Account' },
   { id: 1, title: 'Details' },
-  { id: 2, title: 'Consent' },
 ] as const;
 
 function consentOf(map: ApiConsentMap, keys: string[]) {
@@ -74,8 +73,7 @@ const CONSENT_NOTE = 'Agree to the terms, privacy policy, and age confirmation t
 
 const STEP_COPY = [
   { title: 'Join Tanghiers', hint: 'Continue with Google, or use email and a password.' },
-  { title: 'Your details', hint: 'This is the name on your account.' },
-  { title: 'Almost done', hint: '' },
+  { title: 'Your details', hint: 'Your name, then agree to continue.' },
 ] as const;
 
 export function SignupScreen() {
@@ -148,8 +146,6 @@ export function SignupScreen() {
     if (index === 1) {
       if (!firstName.trim()) throw new Error('Enter a first name.');
       if (!lastName.trim()) throw new Error('Enter a last name.');
-    }
-    if (index === 2) {
       if (!agreeTerms || !agreePrivacy || !agreeAge) {
         throw new Error(CONSENT_NOTE);
       }
@@ -172,7 +168,6 @@ export function SignupScreen() {
     try {
       validateStep(0);
       validateStep(1);
-      validateStep(2);
       setBusy(true);
       await signup({
         email,
@@ -311,39 +306,36 @@ export function SignupScreen() {
                       />
                     </div>
                   </div>
+                  <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
+                    <ConsentRow
+                      id="agree-terms"
+                      checked={agreeTerms}
+                      onChange={setAgreeTerms}
+                      text={terms.text}
+                      href="/terms"
+                      linkLabel="Read terms"
+                    />
+                    <div className="h-px bg-[#eef0f3]" />
+                    <ConsentRow
+                      id="agree-privacy"
+                      checked={agreePrivacy}
+                      onChange={setAgreePrivacy}
+                      text={privacy.text}
+                      href="/privacy"
+                      linkLabel="Read privacy"
+                    />
+                    <div className="h-px bg-[#eef0f3]" />
+                    <ConsentRow
+                      id="agree-age"
+                      checked={agreeAge}
+                      onChange={setAgreeAge}
+                      text={age.text}
+                    />
+                  </div>
                 </>
               ) : null}
 
-              {step === 2 ? (
-                <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
-                  <ConsentRow
-                    id="agree-terms"
-                    checked={agreeTerms}
-                    onChange={setAgreeTerms}
-                    text={terms.text}
-                    href="/terms"
-                    linkLabel="Read terms"
-                  />
-                  <div className="h-px bg-[#eef0f3]" />
-                  <ConsentRow
-                    id="agree-privacy"
-                    checked={agreePrivacy}
-                    onChange={setAgreePrivacy}
-                    text={privacy.text}
-                    href="/privacy"
-                    linkLabel="Read privacy"
-                  />
-                  <div className="h-px bg-[#eef0f3]" />
-                  <ConsentRow
-                    id="agree-age"
-                    checked={agreeAge}
-                    onChange={setAgreeAge}
-                    text={age.text}
-                  />
-                </div>
-              ) : null}
-
-              {step === 2 ? (
+              {step === 1 ? (
                 <p className={cn('text-xs leading-5', error === CONSENT_NOTE ? 'text-destructive' : 'text-[#98a2b3]')}>
                   Agree to the{' '}
                   <Link href="/terms" className="font-medium text-[#667085] hover:underline">
