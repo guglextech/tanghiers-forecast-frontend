@@ -201,10 +201,10 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
+          <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">
             {initial ? 'Edit forecast' : 'New forecast'}
-          </h2>
-          <p className="mt-1 max-w-xl text-sm leading-6 text-[#667085] sm:text-[15px]">
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-[#667085]">
             Banker, two sure, and three direct for the draw date. Publishing makes it available on the
             site and records email and SMS for every active subscriber.
           </p>
@@ -220,7 +220,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
       </div>
 
       <form
-        className="overflow-hidden rounded-2xl border border-[#e6e8ee] bg-white"
+        className="overflow-hidden rounded-2xl border border-[#eaecf0] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
         onSubmit={(event) => {
           event.preventDefault();
           void submit(intent === 'schedule' ? 'schedule' : 'publish');

@@ -26,6 +26,10 @@ export async function fetchForecastList(query?: { limit?: number; offset?: numbe
   return readForecastPage(await forecastApi.list(query)).items;
 }
 
+export async function fetchForecastPage(query?: { limit?: number; offset?: number }) {
+  return readForecastPage(await forecastApi.list(query));
+}
+
 export async function fetchAllForecasts(): Promise<Forecast[]> {
   const first = readForecastPage(await forecastApi.list());
   if (first.total <= first.items.length) return first.items;

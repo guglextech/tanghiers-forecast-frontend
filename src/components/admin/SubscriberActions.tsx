@@ -192,11 +192,11 @@ export function SubscriberActions({
           <dl className="grid gap-4 px-5 py-4 text-sm">
             <div>
               <dt className="text-[#98a2b3]">Role</dt>
-              <dd className="mt-1">{profile.roleLabel}</dd>
+              <dd className="mt-1">{profile.role}</dd>
             </div>
             <div>
               <dt className="text-[#98a2b3]">Status</dt>
-              <dd className="mt-1 capitalize">{profile.status}</dd>
+              <dd className="mt-1">{profile.status}</dd>
             </div>
             {plan ? (
               <div>

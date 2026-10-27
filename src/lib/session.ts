@@ -1,4 +1,5 @@
 import { PRODUCT_SLUG } from '@/lib/api/config';
+import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
 import { readTokens, writeTokens } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
@@ -135,10 +136,10 @@ export function listAccounts(): AdminAccount[] {
   return accountCache;
 }
 
-export async function refreshAccounts(q?: string) {
-  const rows = asList<ApiUser>(await admin.users({ q, limit: 100 }));
-  accountCache = rows.map(mapAdminUser).sort((a, b) => a.name.localeCompare(b.name));
-  return accountCache;
+export async function refreshAccounts(q?: string, offset = 0, limit = PAGE_SIZE) {
+  const page = readPage<ApiUser>(await admin.users({ q, limit, offset }));
+  accountCache = page.items.map(mapAdminUser);
+  return { accounts: accountCache, total: page.total };
 }
 
 async function loadSmsConsent() {
