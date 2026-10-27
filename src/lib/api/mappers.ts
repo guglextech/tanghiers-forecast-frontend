@@ -2,6 +2,7 @@ import type { Delivery, Forecast, GameId } from '@/data/forecasts';
 import type { Invoice, Role, SessionUser, SubscriptionStatus } from '@/lib/session';
 import type { PlanId } from '@/data/site';
 import type {
+  ApiAdminProduct,
   ApiEntitlement,
   ApiForecast,
   ApiForecastBody,
@@ -9,6 +10,7 @@ import type {
   ApiForecastField,
   ApiNotification,
   ApiPayment,
+  ApiProductField,
   ApiSubscription,
   ApiUser,
 } from '@/lib/api/types';
@@ -535,4 +537,90 @@ export function mapOverviewReport(
     revenue: revenue?.amount ?? fallback.revenue,
     revenueCurrency: revenue?.currency ?? fallback.revenueCurrency,
   };
+}
+
+export type ProductSettingsForm = {
+  slug: string;
+  name: string;
+  timezone: string;
+  minAge: string;
+  supportEmail: string;
+  mailingAddress: string;
+  verifyEmailUrl: string;
+  resetPasswordUrl: string;
+  accountUrl: string;
+  accentColor: string;
+  fields: { key: string; label: string; type: string }[];
+};
+
+function textOf(value: unknown) {
+  return typeof value === 'string' ? value : '';
+}
+
+function mapProductFields(rows: unknown): ProductSettingsForm['fields'] {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((row) => {
+      const item = (row && typeof row === 'object' ? row : {}) as ApiProductField;
+      const key = textOf(item.key).trim();
+      if (!key) return null;
+      return {
+        key,
+        label: textOf(item.label).trim() || key,
+        type: textOf(item.type).trim() || 'text',
+      };
+    })
+    .filter((row): row is ProductSettingsForm['fields'][number] => Boolean(row));
+}
+
+export function mapProductSettings(row: ApiAdminProduct | null | undefined): ProductSettingsForm {
+  const record = (row && typeof row === 'object' ? row : {}) as ApiAdminProduct;
+  const settings = record.settings && typeof record.settings === 'object' ? record.settings : {};
+  const frontend = settings.frontendUrls && typeof settings.frontendUrls === 'object' ? settings.frontendUrls : {};
+  const branding = settings.branding && typeof settings.branding === 'object' ? settings.branding : {};
+  const fields = mapProductFields(record.fields ?? record.forecastFields);
+  const minAge = typeof record.minAge === 'number' && Number.isFinite(record.minAge) ? String(record.minAge) : '';
+
+  return {
+    slug: textOf(record.slug),
+    name: textOf(record.name),
+    timezone: textOf(record.timezone) || 'America/New_York',
+    minAge,
+    supportEmail: textOf(settings.supportEmail) || textOf(record.supportEmail),
+    mailingAddress: textOf(settings.mailingAddress),
+    verifyEmailUrl: textOf(frontend.verifyEmail),
+    resetPasswordUrl: textOf(frontend.resetPassword),
+    accountUrl: textOf(frontend.account),
+    accentColor: textOf(branding.accentColor) || '#0B3A82',
+    fields,
+  };
+}
+
+export function productSettingsBody(form: ProductSettingsForm) {
+  const minAge = Number(form.minAge);
+  const body: Record<string, unknown> = {
+    name: form.name.trim(),
+    timezone: form.timezone.trim(),
+    settings: {
+      supportEmail: form.supportEmail.trim(),
+      mailingAddress: form.mailingAddress.trim(),
+      frontendUrls: {
+        verifyEmail: form.verifyEmailUrl.trim(),
+        resetPassword: form.resetPasswordUrl.trim(),
+        account: form.accountUrl.trim(),
+      },
+      branding: {
+        accentColor: form.accentColor.trim(),
+      },
+    },
+  };
+  if (form.minAge.trim() && Number.isFinite(minAge)) body.minAge = minAge;
+  if (form.fields.length) {
+    body.fields = form.fields.map((field) => ({
+      key: field.key,
+      label: field.label.trim() || field.key,
+      type: field.type,
+    }));
+  }
+  return body;
 }

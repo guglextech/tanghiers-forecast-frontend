@@ -13,7 +13,7 @@ export function Pill({ children, tone }: { children: React.ReactNode; tone: 'ok'
   return (
     <span
       className={cn(
-        'inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium capitalize',
+        'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
         tone === 'ok' && 'bg-[#ecfdf3] text-[#027a48]',
         tone === 'wait' && 'bg-[#fffaeb] text-[#b54708]',
         tone === 'muted' && 'bg-[#f2f4f7] text-[#475467]',
@@ -220,6 +220,14 @@ export function Th({ children, className }: { children: React.ReactNode; classNa
 }
 
 export const td = 'px-4 py-3 align-middle text-sm';
+export const stickyStart =
+  'sticky left-0 z-10 bg-white shadow-[1px_0_0_#eef0f3] group-hover:bg-[#fafafa]';
+export const stickyEnd =
+  'sticky right-0 z-10 bg-white shadow-[-1px_0_0_#eef0f3] group-hover:bg-[#fafafa]';
+
+export function DeskScroll({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn('desk-scroll', className)}>{children}</div>;
+}
 
 export function EmptyRow({ children }: { children: React.ReactNode }) {
   return <p className="px-4 py-10 text-center text-sm text-[#667085]">{children}</p>;
@@ -232,7 +240,7 @@ export function NameCell({ name, href, caps = false }: { name: string; href?: st
       <span className={cn('truncate font-medium text-[#101828]', caps && 'tracking-wide uppercase')}>{name}</span>
     </>
   );
-  const className = 'flex min-w-0 items-center gap-3';
+  const className = 'inline-flex min-w-0 items-center gap-3';
   if (href) {
     return (
       <Link href={href} className={className}>

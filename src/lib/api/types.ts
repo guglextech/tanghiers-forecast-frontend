@@ -204,3 +204,34 @@ export type ApiNotification = {
 export type Paginated<T> = T[] | { items?: T[]; data?: T[]; results?: T[] };
 
 export type ApiOverviewReport = Record<string, unknown>;
+
+export type ApiProductField = {
+  key?: string;
+  label?: string;
+  type?: string;
+  count?: number;
+};
+
+export type ApiProductSettings = {
+  supportEmail?: string;
+  mailingAddress?: string;
+  frontendUrls?: {
+    verifyEmail?: string;
+    resetPassword?: string;
+    account?: string;
+  };
+  branding?: {
+    accentColor?: string;
+  };
+};
+
+export type ApiAdminProduct = {
+  slug?: string;
+  name?: string;
+  timezone?: string;
+  minAge?: number;
+  supportEmail?: string;
+  settings?: ApiProductSettings;
+  fields?: ApiProductField[];
+  forecastFields?: ApiProductField[];
+};

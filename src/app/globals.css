@@ -168,6 +168,39 @@
     display: none;
   }
 
+  .desk-scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #c5cad3 #f4f6f8;
+  }
+
+  .desk-scroll::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .desk-scroll::-webkit-scrollbar-track {
+    margin-inline: 12px;
+    margin-block: 4px;
+    background: #f4f6f8;
+    border-radius: 999px;
+  }
+
+  .desk-scroll::-webkit-scrollbar-thumb {
+    background: #d0d5dd;
+    border: 2px solid #f4f6f8;
+    border-radius: 999px;
+  }
+
+  .desk-scroll::-webkit-scrollbar-thumb:hover {
+    background: #98a2b3;
+  }
+
+  .desk-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   .brand-gradient {
     background: linear-gradient(135deg, #0194ff 0%, #008dff 55%, #0194ff 100%);
   }

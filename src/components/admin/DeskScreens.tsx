@@ -22,6 +22,9 @@ import {
   SearchField,
   Th,
   td,
+  DeskScroll,
+  stickyEnd,
+  stickyStart,
   toneFor,
 } from '@/components/admin/desk-ui';
 import { useDesk } from '@/components/forecast/useDesk';
@@ -303,23 +306,23 @@ export function ForecastTable({
               </li>
             ))}
           </ul>
-          <div className="hidden overflow-x-auto md:block">
+          <DeskScroll className="hidden pb-1 md:block">
             <table className="w-full min-w-[720px]">
               <thead>
                 <tr className="border-y border-[#f2f4f7]">
-                  <Th>Forecast</Th>
+                  <Th className={stickyStart}>Forecast</Th>
                   <Th>Date</Th>
                   <Th>Numbers</Th>
                   <Th>Status</Th>
-                  <th className="w-12 px-3 py-3">
+                  <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {forecasts.map((forecast) => (
-                  <tr key={forecast.id} className="border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                    <td className={td}>
+                  <tr key={forecast.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
+                    <td className={cn(td, stickyStart)}>
                       <NameCell name={forecast.title} href={`/admin/forecasts/${forecast.id}`} caps={false} />
                     </td>
                     <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatDeskDate(forecast.date)}</td>
@@ -329,14 +332,14 @@ export function ForecastTable({
                     <td className={td}>
                       <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
                     </td>
-                    <td className="px-3 py-3.5 text-right">
+                    <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                       <ForecastActions forecast={forecast} />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </DeskScroll>
         </>
       )}
     </Directory>
@@ -516,7 +519,7 @@ export function DeliveryLog() {
                 </li>
               ))}
             </ul>
-            <div className="hidden overflow-x-auto md:block">
+            <DeskScroll className="hidden pb-1 md:block">
               <table className="w-full min-w-[720px]">
                 <thead>
                   <tr className="border-y border-[#f2f4f7]">
@@ -539,7 +542,7 @@ export function DeliveryLog() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DeskScroll>
           </>
         )}
       </Directory>
@@ -627,56 +630,63 @@ export function SubscriberTable() {
           <EmptyRow>{query.trim() ? 'No accounts match that search.' : 'No subscribers yet.'}</EmptyRow>
         ) : (
           <>
-            <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] lg:hidden">
+            <ul className="divide-y divide-[#f2f4f7] lg:hidden">
               {rows.map((account) => (
-                <li key={account.id} className="flex items-center gap-3 px-5 py-3.5">
-                  <NameCell name={account.name} caps />
-                  <div className="ml-auto flex items-center gap-2">
+                <li key={account.id}>
+                  <DeskScroll className="flex items-center gap-3 px-4 py-3">
+                    <NameCell name={account.name} />
+                    <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-[#475467]">
+                      {account.email}
+                      {!account.emailVerified ? <Pill tone="muted">unverified</Pill> : null}
+                    </span>
+                    <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{account.role}</Pill>
                     <Pill tone={toneFor(account.status)}>{account.status}</Pill>
-                    <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
-                  </div>
+                    <span className="ml-auto">
+                      <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
+                    </span>
+                  </DeskScroll>
                 </li>
               ))}
             </ul>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full min-w-[860px]">
+            <DeskScroll className="hidden pb-1 lg:block">
+              <table className="w-full min-w-[960px]">
                 <thead>
                   <tr className="border-y border-[#f2f4f7]">
-                    <Th>Subscriber</Th>
+                    <Th className={stickyStart}>Subscriber</Th>
                     <Th>Email</Th>
                     <Th>Role</Th>
                     <Th>Status</Th>
                     <Th>Phone</Th>
                     <Th>Joined</Th>
-                    <th className="w-12 px-3 py-3">
+                    <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((account) => (
-                    <tr key={account.id} className="border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={td}>
-                        <NameCell name={account.name} caps />
+                    <tr key={account.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
+                      <td className={cn(td, 'whitespace-nowrap', stickyStart)}>
+                        <NameCell name={account.name} />
                       </td>
-                      <td className={cn(td, 'text-[#475467]')}>
-                        <p>{account.email}</p>
-                        {!account.emailVerified ? (
-                          <p className="mt-0.5 text-[11px] text-[#98a2b3]">Not verified</p>
-                        ) : null}
+                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
+                        <span className="inline-flex items-center gap-2">
+                          {account.email}
+                          {!account.emailVerified ? <Pill tone="muted">unverified</Pill> : null}
+                        </span>
                       </td>
-                      <td className={cn(td, 'text-[#475467]')}>{account.roleLabel}</td>
-                      <td className={td}>
+                      <td className={cn(td, 'whitespace-nowrap')}>
+                        <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{account.role}</Pill>
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap')}>
                         <Pill tone={toneFor(account.status)}>{account.status}</Pill>
                       </td>
-                      <td className={cn(td, 'text-[#475467]')}>
+                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
                         {account.phone ? (
-                          <>
-                            <p>{account.phone}</p>
-                            {!account.phoneVerified ? (
-                              <p className="mt-0.5 text-[11px] text-[#98a2b3]">Not verified</p>
-                            ) : null}
-                          </>
+                          <span className="inline-flex items-center gap-2">
+                            {account.phone}
+                            {!account.phoneVerified ? <Pill tone="muted">unverified</Pill> : null}
+                          </span>
                         ) : (
                           '—'
                         )}
@@ -684,14 +694,14 @@ export function SubscriberTable() {
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
                         {account.createdAt ? formatDeskStamp(account.createdAt) : '—'}
                       </td>
-                      <td className="px-3 py-3.5 text-right">
+                      <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                         <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </DeskScroll>
           </>
         )}
       </Directory>

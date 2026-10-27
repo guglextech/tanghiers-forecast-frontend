@@ -22,6 +22,7 @@ type AdminIconName =
   | 'calendar-event'
   | 'send'
   | 'people'
+  | 'gear'
   | 'box-arrow-up-right'
   | 'list'
   | 'x-lg';
@@ -35,6 +36,7 @@ const deskLinks = [
   { href: '/admin/forecasts', label: 'Forecasts', icon: 'calendar-event' },
   { href: '/admin/deliveries', label: 'Deliveries', icon: 'send' },
   { href: '/admin/subscribers', label: 'Subscribers', icon: 'people' },
+  { href: '/admin/settings', label: 'Settings', icon: 'gear' },
 ] as const;
 
 function sectionLabel(pathname: string) {
@@ -42,6 +44,7 @@ function sectionLabel(pathname: string) {
   if (pathname.startsWith('/admin/forecasts')) return 'Forecasts';
   if (pathname.startsWith('/admin/deliveries')) return 'Deliveries';
   if (pathname.startsWith('/admin/subscribers')) return 'Subscribers';
+  if (pathname.startsWith('/admin/settings')) return 'Settings';
   return 'Overview';
 }
 

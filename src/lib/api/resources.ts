@@ -1,6 +1,7 @@
 import { apiRequest, unwrapList } from '@/lib/api/client';
 import { PRODUCT_SLUG, productBody, productResource, productUrl } from '@/lib/api/config';
 import type {
+  ApiAdminProduct,
   ApiConsentMap,
   ApiEntitlement,
   ApiForecast,
@@ -270,7 +271,13 @@ export const admin = {
       ),
     ),
   readiness: () => apiRequest<unknown>('/v1/admin/readiness'),
-  product: (productSlug = PRODUCT_SLUG) => apiRequest<unknown>(productResource('/v1/admin/products', productSlug)),
+  product: (productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiAdminProduct>(productResource('/v1/admin/products', productSlug)),
+  updateProduct: (body: Record<string, unknown>, productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiAdminProduct>(productResource('/v1/admin/products', productSlug), {
+      method: 'PATCH',
+      body,
+    }),
   plans: (productSlug = PRODUCT_SLUG) =>
     apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(productUrl('/v1/admin/plans', {}, productSlug)),
 };
