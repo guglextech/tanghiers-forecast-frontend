@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { VerifyEmailScreen } from '@/components/auth/TokenScreens';
-import { LoadingState } from '@/components/app/LoadingState';
+import { VerifyEmailFallback, VerifyEmailScreen } from '@/components/auth/TokenScreens';
 
 export const metadata: Metadata = {
   title: 'Verify email',
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<LoadingState label="Loading…" />}>
+    <Suspense fallback={<VerifyEmailFallback />}>
       <VerifyEmailScreen />
     </Suspense>
   );

@@ -236,9 +236,6 @@ export type SignupInput = {
   password: string;
   firstName: string;
   lastName: string;
-  countryCode: string;
-  dateOfBirth: string;
-  phone: string;
   consents: { terms: string; privacy: string; age: string };
 };
 
@@ -246,26 +243,16 @@ export async function signupAccount(input: SignupInput): Promise<SessionUser> {
   const email = input.email.trim().toLowerCase();
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
-  const countryCode = input.countryCode.trim().toUpperCase();
-  const dateOfBirth = input.dateOfBirth.trim();
-  const phone = input.phone.trim().replace(/\s+/g, '');
 
   if (!firstName) throw new Error('Enter a first name.');
   if (!lastName) throw new Error('Enter a last name.');
-  if (!countryCode) throw new Error('Choose a country.');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) throw new Error('Choose a date of birth.');
-  if (!PHONE_PATTERN.test(phone)) {
-    throw new Error('Enter a mobile number with a country code, for example +14155550100.');
-  }
 
   await auth.register({
     email,
     password: input.password,
     firstName,
     lastName,
-    countryCode,
-    dateOfBirth,
-    phone,
+    countryCode: 'US',
     consents: {
       terms: input.consents.terms,
       privacy: input.consents.privacy,

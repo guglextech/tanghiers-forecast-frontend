@@ -9,22 +9,12 @@ import { BrandLockup } from '@/components/brand/Logo';
 import { GoogleMark } from '@/components/auth/AuthForm';
 import { useSession } from '@/components/app/SessionProvider';
 import { ApiError } from '@/lib/api/errors';
-import { asList, catalog } from '@/lib/api/resources';
+import { catalog } from '@/lib/api/resources';
 import type { ApiConsentMap } from '@/lib/api/types';
-import { fromIsoDate, toIsoDate } from '@/lib/dates';
 import { Button } from '@/components/ui/button';
-import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
-import { PhoneInput, toE164 } from '@/components/ui/phone-input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { StepBars } from '@/components/auth/StepBars';
 import { shellClass } from '@/components/chrome/Chrome';
 import { cn } from '@/lib/utils';
@@ -34,14 +24,6 @@ const STEPS = [
   { id: 1, title: 'Details' },
   { id: 2, title: 'Consent' },
 ] as const;
-
-const FALLBACK_COUNTRIES = [
-  { code: 'US', name: 'United States' },
-  { code: 'GH', name: 'Ghana' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'NG', name: 'Nigeria' },
-  { code: 'CA', name: 'Canada' },
-];
 
 function consentOf(map: ApiConsentMap, keys: string[]) {
   const entries = Object.entries(map ?? {});
@@ -88,17 +70,11 @@ function ConsentRow({
   );
 }
 
-function yearsAgo(years: number) {
-  const date = new Date();
-  date.setFullYear(date.getFullYear() - years);
-  return date;
-}
-
 const CONSENT_NOTE = 'Agree to the terms, privacy policy, and age confirmation to continue.';
 
 const STEP_COPY = [
   { title: 'Join Tanghiers', hint: 'Continue with Google, or use email and a password.' },
-  { title: 'Your details', hint: 'Used for your profile and to confirm you can join.' },
+  { title: 'Your details', hint: 'This is the name on your account.' },
   { title: 'Almost done', hint: '' },
 ] as const;
 
@@ -115,13 +91,9 @@ export function SignupScreen() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
-  const [countryCode, setCountryCode] = React.useState('US');
-  const [dateOfBirth, setDateOfBirth] = React.useState<Date | undefined>(fromIsoDate('1990-04-21'));
-  const [phoneNational, setPhoneNational] = React.useState('');
   const [agreeTerms, setAgreeTerms] = React.useState(false);
   const [agreePrivacy, setAgreePrivacy] = React.useState(false);
   const [agreeAge, setAgreeAge] = React.useState(false);
-  const [countries, setCountries] = React.useState(FALLBACK_COUNTRIES);
   const [consents, setConsents] = React.useState<ApiConsentMap>({});
   const [minAge, setMinAge] = React.useState(18);
   const [error, setError] = React.useState('');
@@ -136,15 +108,9 @@ export function SignupScreen() {
 
   React.useEffect(() => {
     void Promise.all([
-      catalog.countries().catch(() => FALLBACK_COUNTRIES),
       catalog.consents().catch(() => ({}) as ApiConsentMap),
       catalog.product().catch(() => null),
-    ]).then(([countryRows, consentMap, product]) => {
-      const list = asList(countryRows);
-      if (list.length > 0) {
-        setCountries(list.map((row) => ({ code: row.code, name: row.name })));
-        if (!list.some((row) => row.code === 'US')) setCountryCode(list[0].code);
-      }
+    ]).then(([consentMap, product]) => {
       setConsents(consentMap ?? {});
       if (product?.minAge) setMinAge(product.minAge);
     });
@@ -162,8 +128,6 @@ export function SignupScreen() {
     version: 'age-2026-10',
     text: `I confirm I am at least ${minAge} years old.`,
   };
-  const oldest = yearsAgo(minAge);
-  const youngestYear = yearsAgo(100);
 
   const onGoogle = async () => {
     setError('');
@@ -184,12 +148,6 @@ export function SignupScreen() {
     if (index === 1) {
       if (!firstName.trim()) throw new Error('Enter a first name.');
       if (!lastName.trim()) throw new Error('Enter a last name.');
-      if (!countryCode) throw new Error('Choose a country.');
-      if (!dateOfBirth) throw new Error('Choose a date of birth.');
-      if (dateOfBirth > oldest) throw new Error(`You must be at least ${minAge} to create an account.`);
-      if (!toE164(countryCode, phoneNational, countries)) {
-        throw new Error('Enter a mobile number.');
-      }
     }
     if (index === 2) {
       if (!agreeTerms || !agreePrivacy || !agreeAge) {
@@ -221,9 +179,6 @@ export function SignupScreen() {
         password,
         firstName,
         lastName,
-        countryCode,
-        dateOfBirth: toIsoDate(dateOfBirth!),
-        phone: toE164(countryCode, phoneNational, countries),
         consents: { terms: terms.version, privacy: privacy.version, age: age.version },
       });
     } catch (err) {
@@ -355,45 +310,6 @@ export function SignupScreen() {
                         onChange={(event) => setLastName(event.target.value)}
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="countryCode">Country</Label>
-                    <Select value={countryCode} onValueChange={setCountryCode}>
-                      <SelectTrigger id="countryCode">
-                        <SelectValue placeholder="Choose a country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {countries.map((country) => (
-                          <SelectItem key={country.code} value={country.code}>
-                            {country.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Date of birth</Label>
-                    <DatePicker
-                      id="dateOfBirth"
-                      value={dateOfBirth}
-                      onChange={setDateOfBirth}
-                      placeholder="Choose a date"
-                      captionLayout="dropdown"
-                      startMonth={youngestYear}
-                      endMonth={oldest}
-                      disabled={{ after: oldest, before: youngestYear }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Mobile number</Label>
-                    <PhoneInput
-                      id="phone"
-                      countries={countries}
-                      countryCode={countryCode}
-                      onCountryChange={setCountryCode}
-                      value={phoneNational}
-                      onChange={setPhoneNational}
-                    />
                   </div>
                 </>
               ) : null}
