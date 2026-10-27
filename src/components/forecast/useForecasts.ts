@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { useSession } from '@/components/app/SessionProvider';
-import { fetchAllForecasts, fetchForecastList } from '@/lib/customer-forecasts';
+import { fetchAllForecasts, fetchForecastPage } from '@/lib/customer-forecasts';
 import type { Forecast } from '@/data/forecasts';
 
 export function useForecasts(query?: { limit?: number; offset?: number }) {
   const { ready } = useSession();
   const [items, setItems] = React.useState<Forecast[]>([]);
+  const [total, setTotal] = React.useState(0);
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState('');
   const limit = query?.limit;
@@ -18,17 +19,21 @@ export function useForecasts(query?: { limit?: number; offset?: number }) {
     if (!ready) return;
     let cancelled = false;
 
-    const load = paged ? fetchForecastList({ limit, offset }) : fetchAllForecasts();
+    const load = paged
+      ? fetchForecastPage({ limit, offset })
+      : fetchAllForecasts().then((list) => ({ items: list, total: list.length }));
 
     void load
-      .then((list) => {
+      .then((result) => {
         if (cancelled) return;
-        setItems(list);
+        setItems(result.items);
+        setTotal(result.total);
         setError('');
       })
       .catch((err) => {
         if (cancelled) return;
         setItems([]);
+        setTotal(0);
         setError(err instanceof Error ? err.message : 'Could not load forecasts.');
       })
       .finally(() => {
@@ -40,5 +45,5 @@ export function useForecasts(query?: { limit?: number; offset?: number }) {
     };
   }, [ready, limit, offset, paged]);
 
-  return { items, loaded, error };
+  return { items, total, loaded, error };
 }

@@ -7,12 +7,16 @@ import { formatDateTime, formatLongDate } from '@/lib/dates';
 import { initialsFromName, listAccounts, refreshAccounts } from '@/lib/session';
 import { formatMoney } from '@/data/site';
 import { admin } from '@/lib/api/resources';
-import { mapOverviewReport } from '@/lib/api/mappers';
+import { mapForecast, mapOverviewReport } from '@/lib/api/mappers';
+import type { ApiForecast } from '@/lib/api/types';
 import { ForecastActions } from '@/components/admin/ForecastActions';
 import { SubscriberActions } from '@/components/admin/SubscriberActions';
 import { useDesk } from '@/components/forecast/useDesk';
 import { LoadingState } from '@/components/app/LoadingState';
 import { Input } from '@/components/ui/input';
+import { Pager } from '@/components/ui/pager';
+import { subscribeDesk } from '@/lib/desk';
+import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
 
 function Pill({ children, tone }: { children: React.ReactNode; tone: 'ok' | 'wait' | 'muted' }) {
@@ -65,15 +69,18 @@ function Mark({ name }: { name: string }) {
 function Directory({
   title,
   toolbar,
-  count,
+  page = 0,
+  total,
+  onPage,
   children,
 }: {
   title: string;
   toolbar?: React.ReactNode;
-  count: number;
+  page?: number;
+  total: number;
+  onPage?: (page: number) => void;
   children: React.ReactNode;
 }) {
-  const label = count === 0 ? '0 of 0' : `1–${count} of ${count}`;
   return (
     <section className="overflow-hidden rounded-2xl border border-[#e6e8ee] bg-white">
       <div className="flex flex-col gap-3 px-5 pt-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
@@ -81,8 +88,8 @@ function Directory({
         {toolbar ? <div className="min-w-0">{toolbar}</div> : null}
       </div>
       {children}
-      <div className="flex items-center justify-between border-t border-[#eef0f3] px-5 py-3 text-xs text-[#98a2b3]">
-        <span>{label}</span>
+      <div className="border-t border-[#eef0f3] px-5 py-3">
+        <Pager page={page} total={total} onPage={onPage} />
       </div>
     </section>
   );
@@ -204,20 +211,27 @@ export function ForecastTable({
   forecasts,
   title = 'Forecasts',
   toolbar,
+  page = 0,
+  total,
+  onPage,
 }: {
   forecasts: Forecast[];
   title?: string;
   toolbar?: React.ReactNode;
+  page?: number;
+  total?: number;
+  onPage?: (page: number) => void;
 }) {
+  const rowTotal = total ?? forecasts.length;
   if (forecasts.length === 0) {
     return (
-      <Directory title={title} count={0} toolbar={toolbar}>
+      <Directory title={title} page={page} total={rowTotal} onPage={onPage} toolbar={toolbar}>
         <p className="border-t border-[#eef0f3] px-5 py-8 text-sm text-[#667085]">No forecasts yet.</p>
       </Directory>
     );
   }
   return (
-    <Directory title={title} count={forecasts.length} toolbar={toolbar}>
+    <Directory title={title} page={page} total={rowTotal} onPage={onPage} toolbar={toolbar}>
       <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3] md:hidden">
         {forecasts.map((forecast) => (
           <li key={forecast.id} className="flex items-start gap-3 px-4 py-3.5">
@@ -278,11 +292,46 @@ export function ForecastTable({
 }
 
 export function ForecastList() {
-  const desk = useDesk();
   const [filter, setFilter] = React.useState<ForecastFilter>('all');
-  if (!desk) return <LoadingState label="Loading forecasts…" />;
-  const rows =
-    filter === 'all' ? desk.forecasts : desk.forecasts.filter((forecast) => forecast.status === filter);
+  const [page, setPage] = React.useState(0);
+  const [rows, setRows] = React.useState<Forecast[]>([]);
+  const [total, setTotal] = React.useState(0);
+  const [ready, setReady] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      const status = filter === 'all' ? undefined : filter.toUpperCase();
+      void admin
+        .forecasts({ limit: PAGE_SIZE, offset: page * PAGE_SIZE, status })
+        .then((payload) => {
+          if (cancelled) return;
+          const result = readPage<ApiForecast>(payload);
+          if (page > 0 && result.items.length === 0 && result.total > 0) {
+            setPage((current) => Math.max(0, current - 1));
+            return;
+          }
+          setRows(result.items.map(mapForecast));
+          setTotal(result.total);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setRows([]);
+          setTotal(0);
+        })
+        .finally(() => {
+          if (!cancelled) setReady(true);
+        });
+    };
+    load();
+    const unsubscribe = subscribeDesk(load);
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [filter, page]);
+
+  if (!ready) return <LoadingState label="Loading forecasts…" />;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -300,11 +349,17 @@ export function ForecastList() {
       />
       <ForecastTable
         forecasts={rows}
+        page={page}
+        total={total}
+        onPage={setPage}
         toolbar={
           <FilterChips
             label="Forecast status"
             value={filter}
-            onChange={setFilter}
+            onChange={(value) => {
+              setFilter(value);
+              setPage(0);
+            }}
             options={FORECAST_FILTERS.map((item) => ({ id: item, label: item === 'all' ? 'All' : item }))}
           />
         }
@@ -317,8 +372,10 @@ export function ForecastList() {
 export function DeliveryLog() {
   const desk = useDesk();
   const [channel, setChannel] = React.useState<'all' | 'web' | 'email' | 'sms'>('all');
+  const [page, setPage] = React.useState(0);
   if (!desk) return <LoadingState label="Loading deliveries…" />;
   const rows = desk.deliveries.filter((row) => channel === 'all' || row.channel === channel);
+  const pageRows = rows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const label = (value: 'web' | 'email' | 'sms') =>
     value === 'web' ? 'Site' : value === 'email' ? 'Email' : 'SMS';
 
@@ -327,12 +384,17 @@ export function DeliveryLog() {
       <PageLead title="Deliveries" description="Who each forecast was sent to, and whether it arrived." />
       <Directory
         title="Delivery log"
-        count={rows.length}
+        page={page}
+        total={rows.length}
+        onPage={setPage}
         toolbar={
           <FilterChips
             label="Delivery channel"
             value={channel}
-            onChange={setChannel}
+            onChange={(value) => {
+              setChannel(value);
+              setPage(0);
+            }}
             options={(['all', 'web', 'email', 'sms'] as const).map((item) => ({
               id: item,
               label: item === 'all' ? 'All' : label(item),
@@ -340,12 +402,12 @@ export function DeliveryLog() {
           />
         }
       >
-        {rows.length === 0 ? (
+        {pageRows.length === 0 ? (
           <p className="border-t border-[#eef0f3] px-5 py-8 text-sm text-[#667085]">No deliveries yet.</p>
         ) : (
           <>
             <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3] md:hidden">
-              {rows.map((row) => (
+              {pageRows.map((row) => (
                 <li key={row.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
                   <div className="min-w-0">
                     <p className="truncate font-medium">{row.destination || '—'}</p>
@@ -365,7 +427,7 @@ export function DeliveryLog() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => (
+                  {pageRows.map((row) => (
                     <tr key={row.id} className="border-b border-[#eef0f3] last:border-0 hover:bg-[#f9fafb]">
                       <td className={cn(td, 'font-medium')}>{row.destination || '—'}</td>
                       <td className={td}>
@@ -387,13 +449,18 @@ export function DeliveryLog() {
 export function SubscriberTable() {
   const [accounts, setAccounts] = React.useState<ReturnType<typeof listAccounts>>([]);
   const [query, setQuery] = React.useState('');
+  const [page, setPage] = React.useState(0);
+  const [total, setTotal] = React.useState(0);
   const [ready, setReady] = React.useState(false);
 
-  const load = React.useCallback(async (q?: string) => {
+  const load = React.useCallback(async (q: string | undefined, nextPage: number) => {
     try {
-      setAccounts(await refreshAccounts(q));
+      const result = await refreshAccounts(q, nextPage * PAGE_SIZE);
+      setAccounts(result.accounts);
+      setTotal(result.total);
     } catch {
       setAccounts(listAccounts());
+      setTotal(listAccounts().length);
     } finally {
       setReady(true);
     }
@@ -401,10 +468,10 @@ export function SubscriberTable() {
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
-      void load(query.trim() || undefined);
+      void load(query.trim() || undefined, page);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [load, query]);
+  }, [load, query, page]);
 
   if (!ready) return <LoadingState label="Loading subscribers…" />;
 
@@ -416,11 +483,16 @@ export function SubscriberTable() {
       />
       <Directory
         title="Subscriber directory"
-        count={accounts.length}
+        page={page}
+        total={total}
+        onPage={setPage}
         toolbar={
           <Input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(0);
+            }}
             placeholder="Search email or user id"
             className="h-9 w-full bg-[#f7f8fa] sm:w-64"
             aria-label="Search subscribers"
@@ -451,7 +523,7 @@ export function SubscriberTable() {
                       {account.createdAt ? ` · ${formatDateTime(account.createdAt)}` : ''}
                     </p>
                   </div>
-                  <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined)} />
+                  <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page)} />
                 </li>
               ))}
             </ul>
@@ -505,7 +577,7 @@ export function SubscriberTable() {
                         {account.createdAt ? formatDateTime(account.createdAt) : '—'}
                       </td>
                       <td className="px-3 py-3.5 text-right">
-                        <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined)} />
+                        <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page)} />
                       </td>
                     </tr>
                   ))}

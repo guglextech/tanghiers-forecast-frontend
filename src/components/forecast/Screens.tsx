@@ -9,11 +9,14 @@ import { LoadingState } from '@/components/app/LoadingState';
 import { ForecastPost } from '@/components/forecast/ForecastArticle';
 import { useForecasts } from '@/components/forecast/useForecasts';
 import { fetchForecastDetail } from '@/lib/customer-forecasts';
+import { PAGE_SIZE } from '@/lib/pagination';
+import { Pager } from '@/components/ui/pager';
 import { SITE } from '@/data/site';
 
 export function FeedScreen() {
   const { user, ready } = useSession();
-  const { items, loaded, error } = useForecasts();
+  const [page, setPage] = React.useState(0);
+  const { items, total, loaded, error } = useForecasts({ limit: PAGE_SIZE, offset: page * PAGE_SIZE });
 
   if (!ready || !user || !loaded) return <LoadingState label="Loading the forecast…" />;
 
@@ -45,13 +48,19 @@ export function FeedScreen() {
           ))}
         </div>
       )}
+      {total > PAGE_SIZE ? (
+        <div className="mt-4">
+          <Pager page={page} total={total} onPage={setPage} />
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function HistoryScreen() {
   const { user, ready } = useSession();
-  const { items, loaded, error } = useForecasts();
+  const [page, setPage] = React.useState(0);
+  const { items, total, loaded, error } = useForecasts({ limit: PAGE_SIZE, offset: page * PAGE_SIZE });
 
   if (!ready || !user || !loaded) return <LoadingState label="Loading history…" />;
 
@@ -106,6 +115,11 @@ export function HistoryScreen() {
           ))}
         </div>
       )}
+      {total > PAGE_SIZE ? (
+        <div className="mt-4">
+          <Pager page={page} total={total} onPage={setPage} />
+        </div>
+      ) : null}
     </div>
   );
 }
