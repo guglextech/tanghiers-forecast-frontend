@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 
 const STEPS = [
   { id: 0, title: 'Account' },
-  { id: 1, title: 'Details' },
+  { id: 1, title: 'Consent' },
 ] as const;
 
 function consentOf(map: ApiConsentMap, keys: string[]) {
@@ -73,7 +73,7 @@ const CONSENT_NOTE = 'Agree to the terms, privacy policy, and age confirmation t
 
 const STEP_COPY = [
   { title: 'Join Tanghiers', hint: 'Continue with Google, or use email and a password.' },
-  { title: 'Your details', hint: 'Your name, then agree to continue.' },
+  { title: 'Almost done', hint: '' },
 ] as const;
 
 export function SignupScreen() {
@@ -140,12 +140,12 @@ export function SignupScreen() {
 
   const validateStep = (index: number) => {
     if (index === 0) {
+      if (!firstName.trim()) throw new Error('Enter a first name.');
+      if (!lastName.trim()) throw new Error('Enter a last name.');
       if (!email.trim()) throw new Error('Enter an email.');
       if (password.length < 8) throw new Error('Use a password of at least 8 characters.');
     }
     if (index === 1) {
-      if (!firstName.trim()) throw new Error('Enter a first name.');
-      if (!lastName.trim()) throw new Error('Enter a last name.');
       if (!agreeTerms || !agreePrivacy || !agreeAge) {
         throw new Error(CONSENT_NOTE);
       }
@@ -238,6 +238,28 @@ export function SignupScreen() {
                     {googleBusy ? 'Logging in' : 'Continue with Google'}
                   </button>
                   <p className="text-center text-xs text-[#98a2b3]">or with email</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First name</Label>
+                      <Input
+                        id="firstName"
+                        autoComplete="given-name"
+                        required
+                        value={firstName}
+                        onChange={(event) => setFirstName(event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last name</Label>
+                      <Input
+                        id="lastName"
+                        autoComplete="family-name"
+                        required
+                        value={lastName}
+                        onChange={(event) => setLastName(event.target.value)}
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -284,28 +306,6 @@ export function SignupScreen() {
 
               {step === 1 ? (
                 <>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First name</Label>
-                      <Input
-                        id="firstName"
-                        autoComplete="given-name"
-                        required
-                        value={firstName}
-                        onChange={(event) => setFirstName(event.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last name</Label>
-                      <Input
-                        id="lastName"
-                        autoComplete="family-name"
-                        required
-                        value={lastName}
-                        onChange={(event) => setLastName(event.target.value)}
-                      />
-                    </div>
-                  </div>
                   <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
                     <ConsentRow
                       id="agree-terms"
