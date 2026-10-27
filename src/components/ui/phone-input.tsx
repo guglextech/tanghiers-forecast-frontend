@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { fieldWithin } from "@/components/ui/field"
+import { controlRadius, fieldWithin } from "@/components/ui/field"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import {
@@ -103,7 +103,7 @@ export function PhoneInput({
       }))
 
   return (
-    <div className={cn("flex h-9 rounded-md border border-input bg-transparent", fieldWithin)}>
+    <div className={cn("flex h-9 border border-input bg-transparent", controlRadius, fieldWithin)}>
       <Select value={countryCode} onValueChange={onCountryChange} disabled={disabled}>
         <SelectTrigger
           aria-label="Country code"

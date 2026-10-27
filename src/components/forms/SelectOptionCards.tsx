@@ -60,7 +60,7 @@ export function SelectOptionCards({
               aria-checked={selected}
               onClick={() => onChange(option.id)}
               className={cn(
-                'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-semibold transition-colors',
+                'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius)] px-3.5 py-2 text-sm font-semibold transition-colors',
                 selected
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-background text-foreground ring-1 ring-inset ring-input/60 hover:bg-muted/50',

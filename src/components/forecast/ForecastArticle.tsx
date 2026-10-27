@@ -174,7 +174,7 @@ export function ForecastPost({
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link
               href={subscribeHref}
-              className="inline-flex h-8 items-center rounded-full bg-[#101828] px-3.5 text-xs font-semibold text-white hover:bg-[#1d2939]"
+              className="inline-flex h-8 items-center rounded-[var(--radius)] bg-[#101828] px-3.5 text-xs font-semibold text-white hover:bg-[#1d2939]"
             >
               Subscribe
             </Link>

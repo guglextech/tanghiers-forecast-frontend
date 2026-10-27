@@ -160,7 +160,7 @@ export function FeedHome() {
                 className="min-h-[72px] resize-none border-0 bg-transparent px-0 text-[17px] shadow-none focus:border-transparent focus:shadow-none focus-visible:ring-0 dark:bg-transparent"
               />
               <div className="flex justify-end pt-2">
-                <Button type="submit" disabled={!draft.trim()} className="h-9 rounded-full px-5">
+                <Button type="submit" disabled={!draft.trim()} className="h-9 px-5">
                   Post
                 </Button>
               </div>
@@ -240,7 +240,7 @@ export function FeedHome() {
                       <p className="truncate text-xs text-muted-foreground">@{person.handle}</p>
                     </div>
                   </div>
-                  <Button asChild size="sm" variant="outline" className="rounded-full">
+                  <Button asChild size="sm" variant="outline">
                     <Link href="/network">View</Link>
                   </Button>
                 </li>

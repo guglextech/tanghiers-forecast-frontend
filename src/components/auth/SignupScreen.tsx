@@ -282,7 +282,7 @@ export function SignupScreen() {
                     type="button"
                     onClick={onGoogle}
                     disabled={googleBusy}
-                    className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-input bg-background text-sm font-medium hover:bg-muted disabled:opacity-60"
+                    className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-[var(--radius)] border border-input bg-background text-sm font-medium hover:bg-muted disabled:opacity-60"
                   >
                     {googleBusy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <GoogleMark />}
                     {googleBusy ? 'Logging in' : 'Continue with Google'}

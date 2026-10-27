@@ -1,3 +1,6 @@
+/** Shared corner for buttons and fields. */
+export const controlRadius = "rounded-[var(--radius)]";
+
 /** Blue focus ring shared by text fields, selects, dates, and code boxes. */
 export const fieldFocus =
   "transition duration-150 focus:border-[var(--field-ring)] focus:shadow-[var(--field-shadow)] aria-invalid:focus:border-destructive aria-invalid:focus:shadow-[var(--field-shadow-invalid)]";

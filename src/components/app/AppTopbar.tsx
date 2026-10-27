@@ -29,7 +29,7 @@ export function AppTopbar({ onOpenSearch }: AppTopbarProps) {
               type="button"
               variant="outline"
               size="sm"
-              className="hidden h-8 gap-2 rounded-full border-border/80 px-3 text-muted-foreground sm:inline-flex"
+              className="hidden h-8 gap-2 border-border/80 px-3 text-muted-foreground sm:inline-flex"
               onClick={onOpenSearch}
             >
               <Search className="size-3.5" />

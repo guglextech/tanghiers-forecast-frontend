@@ -87,14 +87,14 @@ function FilterChips<T extends string>({
   label: string;
 }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex rounded-full bg-[#eef0f3] p-1">
+    <div role="group" aria-label={label} className="inline-flex rounded-[var(--radius)] bg-[#eef0f3] p-1">
       {options.map((option) => (
         <button
           key={option.id}
           type="button"
           onClick={() => onChange(option.id)}
           className={cn(
-            'h-8 rounded-full px-3 text-sm capitalize',
+            'h-8 rounded-[var(--radius)] px-3 text-sm capitalize',
             value === option.id ? 'bg-white font-medium text-[#101828] shadow-sm' : 'text-[#667085] hover:text-[#101828]',
           )}
         >
@@ -355,7 +355,7 @@ export function SubscriberTable() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search email or user id"
-            className="w-full rounded-full bg-white sm:w-64"
+            className="w-full bg-white sm:w-64"
             aria-label="Search subscribers"
           />
         }

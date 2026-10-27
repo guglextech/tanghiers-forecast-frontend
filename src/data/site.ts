@@ -6,7 +6,7 @@ export const SITE = {
   description:
     'Tanghiers publishes one daily forecast and delivers it to active subscribers on the website, by email, and by text. Subscribe online with Stripe.',
   email: 'desk@tanghiers.com',
-  disclaimer: 'Forecasts are not guaranteed.',
+  disclaimer: 'For infotainment only. Forecasts are not guaranteed.',
 } as const;
 
 export const publicNav = [
@@ -84,6 +84,7 @@ export const homeFaqs = [
   },
   {
     question: 'Are the forecasts guaranteed?',
-    answer: 'No. Forecasts are not guaranteed, and they are not an instruction to place a wager.',
+    answer:
+      'No. Forecasts are for infotainment. They are predictions, not guarantees, and lottery games are games of chance.',
   },
 ] as const;

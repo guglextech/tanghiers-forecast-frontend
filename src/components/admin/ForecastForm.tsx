@@ -318,14 +318,14 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
             <Label>Publication</Label>
             <p className="mt-1 text-sm text-[#667085]">Go live now, or pick a date and time.</p>
           </div>
-          <div className="grid grid-cols-2 gap-1 rounded-md bg-muted p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-[var(--radius)] bg-muted p-1">
             {(['now', 'schedule'] as const).map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setIntent(option)}
                 className={cn(
-                  'h-8 rounded-md text-sm font-medium transition-colors',
+                  'h-8 rounded-[var(--radius)] text-sm font-medium transition-colors',
                   intent === option ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
                 )}
               >

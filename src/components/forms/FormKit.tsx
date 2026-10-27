@@ -132,7 +132,7 @@ export function ChoicePicker({
   return (
     <div className={cn('grid gap-1.5', className)}>
       {label ? <Label className="text-xs text-muted-foreground">{label}</Label> : null}
-      <div className="flex h-9 w-full min-w-0 rounded-md border border-input bg-muted/40 p-0.5">
+      <div className="flex h-9 w-full min-w-0 rounded-[var(--radius)] border border-input bg-muted/40 p-0.5">
         {options.map((option) => {
           const selected = value === option.id;
           return (
@@ -143,7 +143,7 @@ export function ChoicePicker({
               aria-pressed={selected}
               title={option.hint}
               className={cn(
-                'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-sm px-1.5 text-xs font-medium transition-colors',
+                'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[var(--radius)] px-1.5 text-xs font-medium transition-colors',
                 selected
                   ? 'bg-background text-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -219,7 +219,7 @@ export function VerifiedBanner({
   return (
     <div
       className={cn(
-        'flex min-h-9 items-center gap-2 rounded-md border border-[#008DFF]/25 bg-[#008DFF]/[0.06] px-3 py-1.5',
+        'flex min-h-9 items-center gap-2 rounded-[var(--radius)] border border-[#008DFF]/25 bg-[#008DFF]/[0.06] px-3 py-1.5',
         className,
       )}
     >

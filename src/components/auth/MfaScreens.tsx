@@ -113,7 +113,7 @@ function OtpField({
           <InputOTPSlot
             key={index}
             index={index}
-            className="h-12 w-full rounded-lg text-base font-medium"
+            className="h-12 w-full text-base font-medium"
           />
         ))}
       </InputOTPGroup>
@@ -135,7 +135,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
     <button
       type="button"
       onClick={() => void copy()}
-      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[#e6e8ee] px-3 text-xs font-medium text-[#344054] transition-colors hover:bg-[#f7f8fa]"
+      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius)] border border-[#e6e8ee] px-3 text-xs font-medium text-[#344054] transition-colors hover:bg-[#f7f8fa]"
     >
       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
       {copied ? 'Copied' : 'Copy'}
@@ -265,7 +265,7 @@ function ScanStep({ challenge, onContinue }: { challenge: MfaChallenge; onContin
               {groups.map((group, index) => (
                 <span
                   key={`${group}-${index}`}
-                  className="rounded-md bg-[#f7f8fa] py-1.5 text-center font-mono text-[13px] tracking-wide text-[#101828]"
+                  className="rounded-[var(--radius)] bg-[#f7f8fa] py-1.5 text-center font-mono text-[13px] tracking-wide text-[#101828]"
                 >
                   {group}
                 </span>
@@ -337,7 +337,7 @@ function SaveStep({ codes, onContinue }: { codes: string[]; onContinue: () => vo
           <button
             type="button"
             onClick={download}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[#e6e8ee] px-3 text-xs font-medium text-[#344054] transition-colors hover:bg-[#f7f8fa]"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius)] border border-[#e6e8ee] px-3 text-xs font-medium text-[#344054] transition-colors hover:bg-[#f7f8fa]"
           >
             <Download className="size-3.5" />
             Download
@@ -345,7 +345,7 @@ function SaveStep({ codes, onContinue }: { codes: string[]; onContinue: () => vo
         </div>
         <ul className="mt-3 grid grid-cols-2 gap-2">
           {codes.map((item) => (
-            <li key={item} className="rounded-lg bg-[#f7f8fa] px-3 py-2.5 text-center font-mono text-sm tracking-wide text-[#101828]">
+            <li key={item} className="rounded-[var(--radius)] bg-[#f7f8fa] px-3 py-2.5 text-center font-mono text-sm tracking-wide text-[#101828]">
               {item}
             </li>
           ))}

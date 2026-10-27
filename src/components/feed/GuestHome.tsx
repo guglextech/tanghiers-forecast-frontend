@@ -49,10 +49,10 @@ export function GuestHome() {
             The feed, library, and calendar stay behind a login.
           </p>
           <div className="mt-6 flex flex-col gap-3">
-            <Button asChild size="lg" className="h-11 w-full rounded-full">
+            <Button asChild size="lg" className="h-11 w-full">
               <Link href="/signup">Create account</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-11 w-full rounded-full">
+            <Button asChild size="lg" variant="outline" className="h-11 w-full">
               <Link href="/login">Log in</Link>
             </Button>
           </div>
