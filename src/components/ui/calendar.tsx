@@ -36,11 +36,11 @@ function Calendar({
         nav: "pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between",
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          "pointer-events-auto size-8 rounded-md p-0",
+          "pointer-events-auto size-8 p-0",
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          "pointer-events-auto size-8 rounded-md p-0",
+          "pointer-events-auto size-8 p-0",
         ),
         month_grid: "w-[calc(var(--cell-size)*7)] table-fixed border-separate border-spacing-0",
         weekdays: "",
@@ -49,10 +49,10 @@ function Calendar({
         week: "",
         day: "relative h-(--cell-size) w-(--cell-size) p-0 text-center text-sm",
         day_button: cn(
-          "flex h-(--cell-size) w-(--cell-size) items-center justify-center rounded-md text-sm text-[#101828] hover:bg-[#f4f6f8]",
+          "flex h-(--cell-size) w-(--cell-size) items-center justify-center rounded-[var(--radius)] text-sm text-[#101828] hover:bg-[#f4f6f8]",
         ),
         selected:
-          "rounded-md bg-[#101828] text-white [&>button]:bg-[#101828] [&>button]:text-white [&>button]:hover:bg-[#101828]",
+          "rounded-[var(--radius)] bg-[#101828] text-white [&>button]:bg-[#101828] [&>button]:text-white [&>button]:hover:bg-[#101828]",
         today: "[&>button]:font-semibold",
         outside: "text-[#98a2b3] [&>button]:text-[#98a2b3]",
         disabled: "opacity-40",

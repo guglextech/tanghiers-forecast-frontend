@@ -37,7 +37,7 @@ export const auth = {
   register: (body: Record<string, unknown>) =>
     apiRequest<{ message?: string }>('/v1/auth/register', {
       method: 'POST',
-      body: productBody(body),
+      body,
       auth: false,
     }),
   login: (email: string, password: string) =>

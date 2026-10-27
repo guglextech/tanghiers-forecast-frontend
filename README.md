@@ -79,3 +79,22 @@ Publish now on a new forecast, then refresh [Deliveries](http://localhost:5173/a
 3. Open [Friday, October 2](http://localhost:5173/forecasts/f-20261002) and [Account](http://localhost:5173/account).
 4. Sign out, log in as the member with no plan, and confirm the numbers are locked.
 5. Sign out, log in as the desk, and open [New forecast](http://localhost:5173/admin/forecasts/new).
+
+
+ <!-- "frontendUrls": {
+            "account": "http://localhost:5173/account",
+            "verifyEmail": "http://localhost:5173/verify-email?token={token}",
+            "billingCancel": "http://localhost:5173/billing/cancel",
+            "resetPassword": "http://localhost:5173/reset-password?token={token}",
+            "billingSuccess": "http://localhost:5173/billing/success",
+            "forgotPassword": "http://localhost:5173/forgot-password"
+        }, -->
+
+          <!-- "frontendUrls": {
+            "account": "https://lottoforecasts.com/account",
+            "verifyEmail": "https://lottoforecasts.com/verify-email?token={token}",
+            "billingCancel": "https://lottoforecasts.com/billing/cancel",
+            "resetPassword": "https://lottoforecasts.com/reset-password?token={token}",
+            "billingSuccess": "https://lottoforecasts.com/billing/success",
+            "forgotPassword": "https://lottoforecasts.com/forgot-password"
+        }, -->

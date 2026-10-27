@@ -41,7 +41,7 @@ export function AmountChips({
             aria-pressed={selected}
             onClick={() => onSelect(val)}
             className={cn(
-              'inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold tabular-nums transition-colors',
+              'inline-flex h-9 items-center gap-1.5 rounded-[var(--radius)] px-4 text-sm font-semibold tabular-nums transition-colors',
               'disabled:cursor-not-allowed disabled:opacity-40',
               selected
                 ? 'bg-primary text-primary-foreground'

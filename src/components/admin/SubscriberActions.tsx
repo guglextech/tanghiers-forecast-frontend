@@ -270,7 +270,7 @@ export function SubscriberActions({
                   <InputOTPSlot
                     key={index}
                     index={index}
-                    className="h-11 w-10 rounded-lg text-base font-medium shadow-none"
+                    className="h-11 w-10 text-base font-medium shadow-none"
                   />
                 ))}
               </InputOTPGroup>

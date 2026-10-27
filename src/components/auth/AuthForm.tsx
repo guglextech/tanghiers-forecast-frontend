@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 type Step = 'choose' | 'password';
 
 const choiceClass =
-  'inline-flex h-9 w-full items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors';
+  'inline-flex h-9 w-full items-center justify-center gap-2 rounded-[var(--radius)] text-sm font-medium transition-colors';
 
 export function AuthForm() {
   const { user, ready, login, continueWithGoogle } = useSession();

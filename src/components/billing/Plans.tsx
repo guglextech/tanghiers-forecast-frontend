@@ -97,7 +97,7 @@ function PublicPlanCards({
               )}
               <span
                 className={cn(
-                  'inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-semibold',
+                  'inline-flex h-9 items-center justify-center rounded-[var(--radius)] px-4 text-sm font-semibold',
                   emphasized ? 'bg-[#101828] text-white' : 'bg-white text-[#101828]',
                 )}
               >

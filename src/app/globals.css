@@ -12,6 +12,7 @@
 @source inline("data-[active=true]:shadow-[var(--field-shadow)]");
 @source inline("aria-invalid:focus:border-destructive");
 @source inline("aria-invalid:focus:shadow-[var(--field-shadow-invalid)]");
+@source inline("rounded-[var(--radius)]");
 
 @custom-variant dark (&:is(.dark *));
 

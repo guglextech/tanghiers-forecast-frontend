@@ -17,10 +17,10 @@ export default function NotFound() {
         That address is not part of Tanghiers.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Link href="/" className="inline-flex h-11 items-center rounded-full bg-[#101828] px-5 text-sm font-semibold text-white">
+        <Link href="/" className="inline-flex h-11 items-center rounded-[var(--radius)] bg-[#101828] px-5 text-sm font-semibold text-white">
           Home
         </Link>
-        <Link href="/pricing" className="inline-flex h-11 items-center rounded-full border border-[#d0d5dd] px-5 text-sm font-semibold">
+        <Link href="/pricing" className="inline-flex h-11 items-center rounded-[var(--radius)] border border-[#d0d5dd] px-5 text-sm font-semibold">
           Pricing
         </Link>
       </div>

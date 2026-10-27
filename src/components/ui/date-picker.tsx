@@ -81,7 +81,7 @@ export function DatePicker({
           type="button"
           variant="outline"
           className={cn(
-            "h-9 w-full justify-start rounded-md border-input bg-transparent px-3 text-left text-sm font-normal shadow-none hover:bg-transparent focus-visible:ring-0",
+            "h-9 w-full justify-start border-input bg-transparent px-3 text-left text-sm font-normal shadow-none hover:bg-transparent focus-visible:ring-0",
             fieldFocus,
             fieldOpen,
             !value && "text-muted-foreground",

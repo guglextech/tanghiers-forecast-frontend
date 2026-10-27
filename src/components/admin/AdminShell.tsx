@@ -148,14 +148,14 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center gap-2">
               <Link
                 href="/feed"
-                className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-[#475467] hover:bg-[#f2f4f7] sm:inline-flex"
+                className="hidden h-9 items-center rounded-[var(--radius)] px-3 text-sm font-medium text-[#475467] hover:bg-[#f2f4f7] sm:inline-flex"
               >
                 Subscriber feed
               </Link>
               {composing ? null : (
                 <Link
                   href="/admin/forecasts/new"
-                  className="inline-flex h-9 items-center rounded-full bg-[#101828] px-4 text-sm font-semibold text-white"
+                  className="inline-flex h-9 items-center rounded-[var(--radius)] bg-[#101828] px-4 text-sm font-semibold text-white"
                 >
                   New forecast
                 </Link>
@@ -187,7 +187,7 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="grid size-8 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
+            className="grid size-8 shrink-0 place-items-center rounded-[var(--radius)] text-white/60 hover:bg-white/10 hover:text-white"
           >
             <AdminIcon name="x-lg" className="text-[16px]" />
           </button>
@@ -235,7 +235,7 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
           </span>
           <button
             type="button"
-            className="grid size-8 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
+            className="grid size-8 place-items-center rounded-[var(--radius)] text-white/60 hover:bg-white/10 hover:text-white"
             onClick={() => {
               logout();
               router.push('/');
