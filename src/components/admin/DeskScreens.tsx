@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { type Forecast } from '@/data/forecasts';
 import { formatDateTime, formatLongDate } from '@/lib/dates';
-import { listAccounts, refreshAccounts } from '@/lib/session';
+import { initialsFromName, listAccounts, refreshAccounts } from '@/lib/session';
 import { formatMoney } from '@/data/site';
 import { admin } from '@/lib/api/resources';
 import { mapOverviewReport } from '@/lib/api/mappers';
@@ -47,13 +47,49 @@ function toneFor(status: string): 'ok' | 'wait' | 'muted' {
 const FORECAST_FILTERS = ['all', 'draft', 'scheduled', 'published', 'archived'] as const;
 type ForecastFilter = (typeof FORECAST_FILTERS)[number];
 
-function Panel({ children, className }: { children: React.ReactNode; className?: string }) {
+const MARKS = ['#0B3A82', '#027a48', '#344054', '#175cd3'] as const;
+
+function Mark({ name }: { name: string }) {
+  const initials = initialsFromName(name);
+  const color = MARKS[(initials.charCodeAt(0) + (initials.charCodeAt(1) || 0)) % MARKS.length];
   return (
-    <div className={cn('overflow-hidden rounded-2xl border border-[#e6e8ee] bg-white', className)}>
-      {children}
-    </div>
+    <span
+      className="grid size-8 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white"
+      style={{ backgroundColor: color }}
+    >
+      {initials}
+    </span>
   );
 }
+
+function Directory({
+  title,
+  toolbar,
+  count,
+  children,
+}: {
+  title: string;
+  toolbar?: React.ReactNode;
+  count: number;
+  children: React.ReactNode;
+}) {
+  const label = count === 0 ? '0 of 0' : `1–${count} of ${count}`;
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#e6e8ee] bg-white">
+      <div className="flex flex-col gap-3 px-5 pt-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-[15px] font-semibold">{title}</h2>
+        {toolbar ? <div className="min-w-0">{toolbar}</div> : null}
+      </div>
+      {children}
+      <div className="flex items-center justify-between border-t border-[#eef0f3] px-5 py-3 text-xs text-[#98a2b3]">
+        <span>{label}</span>
+      </div>
+    </section>
+  );
+}
+
+const th = 'px-5 py-3 text-left text-xs font-medium text-[#98a2b3]';
+const td = 'px-5 py-3.5 align-middle';
 
 function PageLead({
   title,
@@ -65,9 +101,9 @@ function PageLead({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-[1.75rem] font-semibold tracking-tight">{title}</h1>
         <p className="mt-1 text-sm text-[#667085]">{description}</p>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
@@ -138,41 +174,55 @@ export function AdminOverview() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <PageLead title="Overview" description="Subscribers, forecasts, and delivery for this product." />
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#e6e8ee] bg-[#e6e8ee] sm:grid-cols-3 lg:grid-cols-5">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageLead
+        title="Overview"
+        description="Subscribers, forecasts, and delivery for this product."
+        action={
+          <Link
+            href="/admin/forecasts/new"
+            className="inline-flex h-9 items-center rounded-[var(--radius)] bg-[#101828] px-4 text-sm font-semibold text-white hover:bg-[#1d2939]"
+          >
+            New forecast
+          </Link>
+        }
+      />
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map((stat) => (
-          <div key={stat.label} className="bg-white px-5 py-4">
+          <div key={stat.label} className="rounded-2xl border border-[#e6e8ee] bg-white px-5 py-4">
             <dt className="text-sm text-[#667085]">{stat.label}</dt>
-            <dd className="mt-2 text-2xl font-semibold tracking-tight">{stat.value}</dd>
+            <dd className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">{stat.value}</dd>
           </div>
         ))}
       </dl>
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-[#344054]">Latest forecasts</h2>
-          <Link href="/admin/forecasts" className="text-sm font-medium text-[#475467] hover:text-[#101828]">
-            View all
-          </Link>
-        </div>
-        <ForecastTable forecasts={desk.forecasts.slice(0, 6)} />
-      </section>
+      <ForecastTable forecasts={desk.forecasts.slice(0, 6)} title="Latest forecasts" />
     </div>
   );
 }
 
-export function ForecastTable({ forecasts }: { forecasts: Forecast[] }) {
+export function ForecastTable({
+  forecasts,
+  title = 'Forecasts',
+  toolbar,
+}: {
+  forecasts: Forecast[];
+  title?: string;
+  toolbar?: React.ReactNode;
+}) {
   if (forecasts.length === 0) {
     return (
-      <Panel className="px-5 py-8 text-sm text-[#667085]">No forecasts yet.</Panel>
+      <Directory title={title} count={0} toolbar={toolbar}>
+        <p className="border-t border-[#eef0f3] px-5 py-8 text-sm text-[#667085]">No forecasts yet.</p>
+      </Directory>
     );
   }
   return (
-    <Panel>
-      <ul className="divide-y divide-[#eef0f3] md:hidden">
+    <Directory title={title} count={forecasts.length} toolbar={toolbar}>
+      <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3] md:hidden">
         {forecasts.map((forecast) => (
-          <li key={forecast.id} className="flex items-start gap-2 px-3 py-3">
-            <Link href={`/admin/forecasts/${forecast.id}`} className="min-w-0 flex-1 py-1">
+          <li key={forecast.id} className="flex items-start gap-3 px-4 py-3.5">
+            <Mark name={forecast.title} />
+            <Link href={`/admin/forecasts/${forecast.id}`} className="min-w-0 flex-1 py-0.5">
               <span className="flex items-start justify-between gap-3">
                 <span className="font-medium">{forecast.title}</span>
                 <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
@@ -186,14 +236,14 @@ export function ForecastTable({ forecasts }: { forecasts: Forecast[] }) {
           </li>
         ))}
       </ul>
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-[#f9fafb] text-[#667085]">
+      <div className="hidden overflow-x-auto border-t border-[#eef0f3] md:block">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead>
             <tr className="border-b border-[#eef0f3]">
-              <th className="px-5 py-3 font-medium">Forecast</th>
-              <th className="px-5 py-3 font-medium">Date</th>
-              <th className="px-5 py-3 font-medium">Numbers</th>
-              <th className="px-5 py-3 font-medium">Status</th>
+              <th className={th}>Forecast</th>
+              <th className={th}>Date</th>
+              <th className={th}>Numbers</th>
+              <th className={th}>Status</th>
               <th className="w-12 px-3 py-3">
                 <span className="sr-only">Actions</span>
               </th>
@@ -201,17 +251,18 @@ export function ForecastTable({ forecasts }: { forecasts: Forecast[] }) {
           </thead>
           <tbody>
             {forecasts.map((forecast) => (
-              <tr key={forecast.id} className="border-b border-[#eef0f3] last:border-0">
-                <td className="px-5 py-3.5">
-                  <Link href={`/admin/forecasts/${forecast.id}`} className="font-medium hover:underline">
+              <tr key={forecast.id} className="border-b border-[#eef0f3] last:border-0 hover:bg-[#f9fafb]">
+                <td className={td}>
+                  <Link href={`/admin/forecasts/${forecast.id}`} className="flex items-center gap-3 font-medium">
+                    <Mark name={forecast.title} />
                     {forecast.title}
                   </Link>
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap text-[#475467]">{formatLongDate(forecast.date)}</td>
-                <td className="px-5 py-3.5 tabular-nums text-[#475467]">
+                <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatLongDate(forecast.date)}</td>
+                <td className={cn(td, 'tabular-nums text-[#475467]')}>
                   {forecast.numbers.length ? forecast.numbers.join(' · ') : '—'}
                 </td>
-                <td className="px-5 py-3.5">
+                <td className={td}>
                   <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
                 </td>
                 <td className="px-3 py-3.5 text-right">
@@ -222,7 +273,7 @@ export function ForecastTable({ forecasts }: { forecasts: Forecast[] }) {
           </tbody>
         </table>
       </div>
-    </Panel>
+    </Directory>
   );
 }
 
@@ -239,6 +290,17 @@ export function ForecastList() {
         title="Forecasts"
         description="Draft, schedule, publish, or archive."
         action={
+          <Link
+            href="/admin/forecasts/new"
+            className="inline-flex h-9 items-center rounded-[var(--radius)] bg-[#101828] px-4 text-sm font-semibold text-white hover:bg-[#1d2939]"
+          >
+            New forecast
+          </Link>
+        }
+      />
+      <ForecastTable
+        forecasts={rows}
+        toolbar={
           <FilterChips
             label="Forecast status"
             value={filter}
@@ -247,7 +309,6 @@ export function ForecastList() {
           />
         }
       />
-      <ForecastTable forecasts={rows} />
     </div>
   );
 }
@@ -263,10 +324,11 @@ export function DeliveryLog() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageLead
-        title="Deliveries"
-        description="Who each forecast was sent to, and whether it arrived."
-        action={
+      <PageLead title="Deliveries" description="Who each forecast was sent to, and whether it arrived." />
+      <Directory
+        title="Delivery log"
+        count={rows.length}
+        toolbar={
           <FilterChips
             label="Delivery channel"
             value={channel}
@@ -277,46 +339,47 @@ export function DeliveryLog() {
             }))}
           />
         }
-      />
-      {rows.length === 0 ? (
-        <Panel className="px-5 py-8 text-sm text-[#667085]">No deliveries yet.</Panel>
-      ) : (
-        <Panel>
-          <ul className="divide-y divide-[#eef0f3] md:hidden">
-            {rows.map((row) => (
-              <li key={row.id} className="flex items-start justify-between gap-3 px-4 py-4">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{row.destination || '—'}</p>
-                  <p className="mt-1 text-sm text-[#667085]">{formatDateTime(row.at)}</p>
-                </div>
-                <Pill tone={toneFor(row.status)}>{row.status}</Pill>
-              </li>
-            ))}
-          </ul>
-          <div className="hidden overflow-x-auto md:block">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[#f9fafb] text-[#667085]">
-                <tr className="border-b border-[#eef0f3]">
-                  <th className="px-5 py-3 font-medium">Destination</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">When</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-[#eef0f3] last:border-0">
-                    <td className="px-5 py-3.5 font-medium">{row.destination || '—'}</td>
-                    <td className="px-5 py-3.5">
-                      <Pill tone={toneFor(row.status)}>{row.status}</Pill>
-                    </td>
-                    <td className="px-5 py-3.5 whitespace-nowrap text-[#475467]">{formatDateTime(row.at)}</td>
+      >
+        {rows.length === 0 ? (
+          <p className="border-t border-[#eef0f3] px-5 py-8 text-sm text-[#667085]">No deliveries yet.</p>
+        ) : (
+          <>
+            <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3] md:hidden">
+              {rows.map((row) => (
+                <li key={row.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{row.destination || '—'}</p>
+                    <p className="mt-1 text-sm text-[#667085]">{formatDateTime(row.at)}</p>
+                  </div>
+                  <Pill tone={toneFor(row.status)}>{row.status}</Pill>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden overflow-x-auto border-t border-[#eef0f3] md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#eef0f3]">
+                    <th className={th}>Destination</th>
+                    <th className={th}>Status</th>
+                    <th className={th}>When</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-      )}
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.id} className="border-b border-[#eef0f3] last:border-0 hover:bg-[#f9fafb]">
+                      <td className={cn(td, 'font-medium')}>{row.destination || '—'}</td>
+                      <td className={td}>
+                        <Pill tone={toneFor(row.status)}>{row.status}</Pill>
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatDateTime(row.at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </Directory>
     </div>
   );
 }
@@ -350,97 +413,108 @@ export function SubscriberTable() {
       <PageLead
         title="Subscribers"
         description="Accounts on this product. Search by email or id, then change a role or close an account."
-        action={
+      />
+      <Directory
+        title="Subscriber directory"
+        count={accounts.length}
+        toolbar={
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search email or user id"
-            className="w-full bg-white sm:w-64"
+            className="h-9 w-full bg-[#f7f8fa] sm:w-64"
             aria-label="Search subscribers"
           />
         }
-      />
-      {accounts.length === 0 ? (
-        <Panel className="px-5 py-8 text-sm text-[#667085]">
-          {query.trim() ? 'No accounts match that search.' : 'No subscribers yet.'}
-        </Panel>
-      ) : (
-        <Panel>
-          <ul className="divide-y divide-[#eef0f3] lg:hidden">
-            {accounts.map((account) => (
-              <li key={account.id} className="flex items-start gap-2 px-3 py-3">
-                <div className="min-w-0 flex-1 py-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium">{account.name}</p>
-                      <p className="mt-1 truncate text-sm text-[#667085]">{account.email}</p>
-                    </div>
-                    <Pill tone={toneFor(account.status)}>{account.status}</Pill>
-                  </div>
-                  <p className="mt-2 text-sm text-[#475467]">
-                    {account.roleLabel}
-                    {account.phone ? ` · ${account.phone}` : ''}
-                    {account.createdAt ? ` · ${formatDateTime(account.createdAt)}` : ''}
-                  </p>
-                </div>
-                <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined)} />
-              </li>
-            ))}
-          </ul>
-          <div className="hidden overflow-x-auto lg:block">
-            <table className="w-full min-w-[860px] text-left text-sm">
-              <thead className="bg-[#f9fafb] text-[#667085]">
-                <tr className="border-b border-[#eef0f3]">
-                  <th className="px-5 py-3 font-medium">Name</th>
-                  <th className="px-5 py-3 font-medium">Email</th>
-                  <th className="px-5 py-3 font-medium">Role</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Phone</th>
-                  <th className="px-5 py-3 font-medium">Joined</th>
-                  <th className="w-12 px-3 py-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {accounts.map((account) => (
-                  <tr key={account.id} className="border-b border-[#eef0f3] last:border-0">
-                    <td className="px-5 py-3.5 font-medium">{account.name}</td>
-                    <td className="px-5 py-3.5 text-[#475467]">
-                      <p>{account.email}</p>
-                      {!account.emailVerified ? (
-                        <p className="mt-0.5 text-xs text-[#98a2b3]">Not verified</p>
-                      ) : null}
-                    </td>
-                    <td className="px-5 py-3.5">{account.roleLabel}</td>
-                    <td className="px-5 py-3.5">
+      >
+        {accounts.length === 0 ? (
+          <p className="border-t border-[#eef0f3] px-5 py-8 text-sm text-[#667085]">
+            {query.trim() ? 'No accounts match that search.' : 'No subscribers yet.'}
+          </p>
+        ) : (
+          <>
+            <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3] lg:hidden">
+              {accounts.map((account) => (
+                <li key={account.id} className="flex items-start gap-3 px-4 py-3.5">
+                  <Mark name={account.name} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">{account.name}</p>
+                        <p className="mt-1 truncate text-sm text-[#667085]">{account.email}</p>
+                      </div>
                       <Pill tone={toneFor(account.status)}>{account.status}</Pill>
-                    </td>
-                    <td className="px-5 py-3.5 text-[#475467]">
-                      {account.phone ? (
-                        <>
-                          <p>{account.phone}</p>
-                          {!account.phoneVerified ? (
-                            <p className="mt-0.5 text-xs text-[#98a2b3]">Not verified</p>
-                          ) : null}
-                        </>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 whitespace-nowrap text-[#475467]">
-                      {account.createdAt ? formatDateTime(account.createdAt) : '—'}
-                    </td>
-                    <td className="px-3 py-3.5 text-right">
-                      <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined)} />
-                    </td>
+                    </div>
+                    <p className="mt-2 text-sm text-[#475467]">
+                      {account.roleLabel}
+                      {account.phone ? ` · ${account.phone}` : ''}
+                      {account.createdAt ? ` · ${formatDateTime(account.createdAt)}` : ''}
+                    </p>
+                  </div>
+                  <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined)} />
+                </li>
+              ))}
+            </ul>
+            <div className="hidden overflow-x-auto border-t border-[#eef0f3] lg:block">
+              <table className="w-full min-w-[860px] text-sm">
+                <thead>
+                  <tr className="border-b border-[#eef0f3]">
+                    <th className={th}>Name</th>
+                    <th className={th}>Email</th>
+                    <th className={th}>Role</th>
+                    <th className={th}>Status</th>
+                    <th className={th}>Phone</th>
+                    <th className={th}>Joined</th>
+                    <th className="w-12 px-3 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-      )}
+                </thead>
+                <tbody>
+                  {accounts.map((account) => (
+                    <tr key={account.id} className="border-b border-[#eef0f3] last:border-0 hover:bg-[#f9fafb]">
+                      <td className={td}>
+                        <span className="flex items-center gap-3 font-medium">
+                          <Mark name={account.name} />
+                          {account.name}
+                        </span>
+                      </td>
+                      <td className={cn(td, 'text-[#475467]')}>
+                        <p>{account.email}</p>
+                        {!account.emailVerified ? (
+                          <p className="mt-0.5 text-xs text-[#98a2b3]">Not verified</p>
+                        ) : null}
+                      </td>
+                      <td className={td}>{account.roleLabel}</td>
+                      <td className={td}>
+                        <Pill tone={toneFor(account.status)}>{account.status}</Pill>
+                      </td>
+                      <td className={cn(td, 'text-[#475467]')}>
+                        {account.phone ? (
+                          <>
+                            <p>{account.phone}</p>
+                            {!account.phoneVerified ? (
+                              <p className="mt-0.5 text-xs text-[#98a2b3]">Not verified</p>
+                            ) : null}
+                          </>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
+                        {account.createdAt ? formatDateTime(account.createdAt) : '—'}
+                      </td>
+                      <td className="px-3 py-3.5 text-right">
+                        <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </Directory>
     </div>
   );
 }
