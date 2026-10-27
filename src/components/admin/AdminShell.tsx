@@ -70,7 +70,7 @@ function AdminGate({ children }: { children: React.ReactNode }) {
 
   if (user && user.role !== 'admin') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f6f7f9] px-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f3f4f6] px-4 text-center">
         <BrandLockup />
         <h1 className="mt-8 text-2xl font-semibold tracking-tight">Publishing desk</h1>
         <p className="mt-3 max-w-md text-sm leading-6 text-[#667085]">
@@ -118,12 +118,12 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] text-[#101828]">
+    <div className="min-h-screen bg-[#eef1f4] text-[#101828]">
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="left"
           showCloseButton={false}
-          className="w-[260px] gap-0 border-0 bg-black p-0 shadow-xl sm:max-w-[260px]"
+          className="w-[260px] gap-0 border-0 bg-[#0d1117] p-0 shadow-xl sm:max-w-[260px]"
         >
           <SheetTitle className="sr-only">Publishing menu</SheetTitle>
           <SidebarBody onClose={() => setMobileOpen(false)} />
@@ -132,7 +132,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col bg-black transition-transform duration-200 ease-out lg:flex',
+          'fixed inset-y-0 left-0 z-30 hidden w-[220px] flex-col bg-[#0d1117] transition-transform duration-200 ease-out lg:flex',
           desktopOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full',
         )}
       >
@@ -142,27 +142,27 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
       <div
         className={cn(
           'min-h-screen transition-[padding] duration-200 ease-out',
-          desktopOpen ? 'lg:pl-[240px]' : 'lg:pl-0',
+          desktopOpen ? 'lg:pl-[220px]' : 'lg:pl-0',
         )}
       >
-        <header className="sticky top-0 z-20 bg-[#f7f8fa]">
+        <header className="sticky top-0 z-20 border-b border-[#e4e7ec] bg-white">
           <div className="flex h-14 items-center gap-3 px-4 sm:px-6 lg:px-8">
             <button
               type="button"
               onClick={toggleNav}
               aria-label={menuOpen ? 'Hide menu' : 'Open menu'}
               aria-expanded={menuOpen}
-              className="grid size-9 shrink-0 place-items-center rounded-lg text-[#667085] transition-colors hover:bg-white hover:text-[#101828]"
+              className="grid size-9 shrink-0 place-items-center rounded-lg text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828]"
             >
               <AdminIcon name="list" className="text-[18px]" />
             </button>
-            <p className="truncate text-sm text-[#667085]">{sectionLabel(pathname)}</p>
+            <p className="truncate text-sm font-medium text-[#344054]">{sectionLabel(pathname)}</p>
             <div className="ml-auto">
               <EditorChip />
             </div>
           </div>
         </header>
-        <main className="px-4 pb-10 sm:px-6 lg:px-8">{children}</main>
+        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );
@@ -172,25 +172,23 @@ function EditorChip() {
   const { user, logout } = useSession();
   const router = useRouter();
   const name = user?.name ?? 'Editor';
+  const email = user?.email ?? '';
+  const label = name.includes('@') ? name.split('@')[0] : name;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2.5 rounded-full py-1 pr-1 pl-2 hover:bg-white"
+          className="flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 hover:bg-[#f2f4f7]"
           aria-label="Editor menu"
         >
-          <span className="hidden items-center gap-1.5 text-xs font-medium text-[#027a48] sm:inline-flex">
-            <span className="size-1.5 rounded-full bg-[#12b76a]" />
-            Editor
+          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#0B3A82] text-[11px] font-semibold text-white">
+            {initialsFromName(label)}
           </span>
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#027a48] text-[11px] font-semibold text-white">
-            {initialsFromName(name)}
-          </span>
-          <span className="hidden min-w-0 pr-1 text-left sm:block">
-            <span className="block truncate text-sm font-medium leading-4">{name}</span>
-            <span className="block text-[11px] font-medium text-[#12b76a]">Editor</span>
+          <span className="hidden min-w-0 text-left sm:block">
+            <span className="block max-w-[180px] truncate text-sm font-medium leading-4">{label}</span>
+            {email ? <span className="block max-w-[180px] truncate text-[11px] text-[#98a2b3]">{email}</span> : null}
           </span>
         </button>
       </DropdownMenuTrigger>
@@ -213,11 +211,11 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-3 px-4">
-        <LogoMark className="size-9 rounded-xl" />
+      <div className="flex h-14 items-center gap-2.5 border-b border-white/10 px-4">
+        <LogoMark className="size-8 rounded-lg" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-white">{SITE.name}</p>
-          <p className="text-[11px] text-white/45">Publishing</p>
+          <p className="text-[10px] tracking-wide text-white/40 uppercase">Desk</p>
         </div>
         {onClose ? (
           <button
@@ -230,10 +228,7 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
           </button>
         ) : null}
       </div>
-      <nav aria-label="Publishing" className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
-        <p className="px-3 pt-2 pb-3 text-[11px] font-medium tracking-[0.16em] text-white/35 uppercase">
-          Main menu
-        </p>
+      <nav aria-label="Publishing" className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {deskLinks.map((link) => {
           const active = isActive(pathname, link.href);
           return (
@@ -242,33 +237,26 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
               href={link.href}
               onClick={onClose}
               className={cn(
-                'flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors',
-                active
-                  ? 'bg-white font-medium text-[#101828]'
-                  : 'text-white/70 hover:bg-white/5 hover:text-white',
+                'flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors',
+                active ? 'bg-[#0B3A82] font-medium text-white' : 'text-white/65 hover:bg-white/5 hover:text-white',
               )}
             >
-              <AdminIcon
-                name={link.icon}
-                className={cn('text-[16px]', active ? 'text-[#101828]' : 'text-white/45')}
-              />
+              <AdminIcon name={link.icon} className={cn('text-[15px]', active ? 'text-white' : 'text-white/40')} />
               {link.label}
             </Link>
           );
         })}
-        <div className="mx-3 my-3 h-px bg-white/10" />
         <Link
           href="/feed"
           onClick={onClose}
-          className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm text-white/70 hover:bg-white/5 hover:text-white"
+          className="mt-3 flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm text-white/45 hover:bg-white/5 hover:text-white"
         >
-          <AdminIcon name="box-arrow-up-right" className="text-[16px] text-white/45" />
+          <AdminIcon name="box-arrow-up-right" className="text-[15px] text-white/30" />
           Subscriber feed
         </Link>
       </nav>
-      <div className="px-5 py-4">
-        <p className="text-xs text-white/40">Need help?</p>
-        <a href={`mailto:${SITE.email}`} className="mt-1 inline-block text-xs font-medium text-white/80 hover:text-white">
+      <div className="border-t border-white/10 px-4 py-4">
+        <a href={`mailto:${SITE.email}`} className="text-xs text-white/45 hover:text-white">
           Contact support
         </a>
       </div>

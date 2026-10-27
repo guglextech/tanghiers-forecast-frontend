@@ -1,11 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, CalendarDays, Mail, Plus, Smartphone, Users } from 'lucide-react';
 import { type Forecast } from '@/data/forecasts';
 import { formatDeskDate, formatDeskStamp } from '@/lib/dates';
 import { listAccounts, refreshAccounts } from '@/lib/session';
-import { formatMoney } from '@/data/site';
 import { admin } from '@/lib/api/resources';
 import { mapForecast, mapOverviewReport } from '@/lib/api/mappers';
 import type { ApiForecast } from '@/lib/api/types';
@@ -33,6 +33,37 @@ import { cn } from '@/lib/utils';
 const FORECAST_FILTERS = ['all', 'draft', 'scheduled', 'published', 'archived'] as const;
 type ForecastFilter = (typeof FORECAST_FILTERS)[number];
 
+function pickFeatured(forecasts: Forecast[]) {
+  return (
+    forecasts.find((item) => item.status === 'published') ??
+    forecasts.find((item) => item.status === 'scheduled') ??
+    forecasts.find((item) => item.status === 'draft') ??
+    forecasts[0] ??
+    null
+  );
+}
+
+function balls(forecast: Forecast) {
+  return {
+    banker: forecast.body?.banker ?? forecast.numbers.slice(0, 1),
+    twoSure: forecast.body?.twoSure ?? forecast.numbers.slice(1, 3),
+    threeDirect: forecast.body?.threeDirect ?? forecast.numbers.slice(3, 6),
+  };
+}
+
+function NumberBall({ value, tone }: { value: number; tone: 'ink' | 'soft' }) {
+  return (
+    <span
+      className={cn(
+        'grid size-8 place-items-center rounded-full text-xs font-semibold tabular-nums',
+        tone === 'ink' ? 'bg-[#0B3A82] text-white' : 'bg-[#eef2f6] text-[#344054]',
+      )}
+    >
+      {String(value).padStart(2, '0')}
+    </span>
+  );
+}
+
 export function AdminOverview() {
   const desk = useDesk();
   const [report, setReport] = React.useState<Record<string, unknown> | null>(null);
@@ -57,19 +88,16 @@ export function AdminOverview() {
     revenueCurrency: 'USD',
   });
 
-  const cards = [
-    { label: 'Active subscribers', value: String(stats.activeSubscribers) },
-    { label: 'Published', value: String(stats.publishedForecasts) },
-    { label: 'Emails sent', value: String(stats.emailsSent) },
-    { label: 'SMS queued', value: String(stats.smsQueued) },
-    { label: 'Revenue', value: formatMoney(stats.revenue, stats.revenueCurrency) },
-  ];
+  const featured = pickFeatured(desk.forecasts);
+  const queue = desk.forecasts.filter((item) => item.status === 'draft' || item.status === 'scheduled').slice(0, 5);
+  const published = desk.forecasts.filter((item) => item.status === 'published').slice(0, 5);
+  const picks = featured ? balls(featured) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageLead
         title="Overview"
-        description="Subscribers, forecasts, and delivery for this product."
+        description="What to publish next, and how the last forecasts landed."
         action={
           <PrimaryAction href="/admin/forecasts/new">
             <Plus className="size-4" />
@@ -77,18 +105,153 @@ export function AdminOverview() {
           </PrimaryAction>
         }
       />
-      <section className="overflow-hidden rounded-2xl border border-[#eaecf0] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-        <dl className="flex overflow-x-auto">
-          {cards.map((stat) => (
-            <div key={stat.label} className="min-w-[140px] flex-1 border-r border-[#f2f4f7] px-5 py-4 last:border-r-0">
-              <dt className="text-xs text-[#98a2b3]">{stat.label}</dt>
-              <dd className="mt-1.5 text-xl font-semibold tracking-tight tabular-nums text-[#101828]">{stat.value}</dd>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+        <section className="rounded-xl border border-[#e4e7ec] bg-white p-5 sm:p-6">
+          {featured && picks ? (
+            <>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">On deck</p>
+                  <h2 className="mt-1 text-xl font-semibold tracking-tight">{featured.title}</h2>
+                  <p className="mt-1 text-sm text-[#667085]">{formatDeskDate(featured.date)}</p>
+                </div>
+                <Pill tone={toneFor(featured.status)}>{featured.status}</Pill>
+              </div>
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div>
+                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Banker</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {picks.banker.map((value, index) => (
+                      <NumberBall key={`b-${index}`} value={value} tone="ink" />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Two sure</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {picks.twoSure.map((value, index) => (
+                      <NumberBall key={`t-${index}`} value={value} tone="soft" />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Three direct</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {picks.threeDirect.map((value, index) => (
+                      <NumberBall key={`d-${index}`} value={value} tone="soft" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Link
+                  href={`/admin/forecasts/${featured.id}`}
+                  className="inline-flex h-9 items-center rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
+                >
+                  Open forecast
+                </Link>
+                {featured.status === 'published' ? (
+                  <Link href={`/forecasts/${featured.id}`} className="text-sm font-medium text-[#0B3A82] hover:underline">
+                    View on site
+                  </Link>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="flex min-h-[220px] flex-col items-start justify-center">
+              <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">On deck</p>
+              <h2 className="mt-2 text-xl font-semibold">No forecast yet</h2>
+              <p className="mt-1 max-w-sm text-sm text-[#667085]">Write the next draw, then publish it for subscribers.</p>
+              <div className="mt-5">
+                <PrimaryAction href="/admin/forecasts/new">
+                  <Plus className="size-4" />
+                  New forecast
+                </PrimaryAction>
+              </div>
             </div>
+          )}
+        </section>
+
+        <ul className="grid grid-cols-2 gap-3 xl:grid-cols-1">
+          {[
+            { label: 'Subscribers', value: String(stats.activeSubscribers), icon: Users },
+            { label: 'Published', value: String(stats.publishedForecasts), icon: CalendarDays },
+            { label: 'Emails sent', value: String(stats.emailsSent), icon: Mail },
+            { label: 'SMS queued', value: String(stats.smsQueued), icon: Smartphone },
+          ].map((item) => (
+            <li key={item.label} className="flex items-center gap-3 rounded-xl border border-[#e4e7ec] bg-white px-4 py-3.5">
+              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#eef3fb] text-[#0B3A82]">
+                <item.icon className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs text-[#667085]">{item.label}</p>
+                <p className="text-lg font-semibold tabular-nums">{item.value}</p>
+              </div>
+            </li>
           ))}
-        </dl>
-      </section>
-      <ForecastTable forecasts={desk.forecasts.slice(0, 6)} title="Latest forecasts" />
+        </ul>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <QueueCard
+          title="Needs attention"
+          href="/admin/forecasts"
+          empty="No drafts or scheduled forecasts."
+          items={queue}
+        />
+        <QueueCard
+          title="Recently published"
+          href="/admin/forecasts"
+          empty="Nothing published yet."
+          items={published}
+        />
+      </div>
     </div>
+  );
+}
+
+function QueueCard({
+  title,
+  href,
+  empty,
+  items,
+}: {
+  title: string;
+  href: string;
+  empty: string;
+  items: Forecast[];
+}) {
+  return (
+    <section className="rounded-xl border border-[#e4e7ec] bg-white">
+      <div className="flex items-center justify-between px-4 py-3">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-[#0B3A82] hover:underline">
+          View all
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+      {items.length === 0 ? (
+        <p className="px-4 pb-5 text-sm text-[#667085]">{empty}</p>
+      ) : (
+        <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3]">
+          {items.map((forecast) => (
+            <li key={forecast.id}>
+              <Link
+                href={`/admin/forecasts/${forecast.id}`}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#f8fafc]"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{forecast.title}</p>
+                  <p className="text-xs text-[#98a2b3]">{formatDeskDate(forecast.date)}</p>
+                </div>
+                <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -101,6 +264,7 @@ export function ForecastTable({
   onPage,
   pageSize = PAGE_SIZE,
   onPageSize,
+  showPager,
 }: {
   forecasts: Forecast[];
   title?: string;
@@ -110,6 +274,7 @@ export function ForecastTable({
   onPage?: (page: number) => void;
   pageSize?: number;
   onPageSize?: (size: number) => void;
+  showPager?: boolean;
 }) {
   const rowTotal = total ?? forecasts.length;
   return (
@@ -121,6 +286,7 @@ export function ForecastTable({
       onPage={onPage}
       pageSize={pageSize}
       onPageSize={onPageSize}
+      showPager={showPager ?? Boolean(onPage)}
     >
       {forecasts.length === 0 ? (
         <EmptyRow>No forecasts yet.</EmptyRow>
@@ -464,7 +630,7 @@ export function SubscriberTable() {
             <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] lg:hidden">
               {rows.map((account) => (
                 <li key={account.id} className="flex items-center gap-3 px-5 py-3.5">
-                  <NameCell name={account.name} />
+                  <NameCell name={account.name} caps />
                   <div className="ml-auto flex items-center gap-2">
                     <Pill tone={toneFor(account.status)}>{account.status}</Pill>
                     <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
@@ -491,7 +657,7 @@ export function SubscriberTable() {
                   {rows.map((account) => (
                     <tr key={account.id} className="border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
                       <td className={td}>
-                        <NameCell name={account.name} />
+                        <NameCell name={account.name} caps />
                       </td>
                       <td className={cn(td, 'text-[#475467]')}>
                         <p>{account.email}</p>

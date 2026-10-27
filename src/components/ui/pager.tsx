@@ -63,8 +63,8 @@ export function Pager({
           <span
             aria-current="page"
             className={cn(
-              'grid size-8 place-items-center rounded-full text-xs font-semibold',
-              'bg-[#101828] text-white',
+              'grid size-8 place-items-center rounded-lg text-xs font-semibold',
+              'bg-[#0B3A82] text-white',
             )}
           >
             {current + 1}
