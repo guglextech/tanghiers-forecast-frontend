@@ -373,6 +373,11 @@ export function DeliveryLog() {
   const desk = useDesk();
   const [channel, setChannel] = React.useState<'all' | 'web' | 'email' | 'sms'>('all');
   const [page, setPage] = React.useState(0);
+  const rowCount = (desk?.deliveries ?? []).filter((row) => channel === 'all' || row.channel === channel).length;
+  React.useEffect(() => {
+    const pages = Math.max(1, Math.ceil(rowCount / PAGE_SIZE));
+    if (page > pages - 1) setPage(pages - 1);
+  }, [page, rowCount]);
   if (!desk) return <LoadingState label="Loading deliveries…" />;
   const rows = desk.deliveries.filter((row) => channel === 'all' || row.channel === channel);
   const pageRows = rows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
