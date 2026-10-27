@@ -1,6 +1,7 @@
 import { asList } from '@/lib/api/resources';
 
 export const PAGE_SIZE = 10;
+export const PAGE_SIZES = [10, 25, 50] as const;
 
 export function readPage<T>(payload: unknown): { items: T[]; total: number } {
   const items = asList<T>(payload);

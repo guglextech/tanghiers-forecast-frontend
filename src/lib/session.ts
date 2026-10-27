@@ -136,8 +136,8 @@ export function listAccounts(): AdminAccount[] {
   return accountCache;
 }
 
-export async function refreshAccounts(q?: string, offset = 0) {
-  const page = readPage<ApiUser>(await admin.users({ q, limit: PAGE_SIZE, offset }));
+export async function refreshAccounts(q?: string, offset = 0, limit = PAGE_SIZE) {
+  const page = readPage<ApiUser>(await admin.users({ q, limit, offset }));
   accountCache = page.items.map(mapAdminUser);
   return { accounts: accountCache, total: page.total };
 }

@@ -61,6 +61,33 @@ export function formatDateTime(iso: string) {
   }).format(date);
 }
 
+/** 23 Oct 2026 */
+export function formatDeskDate(isoDate: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(utcDate(isoDate.slice(0, 10)));
+}
+
+/** 23 Oct 2026, 08:30 AM */
+export function formatDeskStamp(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const day = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return `${day}, ${time}`;
+}
+
 export function todayIsoDate() {
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
