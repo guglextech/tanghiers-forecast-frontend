@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
   cancelSubscription,
   clearPhone,
+  completeGoogleSignup as completeGoogleSignupAccount,
   continueWithGoogle as continueWithGoogleAccount,
   deleteAccount,
   exportAccountData,
@@ -18,6 +19,7 @@ import {
   updateProfile,
   type SessionUser,
   type SignupInput,
+  type SocialSignupInput,
 } from '@/lib/session';
 import type { PlanId } from '@/data/site';
 
@@ -26,7 +28,8 @@ type SessionContextValue = {
   ready: boolean;
   login: (input: { email: string; password: string }) => Promise<SessionUser>;
   signup: (input: SignupInput) => Promise<SessionUser>;
-  continueWithGoogle: () => Promise<SessionUser>;
+  continueWithGoogle: (idToken: string) => Promise<SessionUser>;
+  completeGoogleSignup: (input: SocialSignupInput) => Promise<SessionUser>;
   verifyMfa: (code: string) => Promise<SessionUser>;
   confirmMfaSetup: (code: string) => Promise<{ user: SessionUser; recoveryCodes: string[] }>;
   logout: () => void;
@@ -78,8 +81,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setUser(next);
         return next;
       },
-      continueWithGoogle: async () => {
-        const next = await continueWithGoogleAccount();
+      continueWithGoogle: async (idToken) => {
+        const next = await continueWithGoogleAccount(idToken);
+        setUser(next);
+        return next;
+      },
+      completeGoogleSignup: async (input) => {
+        const next = await completeGoogleSignupAccount(input);
         setUser(next);
         return next;
       },

@@ -1,11 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { SessionProvider } from '@/components/app/SessionProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { DailyReminder } from '@/components/app/DailyReminder';
+import { GOOGLE_CLIENT_ID } from '@/lib/api/config';
 
 /**
  * Dev-only: clear leftover Workbox/PWA workers from older builds.
@@ -78,15 +80,17 @@ function SuppressDevtoolsPerfNoise() {
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-      <UnregisterStaleServiceWorkers />
-      <SuppressDevtoolsPerfNoise />
-      <SessionProvider>
-        <TooltipProvider delayDuration={200}>
-          {children}
-          <Toaster richColors closeButton position="top-right" />
-          <DailyReminder />
-        </TooltipProvider>
-      </SessionProvider>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <UnregisterStaleServiceWorkers />
+        <SuppressDevtoolsPerfNoise />
+        <SessionProvider>
+          <TooltipProvider delayDuration={200}>
+            {children}
+            <Toaster richColors closeButton position="top-right" />
+            <DailyReminder />
+          </TooltipProvider>
+        </SessionProvider>
+      </GoogleOAuthProvider>
     </NextThemesProvider>
   );
 }

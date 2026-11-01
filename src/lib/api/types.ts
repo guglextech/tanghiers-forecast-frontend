@@ -33,6 +33,7 @@ export type LoginResult = {
   mfaRequired?: boolean;
   mfaEnrollmentRequired?: boolean;
   mfaToken?: string;
+  signupRequired?: boolean;
   signupToken?: string;
   user?: ApiUser;
   recoveryCodes?: string[];

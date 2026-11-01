@@ -1359,6 +1359,39 @@
           }
         },
         {
+          "name": "My day passes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/me/passes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "passes"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "My day passes, newest first \u2014 state ACTIVE / UPCOMING (stacked) / EXPIRED / REFUNDED"
+          }
+        },
+        {
           "name": "My access",
           "request": {
             "method": "GET",

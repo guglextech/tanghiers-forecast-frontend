@@ -1,10 +1,10 @@
 export const SITE = {
-  name: 'Tanghiers',
+  name: ' Lotto Forecasts',
   shortName: 'TG',
   project: 'TG',
   tagline: 'Daily lotto forecasts for active subscribers, on the site, by email, and by SMS.',
   description:
-    'Tanghiers publishes one daily forecast and delivers it to active subscribers on the website, by email, and by text. Subscribe online with Stripe.',
+    ' Lotto Forecasts publishes one daily forecast and delivers it to active subscribers on the website, by email, and by text. Subscribe online with Stripe.',
   email: 'desk@tanghiers.com',
   disclaimer: 'For infotainment only. Forecasts are not guaranteed.',
 } as const;

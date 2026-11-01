@@ -6,6 +6,9 @@ export const PRODUCT_SLUG = process.env.NEXT_PUBLIC_PRODUCT_SLUG ?? 'tanghiers-f
 
 export const AUTH_STORAGE_KEY = 'tg.auth.v1';
 
+/** Google Identity Services client ID. Must also be in the API `GOOGLE_CLIENT_IDS`. */
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+
 type QueryValue = string | number | boolean | null | undefined;
 
 export function productQuery(
