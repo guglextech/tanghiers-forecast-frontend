@@ -1,8 +1,8 @@
 import QRCode from 'qrcode';
 import { auth } from '@/lib/api/resources';
+import { normalizeTokens } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
-import type { LoginResult, MfaEnrollStart } from '@/lib/api/types';
-import type { AuthTokens } from '@/lib/api/types';
+import type { AuthTokens, LoginResult, MfaEnrollStart } from '@/lib/api/types';
 
 const PENDING_KEY = 'tg.mfa.pending.v1';
 
@@ -115,19 +115,7 @@ export async function mapEnrollStart(raw: MfaEnrollStart, email: string): Promis
 }
 
 export function tokensFromLoginResult(result: LoginResult): AuthTokens | null {
-  if (result.tokens?.accessToken) {
-    return {
-      accessToken: result.tokens.accessToken,
-      refreshToken: result.tokens.refreshToken,
-    };
-  }
-  if (result.accessToken) {
-    return {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken ?? '',
-    };
-  }
-  return null;
+  return normalizeTokens(result);
 }
 
 export function recoveryCodesFrom(result: LoginResult) {

@@ -16,34 +16,34 @@ import {
 import { initialsFromName } from '@/lib/session';
 import { SITE } from '@/data/site';
 import { cn } from '@/lib/utils';
+import {
+  ArrowUpRight,
+  CalendarDays,
+  LayoutGrid,
+  Menu,
+  Send,
+  Settings,
+  Tag,
+  Users,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 
-type AdminIconName =
-  | 'grid'
-  | 'calendar-event'
-  | 'send'
-  | 'people'
-  | 'gear'
-  | 'box-arrow-up-right'
-  | 'list'
-  | 'x-lg';
-
-function AdminIcon({ name, className }: { name: AdminIconName; className?: string }) {
-  return <i className={cn('bi leading-none', `bi-${name}`, className)} aria-hidden />;
-}
-
-const deskLinks = [
-  { href: '/admin', label: 'Overview', icon: 'grid' },
-  { href: '/admin/forecasts', label: 'Forecasts', icon: 'calendar-event' },
-  { href: '/admin/deliveries', label: 'Deliveries', icon: 'send' },
-  { href: '/admin/subscribers', label: 'Subscribers', icon: 'people' },
-  { href: '/admin/settings', label: 'Settings', icon: 'gear' },
-] as const;
+const deskLinks: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/admin', label: 'Overview', icon: LayoutGrid },
+  { href: '/admin/forecasts', label: 'Forecasts', icon: CalendarDays },
+  { href: '/admin/deliveries', label: 'Deliveries', icon: Send },
+  { href: '/admin/subscribers', label: 'Subscribers', icon: Users },
+  { href: '/admin/plans', label: 'Plans', icon: Tag },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
+];
 
 function sectionLabel(pathname: string) {
   if (pathname.startsWith('/admin/forecasts/new')) return 'New forecast';
   if (pathname.startsWith('/admin/forecasts')) return 'Forecasts';
   if (pathname.startsWith('/admin/deliveries')) return 'Deliveries';
   if (pathname.startsWith('/admin/subscribers')) return 'Subscribers';
+  if (pathname.startsWith('/admin/plans')) return 'Plans';
   if (pathname.startsWith('/admin/settings')) return 'Settings';
   return 'Overview';
 }
@@ -157,7 +157,7 @@ function AdminChrome({ children }: { children: React.ReactNode }) {
               aria-expanded={menuOpen}
               className="grid size-9 shrink-0 place-items-center rounded-lg text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828]"
             >
-              <AdminIcon name="list" className="text-[18px]" />
+              <Menu className="size-[18px]" strokeWidth={1.75} />
             </button>
             <p className="truncate text-sm font-medium text-[#344054]">{sectionLabel(pathname)}</p>
             <div className="ml-auto">
@@ -227,13 +227,14 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
             aria-label="Close menu"
             className="grid size-8 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
           >
-            <AdminIcon name="x-lg" className="text-[16px]" />
+            <X className="size-4" strokeWidth={1.75} />
           </button>
         ) : null}
       </div>
       <nav aria-label="Publishing" className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {deskLinks.map((link) => {
           const active = isActive(pathname, link.href);
+          const Icon = link.icon;
           return (
             <Link
               key={link.href}
@@ -244,7 +245,10 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
                 active ? 'bg-[#0B3A82] font-medium text-white' : 'text-white/65 hover:bg-white/5 hover:text-white',
               )}
             >
-              <AdminIcon name={link.icon} className={cn('text-[15px]', active ? 'text-white' : 'text-white/40')} />
+              <Icon
+                className={cn('size-4 shrink-0', active ? 'text-white' : 'text-white/45')}
+                strokeWidth={1.75}
+              />
               {link.label}
             </Link>
           );
@@ -254,7 +258,7 @@ function SidebarBody({ onClose }: { onClose?: () => void }) {
           onClick={onClose}
           className="mt-3 flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm text-white/45 hover:bg-white/5 hover:text-white"
         >
-          <AdminIcon name="box-arrow-up-right" className="text-[15px] text-white/30" />
+          <ArrowUpRight className="size-4 shrink-0 text-white/35" strokeWidth={1.75} />
           Subscriber feed
         </Link>
       </nav>

@@ -17,10 +17,6 @@ const faqs = [
     body: 'The daily numbers, the archive, and the draw video. The same forecast is also sent by email and SMS.',
   },
   {
-    title: 'How you pay',
-    body: 'Online, with Stripe, in USD. No short codes, USSD, or mobile money.',
-  },
-  {
     title: 'Cancel anytime',
     body: 'Manage or cancel from Subscription. Access stays through the end of the current period.',
   },

@@ -1,8 +1,14 @@
 import { PRODUCT_SLUG } from '@/lib/api/config';
 import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
-import { readTokens, writeTokens } from '@/lib/api/client';
+import { ensureAccessToken, readTokens, writeTokens } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
+import {
+  clearPendingSocial,
+  readIdTokenProfile,
+  readPendingSocial,
+  writePendingSocial,
+} from '@/lib/google';
 import {
   hasEntitlement,
   mapAdminUser,
@@ -128,6 +134,7 @@ export function writeSession(user: SessionUser | null) {
 export function clearSession() {
   writeTokens(null);
   writeSession(null);
+  clearPendingSocial();
 }
 
 let accountCache: AdminAccount[] = [];
@@ -156,7 +163,8 @@ async function loadSmsConsent() {
 }
 
 export async function hydrateSession(): Promise<SessionUser | null> {
-  if (!readTokens()?.accessToken) {
+  const fresh = await ensureAccessToken();
+  if (!fresh && !readTokens()?.accessToken) {
     writeSession(null);
     return null;
   }
@@ -196,9 +204,35 @@ function applyTokens(result: LoginResult) {
 async function sessionFromLogin(result: LoginResult): Promise<SessionUser> {
   applyTokens(result);
   clearPendingMfa();
+  clearPendingSocial();
   const session = await hydrateSession();
   if (!session) throw new ApiError('Signed in, but the profile could not be loaded.');
   return session;
+}
+
+function concludeAuth(result: LoginResult, email = ''): Promise<SessionUser> {
+  if (result.mfaToken) {
+    writePendingMfa({
+      mfaToken: result.mfaToken,
+      enrollmentRequired: Boolean(result.mfaEnrollmentRequired),
+      email,
+    });
+    throw new ApiError(
+      result.mfaEnrollmentRequired
+        ? 'Set up an authenticator app to finish signing in.'
+        : 'Enter the code from your authenticator app.',
+      401,
+      result.mfaEnrollmentRequired ? 'MFA_ENROLL' : 'MFA_VERIFY',
+    );
+  }
+  if (result.signupToken || result.signupRequired) {
+    if (!result.signupToken) {
+      throw new ApiError('Google sign-up could not be finished. Try again.');
+    }
+    writePendingSocial({ signupToken: result.signupToken, email });
+    throw new ApiError('Finish creating your account.', 202, 'SOCIAL_SIGNUP');
+  }
+  return sessionFromLogin(result);
 }
 
 export async function loginAccount(input: { email: string; password: string }): Promise<SessionUser> {
@@ -267,8 +301,38 @@ export async function signupAccount(input: SignupInput): Promise<SessionUser> {
   );
 }
 
-export async function continueWithGoogle(): Promise<SessionUser> {
-  throw new ApiError('Google sign-in needs a Google ID token from the API.');
+export async function continueWithGoogle(idToken: string): Promise<SessionUser> {
+  const token = idToken.trim();
+  if (!token) throw new Error('Google did not return an ID token.');
+  const profile = readIdTokenProfile(token);
+  return concludeAuth(await auth.google(token), profile.email);
+}
+
+export type SocialSignupInput = {
+  consents: { terms: string; privacy: string; age: string };
+  dateOfBirth: string;
+};
+
+export async function completeGoogleSignup(input: SocialSignupInput): Promise<SessionUser> {
+  const pending = readPendingSocial();
+  if (!pending?.signupToken) {
+    throw new ApiError('Start with Google again to finish creating this account.');
+  }
+  const dateOfBirth = input.dateOfBirth.trim();
+  if (!dateOfBirth) throw new Error('Enter your date of birth.');
+  return concludeAuth(
+    await auth.completeSocial({
+      signupToken: pending.signupToken,
+      countryCode: 'US',
+      dateOfBirth,
+      consents: {
+        terms: input.consents.terms,
+        privacy: input.consents.privacy,
+        age: input.consents.age,
+      },
+    }),
+    pending.email,
+  );
 }
 
 export async function logoutAccount() {

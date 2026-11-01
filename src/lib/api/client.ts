@@ -9,8 +9,37 @@ type RequestOptions = {
   headers?: Record<string, string>;
 };
 
+const ACCESS_SKEW_MS = 60_000;
+
 function canUseStorage() {
   return typeof window !== 'undefined';
+}
+
+function asNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function asText(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : '';
+}
+
+export function normalizeTokens(data: unknown, previous?: AuthTokens | null): AuthTokens | null {
+  if (!data || typeof data !== 'object') return null;
+  const row = data as Record<string, unknown>;
+  const nested = row.tokens && typeof row.tokens === 'object' ? (row.tokens as Record<string, unknown>) : row;
+  const accessToken = asText(nested.accessToken);
+  if (!accessToken) return null;
+  const refreshToken = asText(nested.refreshToken) || previous?.refreshToken || '';
+  const now = Date.now();
+  const accessIn = asNumber(nested.accessTokenExpiresIn);
+  const refreshIn = asNumber(nested.refreshTokenExpiresIn);
+  return {
+    accessToken,
+    refreshToken,
+    tokenType: asText(nested.tokenType) || 'Bearer',
+    accessTokenExpiresAt: accessIn ? now + accessIn * 1000 : previous?.accessTokenExpiresAt ?? null,
+    refreshTokenExpiresAt: refreshIn ? now + refreshIn * 1000 : previous?.refreshTokenExpiresAt ?? null,
+  };
 }
 
 export function readTokens(): AuthTokens | null {
@@ -18,9 +47,15 @@ export function readTokens(): AuthTokens | null {
   try {
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as AuthTokens;
+    const parsed = JSON.parse(raw) as Partial<AuthTokens>;
     if (!parsed?.accessToken) return null;
-    return parsed;
+    return {
+      accessToken: parsed.accessToken,
+      refreshToken: parsed.refreshToken || '',
+      tokenType: parsed.tokenType || 'Bearer',
+      accessTokenExpiresAt: parsed.accessTokenExpiresAt ?? null,
+      refreshTokenExpiresAt: parsed.refreshTokenExpiresAt ?? null,
+    };
   } catch {
     return null;
   }
@@ -35,11 +70,24 @@ export function writeTokens(tokens: AuthTokens | null) {
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(tokens));
 }
 
+function isAccessStale(tokens: AuthTokens) {
+  if (!tokens.accessTokenExpiresAt) return false;
+  return Date.now() >= tokens.accessTokenExpiresAt - ACCESS_SKEW_MS;
+}
+
+function isRefreshExpired(tokens: AuthTokens) {
+  if (!tokens.refreshTokenExpiresAt) return false;
+  return Date.now() >= tokens.refreshTokenExpiresAt;
+}
+
 let refreshInFlight: Promise<boolean> | null = null;
 
 async function refreshTokens(): Promise<boolean> {
   const current = readTokens();
-  if (!current?.refreshToken) return false;
+  if (!current?.refreshToken || isRefreshExpired(current)) {
+    writeTokens(null);
+    return false;
+  }
   if (refreshInFlight) return refreshInFlight;
 
   refreshInFlight = (async () => {
@@ -49,17 +97,12 @@ async function refreshTokens(): Promise<boolean> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken: current.refreshToken }),
       });
-      const payload = (await response.json().catch(() => null)) as ApiEnvelope<AuthTokens | { tokens?: AuthTokens }> | null;
+      const payload = (await response.json().catch(() => null)) as ApiEnvelope<unknown> | null;
       if (!response.ok || !payload?.success) {
         writeTokens(null);
         return false;
       }
-      const data = payload.data as AuthTokens & { tokens?: AuthTokens };
-      const next: AuthTokens | null = data?.accessToken
-        ? { accessToken: data.accessToken, refreshToken: data.refreshToken ?? current.refreshToken }
-        : data?.tokens?.accessToken
-          ? data.tokens
-          : null;
+      const next = normalizeTokens(payload.data, current);
       if (!next) {
         writeTokens(null);
         return false;
@@ -77,6 +120,17 @@ async function refreshTokens(): Promise<boolean> {
   return refreshInFlight;
 }
 
+export async function ensureAccessToken(): Promise<boolean> {
+  const tokens = readTokens();
+  if (!tokens?.accessToken && !tokens?.refreshToken) return false;
+  if (isRefreshExpired(tokens)) {
+    writeTokens(null);
+    return false;
+  }
+  if (tokens.accessToken && !isAccessStale(tokens)) return true;
+  return refreshTokens();
+}
+
 async function parseBody(response: Response) {
   const contentType = response.headers.get('content-type') || '';
   if (response.status === 204) return null;
@@ -92,14 +146,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   const send = async () => {
     const tokens = options.auth === false ? null : readTokens();
-    if (tokens?.accessToken) headers.Authorization = `Bearer ${tokens.accessToken}`;
-    else delete headers.Authorization;
+    if (tokens?.accessToken) {
+      headers.Authorization = `${tokens.tokenType || 'Bearer'} ${tokens.accessToken}`;
+    } else {
+      delete headers.Authorization;
+    }
     return fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
     });
   };
+
+  if (options.auth !== false) await ensureAccessToken();
 
   let response = await send();
   if (response.status === 401 && options.auth !== false) {
@@ -130,6 +189,7 @@ export function unwrapList<T>(value: unknown): T[] {
       users?: T[];
       payments?: T[];
       subscriptions?: T[];
+      plans?: T[];
     };
     if (Array.isArray(record.items)) return record.items;
     if (Array.isArray(record.data)) return record.data;
@@ -137,6 +197,7 @@ export function unwrapList<T>(value: unknown): T[] {
     if (Array.isArray(record.users)) return record.users;
     if (Array.isArray(record.payments)) return record.payments;
     if (Array.isArray(record.subscriptions)) return record.subscriptions;
+    if (Array.isArray(record.plans)) return record.plans;
   }
   return [];
 }

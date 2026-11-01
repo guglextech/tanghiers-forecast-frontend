@@ -12,6 +12,14 @@ function majorUnits(amount: number, currency: string) {
   return ZERO_DECIMAL.has(currency.toUpperCase()) ? amount : amount / 100;
 }
 
+export function fromMinorUnits(amount: number, currency = DEFAULT_CURRENCY) {
+  return majorUnits(amount, currency);
+}
+
+export function toMinorUnits(amount: number, currency = DEFAULT_CURRENCY) {
+  return ZERO_DECIMAL.has(currency.toUpperCase()) ? Math.round(amount) : Math.round(amount * 100);
+}
+
 function priceFor(plan: ApiPlan, currency = DEFAULT_CURRENCY): number | null {
   const table = plan.displayPrices ?? plan.amounts ?? {};
   const amount = table[currency] ?? table.USD ?? Object.values(table)[0];

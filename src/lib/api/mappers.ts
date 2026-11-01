@@ -10,6 +10,7 @@ import type {
   ApiForecastField,
   ApiNotification,
   ApiPayment,
+  ApiPlan,
   ApiProductField,
   ApiSubscription,
   ApiUser,
@@ -623,4 +624,37 @@ export function productSettingsBody(form: ProductSettingsForm) {
     }));
   }
   return body;
+}
+
+export type AdminPlan = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  kind: string;
+  interval: string;
+  amounts: Record<string, number>;
+  channels: string[];
+  providerPriceId: string;
+};
+
+export function mapAdminPlan(row: ApiPlan): AdminPlan {
+  const code = String(row.code || '').trim();
+  const id = String(row.id || code).trim();
+  const kind = String(row.kind || '').toLowerCase();
+  const hours = row.passDurationHours;
+  const interval =
+    String(row.interval || '').toLowerCase() ||
+    (hours === 24 ? '24h' : hours ? `${hours}h` : '');
+  return {
+    id,
+    code: code || id,
+    name: row.name || code || id,
+    description: row.description?.trim() || '',
+    kind: kind === 'pass' ? 'pass' : kind === 'subscription' ? 'subscription' : kind,
+    interval,
+    amounts: row.displayPrices ?? row.amounts ?? {},
+    channels: row.channels ?? [],
+    providerPriceId: row.providerPriceId || row.stripePriceId || row.priceId || '',
+  };
 }

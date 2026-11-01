@@ -279,7 +279,21 @@ export const admin = {
       body,
     }),
   plans: (productSlug = PRODUCT_SLUG) =>
-    apiRequest<ApiPlan[] | { items?: ApiPlan[] }>(productUrl('/v1/admin/plans', {}, productSlug)),
+    apiRequest<ApiPlan[] | { items?: ApiPlan[]; plans?: ApiPlan[] }>(productUrl('/v1/admin/plans', {}, productSlug)),
+  createPlan: (body: { code: string; name: string; providerPriceId: string }, productSlug = PRODUCT_SLUG) =>
+    apiRequest<ApiPlan>('/v1/admin/plans', {
+      method: 'POST',
+      body: productBody(body, productSlug),
+    }),
+  updatePlan: (id: string, body: { name?: string; description?: string }) =>
+    apiRequest<ApiPlan>(`/v1/admin/plans/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
+  setPlanPrice: (id: string, amounts: Record<string, number>) =>
+    apiRequest<ApiPlan>(`/v1/admin/plans/${encodeURIComponent(id)}/price`, {
+      method: 'PUT',
+      body: { amounts },
+    }),
+  syncPlan: (id: string) =>
+    apiRequest<ApiPlan>(`/v1/admin/plans/${encodeURIComponent(id)}/sync`, { method: 'POST' }),
 };
 
 export function asList<T>(value: T[] | { items?: T[] } | null | undefined): T[];
