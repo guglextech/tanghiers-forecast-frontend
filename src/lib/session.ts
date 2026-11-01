@@ -1,7 +1,7 @@
 import { PRODUCT_SLUG } from '@/lib/api/config';
 import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
-import { readTokens, writeTokens } from '@/lib/api/client';
+import { ensureAccessToken, readTokens, writeTokens } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
 import {
   hasEntitlement,
@@ -156,7 +156,8 @@ async function loadSmsConsent() {
 }
 
 export async function hydrateSession(): Promise<SessionUser | null> {
-  if (!readTokens()?.accessToken) {
+  const fresh = await ensureAccessToken();
+  if (!fresh && !readTokens()?.accessToken) {
     writeSession(null);
     return null;
   }

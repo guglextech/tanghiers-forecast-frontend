@@ -12,12 +12,24 @@ export type ApiEnvelope<T> = {
 export type AuthTokens = {
   accessToken: string;
   refreshToken: string;
+  tokenType: string;
+  accessTokenExpiresAt: number | null;
+  refreshTokenExpiresAt: number | null;
 };
 
 export type LoginResult = {
-  tokens?: AuthTokens;
+  tokens?: Partial<AuthTokens> & {
+    accessToken?: string;
+    refreshToken?: string;
+    accessTokenExpiresIn?: number;
+    refreshTokenExpiresIn?: number;
+    tokenType?: string;
+  };
   accessToken?: string;
   refreshToken?: string;
+  accessTokenExpiresIn?: number;
+  refreshTokenExpiresIn?: number;
+  tokenType?: string;
   mfaRequired?: boolean;
   mfaEnrollmentRequired?: boolean;
   mfaToken?: string;
@@ -89,6 +101,11 @@ export type ApiPlan = {
   channels?: string[];
   featured?: boolean;
   period?: string;
+  providerPriceId?: string;
+  stripePriceId?: string;
+  priceId?: string;
+  status?: string;
+  active?: boolean;
 };
 
 export type ApiForecastBody = {
