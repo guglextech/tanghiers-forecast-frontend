@@ -1,7 +1,7 @@
 import { type Delivery, type Forecast } from '@/data/forecasts';
 import { admin, asList, forecasts as forecastApi, me } from '@/lib/api/resources';
 import { ApiError } from '@/lib/api/errors';
-import { forecastBodyFrom, mapDelivery, mapForecast } from '@/lib/api/mappers';
+import { mapDelivery, mapForecast } from '@/lib/api/mappers';
 import { readSession } from '@/lib/session';
 import type { ApiForecast, ApiNotification } from '@/lib/api/types';
  
@@ -14,9 +14,6 @@ export type ForecastDraft = {
   id?: string;
   title: string;
   date: string;
-  banker: number[];
-  twoSure: number[];
-  threeDirect: number[];
   permutations?: string;
   message?: string;
   videoUrl?: string;
@@ -107,23 +104,11 @@ export async function loadDesk(): Promise<DeskState> {
   return cache;
 }
 
-function parseGroup(values: number[], count: number, label: string) {
-  if (values.length !== count || values.some((value) => !Number.isInteger(value) || value < 0 || value > 99)) {
-    throw new Error(`Enter ${count} ${label} number${count === 1 ? '' : 's'}, each from 0 to 99.`);
-  }
-  return values;
-}
-
 function validateDraft(input: ForecastDraft) {
   const title = input.title.trim();
   if (!title) throw new Error('Add a title.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error('Choose the forecast date.');
-  return {
-    title,
-    banker: parseGroup(input.banker, 1, 'banker'),
-    twoSure: parseGroup(input.twoSure, 2, 'two sure'),
-    threeDirect: parseGroup(input.threeDirect, 3, 'three direct'),
-  };
+  return { title };
 }
 
 export async function saveForecast(input: ForecastDraft, mode: 'draft' | 'publish' | 'schedule'): Promise<Forecast> {
@@ -131,16 +116,12 @@ export async function saveForecast(input: ForecastDraft, mode: 'draft' | 'publis
   if (mode === 'schedule' && !input.publishAt) {
     throw new Error('Choose a date and time to schedule publication.');
   }
+  const permutations = input.permutations?.trim() ?? '';
   const payload = {
     drawDate: input.date,
     title: parsed.title,
-    body: forecastBodyFrom({
-      banker: parsed.banker,
-      twoSure: parsed.twoSure,
-      threeDirect: parsed.threeDirect,
-      permutations: input.permutations,
-    }),
-    message: (input.message ?? 'Play responsibly.').trim() || 'Play responsibly.',
+    body: permutations ? { permutations } : {},
+    message: (input.message ?? '').trim(),
     videoUrl: input.videoUrl?.trim() || 'https://www.youtube.com/watch?v=GymyHmEjBxI',
     accessLevel: 'PREMIUM',
   };

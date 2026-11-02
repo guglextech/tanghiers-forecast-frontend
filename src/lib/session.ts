@@ -229,7 +229,13 @@ function concludeAuth(result: LoginResult, email = ''): Promise<SessionUser> {
     if (!result.signupToken) {
       throw new ApiError('Google sign-up could not be finished. Try again.');
     }
-    writePendingSocial({ signupToken: result.signupToken, email });
+    const profile = result.profile;
+    writePendingSocial({
+      signupToken: result.signupToken,
+      email: (typeof profile?.email === 'string' && profile.email) || email,
+      firstName: typeof profile?.firstName === 'string' ? profile.firstName : '',
+      lastName: typeof profile?.lastName === 'string' ? profile.lastName : '',
+    });
     throw new ApiError('Finish creating your account.', 202, 'SOCIAL_SIGNUP');
   }
   return sessionFromLogin(result);
@@ -301,11 +307,23 @@ export async function signupAccount(input: SignupInput): Promise<SessionUser> {
   );
 }
 
-export async function continueWithGoogle(idToken: string): Promise<SessionUser> {
+export async function continueWithGoogle(idToken: string, nonce?: string): Promise<SessionUser> {
   const token = idToken.trim();
   if (!token) throw new Error('Google did not return an ID token.');
-  const profile = readIdTokenProfile(token);
-  return concludeAuth(await auth.google(token), profile.email);
+  const fromToken = readIdTokenProfile(token);
+  const result = await auth.google(token, nonce);
+  const profile = result.profile;
+  return concludeAuth(
+    {
+      ...result,
+      profile: {
+        email: (typeof profile?.email === 'string' && profile.email) || fromToken.email,
+        firstName: (typeof profile?.firstName === 'string' && profile.firstName) || fromToken.firstName,
+        lastName: (typeof profile?.lastName === 'string' && profile.lastName) || fromToken.lastName,
+      },
+    },
+    fromToken.email,
+  );
 }
 
 export type SocialSignupInput = {
@@ -325,6 +343,8 @@ export async function completeGoogleSignup(input: SocialSignupInput): Promise<Se
       signupToken: pending.signupToken,
       countryCode: 'US',
       dateOfBirth,
+      ...(pending.firstName ? { firstName: pending.firstName } : {}),
+      ...(pending.lastName ? { lastName: pending.lastName } : {}),
       consents: {
         terms: input.consents.terms,
         privacy: input.consents.privacy,

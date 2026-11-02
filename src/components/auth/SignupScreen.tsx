@@ -149,10 +149,10 @@ export function SignupScreen() {
     text: `I confirm I am at least ${minAge} years old.`,
   };
 
-  const onGoogle = async (idToken: string) => {
+  const onGoogle = async (idToken: string, nonce: string) => {
     setError('');
     try {
-      await continueWithGoogle(idToken);
+      await continueWithGoogle(idToken, nonce);
     } catch (err) {
       if (err instanceof ApiError && err.code === 'SOCIAL_SIGNUP') {
         const pending = readPendingSocial();
@@ -279,7 +279,7 @@ export function SignupScreen() {
               {step === 0 ? (
                 <>
                   <GoogleContinueButton
-                    onSuccess={(idToken) => void onGoogle(idToken)}
+                    onSuccess={(idToken, nonce) => void onGoogle(idToken, nonce)}
                     onError={setError}
                   />
                   <p className="text-center text-xs text-[#98a2b3]">or with email</p>

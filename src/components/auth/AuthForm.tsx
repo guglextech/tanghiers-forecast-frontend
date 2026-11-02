@@ -44,11 +44,11 @@ export function AuthForm() {
     router.replace(destinationFor(sessionRole, next));
   };
 
-  const onGoogle = async (idToken: string) => {
+  const onGoogle = async (idToken: string, nonce: string) => {
     setError('');
     setBusy('google');
     try {
-      const session = await continueWithGoogle(idToken);
+      const session = await continueWithGoogle(idToken, nonce);
       toast.success('Signed in with Google.');
       go(session.role);
     } catch (err) {
@@ -106,8 +106,9 @@ export function AuthForm() {
         {step === 'choose' ? (
           <div className="mt-6 space-y-2">
             <GoogleContinueButton
-              onSuccess={(idToken) => void onGoogle(idToken)}
-              onError={setError}
+              disabled={busy === 'google'}
+              onSuccess={(idToken, nonce) => void onGoogle(idToken, nonce)}
+              onError={(message) => setError(message)}
             />
             <button
               type="button"
