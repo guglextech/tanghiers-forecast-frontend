@@ -3,6 +3,8 @@ const PENDING_KEY = 'tg.social.pending.v1';
 export type PendingSocial = {
   signupToken: string;
   email: string;
+  firstName: string;
+  lastName: string;
 };
 
 function canUseStorage() {
@@ -14,9 +16,14 @@ export function readPendingSocial(): PendingSocial | null {
   try {
     const raw = window.sessionStorage.getItem(PENDING_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as PendingSocial;
+    const parsed = JSON.parse(raw) as Partial<PendingSocial>;
     if (!parsed?.signupToken) return null;
-    return parsed;
+    return {
+      signupToken: parsed.signupToken,
+      email: parsed.email || '',
+      firstName: parsed.firstName || '',
+      lastName: parsed.lastName || '',
+    };
   } catch {
     return null;
   }

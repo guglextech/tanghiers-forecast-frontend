@@ -90,7 +90,7 @@ export function HistoryScreen() {
               <ul className="overflow-hidden rounded-2xl bg-[#f4f6f8]">
                 {group.items.map((forecast) => {
                   const locked = Boolean(forecast.locked);
-                  const numbers = forecast.numbers.join(' · ');
+                  const preview = forecast.body?.permutations?.trim() || forecast.message?.trim() || '';
                   return (
                     <li key={forecast.id} className="border-t border-white first:border-t-0">
                       <Link
@@ -103,8 +103,8 @@ export function HistoryScreen() {
                         <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#101828]">
                           {forecast.title}
                         </span>
-                        <span className="shrink-0 text-xs tabular-nums text-[#667085]">
-                          {locked ? 'Locked' : numbers || '—'}
+                        <span className="max-w-[40%] shrink-0 truncate text-xs text-[#667085]">
+                          {locked ? 'Locked' : preview || '—'}
                         </span>
                       </Link>
                     </li>

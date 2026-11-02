@@ -35,6 +35,11 @@ export type LoginResult = {
   mfaToken?: string;
   signupRequired?: boolean;
   signupToken?: string;
+  profile?: {
+    email?: string;
+    firstName?: string | null;
+    lastName?: string | null;
+  };
   user?: ApiUser;
   recoveryCodes?: string[];
 };

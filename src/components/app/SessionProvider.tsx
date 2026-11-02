@@ -28,7 +28,7 @@ type SessionContextValue = {
   ready: boolean;
   login: (input: { email: string; password: string }) => Promise<SessionUser>;
   signup: (input: SignupInput) => Promise<SessionUser>;
-  continueWithGoogle: (idToken: string) => Promise<SessionUser>;
+  continueWithGoogle: (idToken: string, nonce?: string) => Promise<SessionUser>;
   completeGoogleSignup: (input: SocialSignupInput) => Promise<SessionUser>;
   verifyMfa: (code: string) => Promise<SessionUser>;
   confirmMfaSetup: (code: string) => Promise<{ user: SessionUser; recoveryCodes: string[] }>;
@@ -81,8 +81,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setUser(next);
         return next;
       },
-      continueWithGoogle: async (idToken) => {
-        const next = await continueWithGoogleAccount(idToken);
+      continueWithGoogle: async (idToken, nonce) => {
+        const next = await continueWithGoogleAccount(idToken, nonce);
         setUser(next);
         return next;
       },

@@ -15,7 +15,6 @@ import {
   toIsoDate,
   todayIsoDate,
 } from '@/lib/dates';
-import { permutationsFrom } from '@/lib/api/mappers';
 import { saveForecast } from '@/lib/desk';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -69,73 +68,14 @@ function nearestTime(value: string) {
   return best;
 }
 
-function padStrings(values: number[] | undefined, count: number) {
-  const next = (values ?? []).map(String);
-  while (next.length < count) next.push('');
-  return next.slice(0, count);
-}
-
-function parseDigits(values: string[]) {
-  return values.map((value) => Number(value));
-}
-
-function NumberGroup({
-  id,
-  label,
-  hint,
-  values,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  hint: string;
-  values: string[];
-  onChange: (values: string[]) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between gap-3">
-        <Label htmlFor={`${id}-0`}>{label}</Label>
-        <span className="text-xs text-[#98a2b3]">{hint}</span>
-      </div>
-      <div className="flex gap-2">
-        {values.map((value, index) => (
-          <Input
-            key={index}
-            id={`${id}-${index}`}
-            inputMode="numeric"
-            aria-label={`${label} ${index + 1}`}
-            placeholder="00"
-            value={value}
-            onChange={(event) => {
-              const next = [...values];
-              next[index] = event.target.value.replace(/[^\d]/g, '').slice(0, 2);
-              onChange(next);
-            }}
-            className="w-12 px-0 text-center tabular-nums sm:w-14"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function ForecastForm({ initial }: { initial?: Forecast | null }) {
   const router = useRouter();
   const defaultDate = fromIsoDate(initial?.date ?? todayIsoDate()) ?? new Date();
   const [title, setTitle] = React.useState(initial?.title ?? suggestedTitle(defaultDate));
   const [titleTouched, setTitleTouched] = React.useState(Boolean(initial));
   const [forecastDate, setForecastDate] = React.useState<Date | undefined>(defaultDate);
-  const [banker, setBanker] = React.useState(padStrings(initial?.body?.banker ?? initial?.numbers.slice(0, 1), 1));
-  const [twoSure, setTwoSure] = React.useState(
-    padStrings(initial?.body?.twoSure ?? initial?.numbers.slice(1, 3), 2),
-  );
-  const [threeDirect, setThreeDirect] = React.useState(
-    padStrings(initial?.body?.threeDirect ?? initial?.numbers.slice(3, 6), 3),
-  );
   const [permutations, setPermutations] = React.useState(initial?.body?.permutations ?? '');
-  const [permutationsTouched, setPermutationsTouched] = React.useState(Boolean(initial?.body?.permutations));
-  const [message, setMessage] = React.useState(initial?.message ?? 'Play responsibly.');
+  const [message, setMessage] = React.useState(initial?.message ?? '');
   const [videoUrl, setVideoUrl] = React.useState(initial?.videoUrl ?? SAMPLE_VIDEO);
   const [intent, setIntent] = React.useState<'now' | 'schedule'>(
     initial?.status === 'scheduled' ? 'schedule' : 'now',
@@ -154,13 +94,6 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
     setTitle(suggestedTitle(forecastDate));
   }, [forecastDate, titleTouched]);
 
-  React.useEffect(() => {
-    if (permutationsTouched) return;
-    const bankerNums = parseDigits(banker).filter((_, index) => banker[index] !== '');
-    const twoSureNums = parseDigits(twoSure).filter((_, index) => twoSure[index] !== '');
-    setPermutations(permutationsFrom(bankerNums, twoSureNums));
-  }, [banker, twoSure, permutationsTouched]);
-
   const submit = async (mode: 'draft' | 'publish' | 'schedule') => {
     setError('');
     setSaving(mode);
@@ -177,9 +110,6 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
           id: initial?.id,
           title,
           date: toIsoDate(forecastDate),
-          banker: parseDigits(banker),
-          twoSure: parseDigits(twoSure),
-          threeDirect: parseDigits(threeDirect),
           permutations,
           message,
           videoUrl,
@@ -205,7 +135,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
             {initial ? 'Edit forecast' : 'New forecast'}
           </h1>
           <p className="mt-1 max-w-xl text-sm text-[#667085]">
-            Banker, two sure, and three direct for the draw date. Publishing makes it available on the
+            Permutation and a short message for the draw date. Publishing makes it available on the
             site and records email and SMS for every active subscriber.
           </p>
           {initial?.status === 'published' ? (
@@ -255,29 +185,24 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
 
         <Separator />
 
-        <section className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
-          <NumberGroup id="banker" label="Banker" hint="1 · 0–99" values={banker} onChange={setBanker} />
-          <NumberGroup id="two-sure" label="Two sure" hint="2 · 0–99" values={twoSure} onChange={setTwoSure} />
-          <div className="sm:col-span-2">
-            <NumberGroup
-              id="three-direct"
-              label="Three direct"
-              hint="3 · 0–99"
-              values={threeDirect}
-              onChange={setThreeDirect}
-            />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="permutations">Permutations</Label>
-            <Input
+        <section className="grid gap-5 p-5 sm:p-6">
+          <div className="space-y-2">
+            <Label htmlFor="permutations">Permutation</Label>
+            <Textarea
               id="permutations"
               value={permutations}
-              onChange={(event) => {
-                setPermutationsTouched(true);
-                setPermutations(event.target.value);
-              }}
+              onChange={(event) => setPermutations(event.target.value)}
               placeholder="7-12-45"
-              className="font-mono tracking-wide"
+              className="min-h-28 font-mono tracking-wide md:text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="message">Message</Label>
+            <Input
+              id="message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              placeholder="Play responsibly."
             />
           </div>
         </section>
@@ -285,16 +210,6 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
         <Separator />
 
         <section className="space-y-5 p-5 sm:p-6">
-          <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
-            <Textarea
-              id="message"
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder="Play responsibly."
-              className="min-h-20 md:text-sm"
-            />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="videoUrl">Video URL</Label>
             <Input
