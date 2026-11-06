@@ -3,6 +3,14 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  CalendarDays,
+  CheckCircle2,
+  CreditCard,
+  ExternalLink,
+  Receipt,
+  Sparkles,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { formatMoney, formatPlanPrice, type Plan, type PlanId } from '@/data/site';
 import { formatLongDate } from '@/lib/dates';
@@ -154,7 +162,7 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
   return (
     <div>
       <div
-        className="overflow-hidden rounded-2xl border border-[#e6e8ee]"
+        className="overflow-hidden rounded-2xl border border-[#dce6f5] bg-white shadow-[0_1px_2px_rgba(11,58,130,0.04)]"
         role="radiogroup"
         aria-label="Plans"
       >
@@ -169,29 +177,31 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
               aria-checked={isSelected}
               onClick={() => setSelected(plan.id)}
               className={cn(
-                'flex w-full items-center gap-3 border-t border-[#eef0f3] px-4 py-3 text-left first:border-t-0',
-                isSelected ? 'bg-[#f7f8fa]' : 'bg-white hover:bg-[#f7f8fa]',
+                'flex w-full items-center gap-3 border-t border-[#eef2f8] px-4 py-3.5 text-left first:border-t-0',
+                isSelected ? 'bg-[#f3f7fd]' : 'bg-white hover:bg-[#f8fafc]',
               )}
             >
               <span
                 className={cn(
                   'grid size-[18px] shrink-0 place-items-center rounded-full border',
-                  isSelected ? 'border-[#101828] bg-[#101828]' : 'border-[#d0d5dd] bg-white',
+                  isSelected ? 'border-[#0B3A82] bg-[#0B3A82]' : 'border-[#c9d4e5] bg-white',
                 )}
                 aria-hidden
               >
                 {isSelected ? <span className="size-1.5 rounded-full bg-white" /> : null}
               </span>
-              <span className="min-w-0 flex-1 text-sm font-semibold text-[#101828]">{plan.name}</span>
-              <span className="shrink-0 text-right">
-                <span className="text-sm font-medium tabular-nums text-[#101828]">
-                  {formatPlanPrice(plan) ?? '—'}
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
+                  {isCurrent ? (
+                    <span className="inline-flex items-center rounded-full bg-[#e8f1ff] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[#0B3A82] uppercase">
+                      Current
+                    </span>
+                  ) : null}
                 </span>
-                {isCurrent ? (
-                  <span className="ml-2 text-[11px] font-medium tracking-[0.12em] text-[#98a2b3] uppercase">
-                    Current
-                  </span>
-                ) : null}
+              </span>
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-[#101828]">
+                {formatPlanPrice(plan) ?? '—'}
               </span>
             </button>
           );
@@ -199,9 +209,9 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
       </div>
 
       {pending && chosen ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-[#667085]">
-            {[chosen.name, formatPlanPrice(chosen)].filter(Boolean).join(' · ')}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#f3f7fd] px-4 py-3">
+          <p className="text-sm text-[#475467]">
+            Switch to {[chosen.name, formatPlanPrice(chosen)].filter(Boolean).join(' · ')}
           </p>
           <Button type="button" className="h-10 px-5" loading={subscribing} onClick={confirm}>
             {subscribing ? 'Processing' : 'Confirm'}
@@ -222,36 +232,58 @@ function dated(value: string | null) {
   return formatLongDate(value);
 }
 
-function BillingRows({
-  rows,
-}: {
-  rows: { id: string; title: string; detail: string; amount?: string; status: string; href?: string | null }[];
-}) {
-  if (rows.length === 0) return null;
+function statusTone(status: string): 'ok' | 'wait' | 'danger' | 'muted' {
+  const value = status.toLowerCase();
+  if (value === 'active' || value === 'paid' || value === 'trialing') return 'ok';
+  if (
+    value === 'past_due' ||
+    value === 'incomplete' ||
+    value === 'pending' ||
+    value === 'ends soon'
+  ) {
+    return 'wait';
+  }
+  if (value === 'canceled' || value === 'cancelled' || value === 'failed' || value === 'unpaid') return 'danger';
+  return 'muted';
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const tone = statusTone(status);
   return (
-    <ul className="mt-3 overflow-hidden rounded-2xl border border-[#e6e8ee]">
-      {rows.map((row) => (
-        <li
-          key={row.id}
-          className="flex items-center justify-between gap-4 border-t border-[#eef0f3] px-4 py-3 first:border-t-0"
-        >
-          <span className="min-w-0">
-            {row.href ? (
-              <a href={row.href} className="block text-sm font-medium text-[#101828] hover:underline" target="_blank" rel="noreferrer">
-                {row.title}
-              </a>
-            ) : (
-              <span className="block text-sm font-medium text-[#101828]">{row.title}</span>
-            )}
-            <span className="text-sm text-[#98a2b3]">{row.detail}</span>
-          </span>
-          <span className="shrink-0 text-right">
-            {row.amount ? <span className="block text-sm font-medium tabular-nums">{row.amount}</span> : null}
-            <span className="text-[11px] font-medium tracking-[0.12em] text-[#667085] uppercase">{row.status}</span>
-          </span>
-        </li>
-      ))}
-    </ul>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase',
+        tone === 'ok' && 'bg-[#ecfdf3] text-[#027a48]',
+        tone === 'wait' && 'bg-[#fffaeb] text-[#b54708]',
+        tone === 'danger' && 'bg-[#fef3f2] text-[#b42318]',
+        tone === 'muted' && 'bg-[#f2f4f7] text-[#475467]',
+      )}
+    >
+      {tone === 'ok' ? <CheckCircle2 className="size-3" strokeWidth={2} aria-hidden /> : null}
+      {status.replace(/_/g, ' ')}
+    </span>
+  );
+}
+
+function SectionHeading({
+  icon: Icon,
+  title,
+  hint,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  title: string;
+  hint?: string;
+}) {
+  return (
+    <div className="mt-10 flex items-center gap-2.5">
+      <span className="grid size-8 place-items-center rounded-xl bg-[#e8f1ff] text-[#0B3A82]">
+        <Icon className="size-4" strokeWidth={1.75} />
+      </span>
+      <div>
+        <h2 className="text-[15px] font-semibold text-[#101828]">{title}</h2>
+        {hint ? <p className="text-xs text-[#98a2b3]">{hint}</p> : null}
+      </div>
+    </div>
   );
 }
 
@@ -288,33 +320,14 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
   if (!ready || !user || !plans) return <LoadingState label="Loading subscription…" />;
 
   const live = subscriptions?.find((row) => row.active) ?? null;
-  const plan = planFromList(plans, live?.planCode || user.planId);
+  const plan = planFromList(plans, live?.planCode || live?.planId || user.planId);
   const active = subscriptions ? Boolean(live) : user.subscriptionStatus === 'active';
   const renews = dated(live?.renewsAt || user.currentPeriodEnd);
-
-  const status = active
-    ? [plan?.name || live?.name, plan ? formatPlanPrice(plan) : null, renews ? `Renews ${renews}` : null]
-        .filter(Boolean)
-        .join(' · ') || 'Active'
-    : user.subscriptionStatus === 'canceled'
-      ? 'Canceled'
-      : 'No active plan';
+  const endingSoon = Boolean(live?.cancelAtPeriodEnd);
+  const planName = plan?.name || (live?.name !== 'Subscription' ? live?.name : null) || 'Plan';
+  const priceLabel = plan ? formatPlanPrice(plan) : null;
 
   const named = (code: string, fallback: string) => planFromList(plans, code)?.name || fallback;
-  const subscriptionRows = (subscriptions ?? []).map((row) => ({
-    id: row.id,
-    title: named(row.planCode, row.name),
-    detail: dated(row.renewsAt) ? `${row.active ? 'Renews' : 'Ended'} ${dated(row.renewsAt)}` : 'Subscription',
-    status: row.status,
-  }));
-  const paymentRows = (payments ?? []).map((row) => ({
-    id: row.id,
-    title: named(row.planCode, row.label || 'One-day pass'),
-    detail: dated(row.at) || 'Payment',
-    amount: formatMoney(row.amount, row.currency),
-    status: row.status,
-    href: row.invoiceUrl,
-  }));
 
   const cancel = async () => {
     setCanceling(true);
@@ -329,18 +342,78 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[1.75rem] font-semibold tracking-tight">Subscription</h1>
-          <p className="mt-1 text-sm text-[#667085]">{status}</p>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Subscription</h1>
+          <p className="mt-1 text-sm text-[#667085]">
+            {active
+              ? endingSoon
+                ? `Access continues through ${renews || 'the current period'}.`
+                : renews
+                  ? `Your ${planName} renews ${renews}.`
+                  : `Your ${planName} is active.`
+              : user.subscriptionStatus === 'canceled'
+                ? 'Your subscription has ended.'
+                : 'Choose a plan to keep forecasts coming.'}
+          </p>
         </div>
-        {active ? (
+        {active && !endingSoon ? (
           <Button type="button" variant="outline" className="shrink-0" onClick={() => setConfirmCancel(true)}>
             Cancel
           </Button>
         ) : null}
       </div>
       {error ? <p className="mt-3 text-sm text-[#b42318]">{error}</p> : null}
+
+      <div
+        className={cn(
+          'mt-6 overflow-hidden rounded-2xl border p-5',
+          active
+            ? 'border-[#c7daf5] bg-[linear-gradient(135deg,#f5f9ff_0%,#eef4fc_55%,#f8fafc_100%)]'
+            : 'border-[#e6e8ee] bg-[#f8fafc]',
+        )}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span
+              className={cn(
+                'grid size-11 shrink-0 place-items-center rounded-2xl',
+                active ? 'bg-[#0B3A82] text-white' : 'bg-[#eef2f7] text-[#667085]',
+              )}
+            >
+              <Sparkles className="size-5" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-base font-semibold text-[#101828]">{planName}</p>
+                <StatusBadge
+                  status={
+                    endingSoon
+                      ? 'ends soon'
+                      : live?.status || (active ? 'active' : user.subscriptionStatus || 'inactive')
+                  }
+                />
+              </div>
+              {plan?.cadence ? (
+                <p className="mt-1 text-sm text-[#667085]">{plan.cadence}</p>
+              ) : null}
+              {renews ? (
+                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-[#667085]">
+                  <CalendarDays className="size-3.5 shrink-0 text-[#0B3A82]" strokeWidth={1.75} />
+                  {endingSoon ? `Ends ${renews}` : `Renews ${renews}`}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {priceLabel ? (
+            <div className="rounded-xl bg-white/80 px-3 py-2 text-right shadow-[0_1px_2px_rgba(11,58,130,0.06)]">
+              <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Amount</p>
+              <p className="text-lg font-semibold tabular-nums text-[#0B3A82]">{priceLabel}</p>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
       <ConfirmDrawer
         open={confirmCancel}
         title="Cancel this subscription?"
@@ -356,26 +429,100 @@ export function SubscriptionScreen({ highlight }: { highlight?: PlanId | null })
         }}
       />
 
-      <div className="mt-6">
+      <SectionHeading icon={CreditCard} title="Select plan" hint="Pick another plan anytime" />
+      <div className="mt-3">
         <AccountPlanSelector highlight={highlight} />
       </div>
 
-      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">Subscriptions</h2>
+      <SectionHeading icon={Sparkles} title="Subscriptions" hint="Recurring access on this product" />
       {subscriptions === null ? (
         <LoadingState compact label="Loading subscriptions…" className="min-h-0 justify-start px-0 py-3" />
-      ) : subscriptionRows.length === 0 ? (
+      ) : (subscriptions ?? []).length === 0 ? (
         <p className="mt-3 text-sm text-[#667085]">No subscriptions yet.</p>
       ) : (
-        <BillingRows rows={subscriptionRows} />
+        <ul className="mt-3 space-y-2.5">
+          {(subscriptions ?? []).map((row) => {
+            const title = named(row.planCode || row.planId, named(row.planId, row.name));
+            const when = dated(row.renewsAt);
+            return (
+              <li
+                key={row.id}
+                className="flex items-center justify-between gap-4 rounded-2xl border border-[#e6eef8] bg-white px-4 py-3.5"
+              >
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="mt-0.5 grid size-9 place-items-center rounded-xl bg-[#e8f1ff] text-[#0B3A82]">
+                    <CreditCard className="size-4" strokeWidth={1.75} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#101828]">{title}</p>
+                    <p className="mt-0.5 text-sm text-[#98a2b3]">
+                      {when
+                        ? `${row.cancelAtPeriodEnd ? 'Ends' : row.active ? 'Renews' : 'Ended'} ${when}`
+                        : 'Subscription'}
+                    </p>
+                  </div>
+                </div>
+                <StatusBadge status={row.cancelAtPeriodEnd && row.active ? 'ends soon' : row.status} />
+              </li>
+            );
+          })}
+        </ul>
       )}
 
-      <h2 className="mt-10 text-[15px] font-semibold text-[#101828]">One-day pass</h2>
+      <SectionHeading icon={Receipt} title="Billing history" hint="Invoices and one-day passes" />
       {payments === null ? (
         <LoadingState compact label="Loading payments…" className="min-h-0 justify-start px-0 py-3" />
-      ) : paymentRows.length === 0 ? (
-        <p className="mt-3 text-sm text-[#667085]">No one-day pass payments yet.</p>
+      ) : (payments ?? []).length === 0 ? (
+        <p className="mt-3 text-sm text-[#667085]">No payments yet.</p>
       ) : (
-        <BillingRows rows={paymentRows} />
+        <ul className="mt-3 overflow-hidden rounded-2xl border border-[#e6eef8] bg-white">
+          {(payments ?? []).map((row) => {
+            const title = row.invoiceNumber
+              ? `Invoice ${row.invoiceNumber}`
+              : named(row.planCode, row.dayPass ? 'One-day pass' : row.label || 'Payment');
+            const when = dated(row.at);
+            const body = (
+              <>
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="mt-0.5 grid size-9 place-items-center rounded-xl bg-[#f0f7f4] text-[#125d4a]">
+                    <Receipt className="size-4" strokeWidth={1.75} />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-[#101828]">
+                      {title}
+                      {row.invoiceUrl ? <ExternalLink className="size-3.5 text-[#98a2b3]" strokeWidth={1.75} /> : null}
+                    </span>
+                    <span className="mt-0.5 block text-sm text-[#98a2b3]">{when || 'Payment'}</span>
+                  </div>
+                </div>
+                <span className="shrink-0 text-right">
+                  <span className="block text-sm font-semibold tabular-nums text-[#101828]">
+                    {formatMoney(row.amount, row.currency)}
+                  </span>
+                  <span className="mt-1 inline-flex">
+                    <StatusBadge status={row.status} />
+                  </span>
+                </span>
+              </>
+            );
+            return (
+              <li key={row.id} className="border-t border-[#eef2f8] first:border-t-0">
+                {row.invoiceUrl ? (
+                  <a
+                    href={row.invoiceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-[#f8fafc]"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">{body}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

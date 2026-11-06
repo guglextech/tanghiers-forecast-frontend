@@ -73,10 +73,12 @@ function blurbFrom(plan: ApiPlan, cadence: string) {
 
 export function mapCatalogPlan(plan: ApiPlan, featuredId?: string): Plan {
   const id = String(plan.code || plan.id || '').toLowerCase();
+  const uuid = plan.id ? String(plan.id) : undefined;
   const period = periodFrom(plan);
   const cadence = cadenceFrom(plan, period);
   return {
     id,
+    uuid,
     name: plan.name || id,
     price: priceFor(plan),
     currency: DEFAULT_CURRENCY,
@@ -103,5 +105,8 @@ export async function getCatalogPlans(): Promise<Plan[]> {
 
 export function planFromList(plans: Plan[], id: PlanId | null | undefined) {
   if (!id) return null;
-  return plans.find((plan) => plan.id === id) ?? null;
+  const key = String(id).toLowerCase();
+  return (
+    plans.find((plan) => plan.id === key || plan.uuid?.toLowerCase() === key) ?? null
+  );
 }

@@ -30,6 +30,7 @@ export type PlanId = string;
 
 export type Plan = {
   id: PlanId;
+  uuid?: string;
   name: string;
   price: number | null;
   currency?: string;
