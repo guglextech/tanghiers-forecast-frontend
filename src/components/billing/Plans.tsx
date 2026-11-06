@@ -148,43 +148,46 @@ function AccountPlanSelector({ highlight }: { highlight?: PlanId | null }) {
 
   return (
     <div>
-      <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]" role="list" aria-label="Plans">
+      <ul className="overflow-hidden rounded-2xl border border-[#e6e8ee]" aria-label="Plans">
         {plans.map((plan) => {
           const isCurrent = currentId === plan.id;
           const busy = checkingOut === plan.id;
           return (
-            <button
+            <li
               key={plan.id}
-              type="button"
-              disabled={isCurrent || Boolean(checkingOut)}
-              aria-busy={busy || undefined}
-              onClick={() => {
-                void startCheckout(plan.id);
-              }}
-              className={cn(
-                'flex w-full items-center gap-3 border-t border-[#eef0f3] px-4 py-3.5 text-left first:border-t-0',
-                isCurrent || busy ? 'bg-[#f8fafc]' : 'bg-white hover:bg-[#fafafa]',
-                checkingOut && !busy && 'opacity-50',
-              )}
+              className="flex items-center gap-3 border-t border-[#eef0f3] px-4 py-3.5 first:border-t-0"
             >
-              <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-[#101828]">{plan.name}</p>
                   {isCurrent ? (
                     <span className="rounded-full bg-[#e8f1ff] px-2 py-0.5 text-[11px] font-semibold text-[#0B3A82] uppercase">
                       Current
                     </span>
                   ) : null}
-                  {busy ? <span className="text-xs text-[#667085]">Opening checkout…</span> : null}
-                </span>
-              </span>
-              <span className="shrink-0 text-sm font-medium tabular-nums text-[#101828]">
-                {formatPlanPrice(plan) ?? '—'}
-              </span>
-            </button>
+                </div>
+                <p className="mt-0.5 text-sm tabular-nums text-[#667085]">{formatPlanPrice(plan) ?? '—'}</p>
+              </div>
+              {isCurrent ? (
+                <span className="text-sm text-[#98a2b3]">Subscribed</span>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="shrink-0 bg-[#0B3A82] px-4 text-white hover:bg-[#092e68]"
+                  loading={busy}
+                  disabled={Boolean(checkingOut)}
+                  onClick={() => {
+                    void startCheckout(plan.id);
+                  }}
+                >
+                  {busy ? 'Opening…' : 'Subscribe'}
+                </Button>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ul>
       {error ? <p className="mt-2 text-sm text-[#b42318]">{error}</p> : null}
     </div>
   );
