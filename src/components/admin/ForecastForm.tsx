@@ -136,7 +136,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
           </h1>
           <p className="mt-1 max-w-xl text-sm text-[#667085]">
             Permutation and a short message for the draw date. Publishing makes it available on the
-            site and records email and SMS for every active subscriber.
+            site and queues email and SMS for subscribers who opted in.
           </p>
           {initial?.status === 'published' ? (
             <Link href={`/forecasts/${initial.id}`} className="mt-3 inline-flex text-sm font-medium hover:underline">

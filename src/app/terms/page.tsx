@@ -11,11 +11,15 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: 'The service',
-    body: 'LottoForecasts.com publishes daily number forecasts for national lottery games in the USA. Forecasts are prepared with dedicated draw machines and reviewed manually. We do not use artificial intelligence. An active subscription opens the forecast on the site, by email, and by SMS.',
+    body: 'LottoForecasts.com provides a paid informational and entertainment subscription featuring manually prepared lottery-related numerical forecasts for national lottery games in the USA. An active subscription opens the forecast on the site, and optional email and SMS notifications may deliver the same content if you opt in.',
   },
   {
-    title: 'Infotainment, not a guarantee',
-    body: 'Forecasts are for infotainment only. They are predictions, not guarantees of future lottery results. Lottery games are games of chance. Play responsibly. We make no warranty about the accuracy, completeness, or reliability of anything on this site, and a forecast is not an instruction to place a wager.',
+    title: 'Informational and entertainment only',
+    body: 'Forecasts are for informational and entertainment purposes only. They are not guarantees of winning outcomes and are not recommendations to place any wager. Lottery games are games of chance. Play responsibly. We make no warranty about the accuracy, completeness, or reliability of anything on this site.',
+  },
+  {
+    title: 'What subscription fees cover',
+    body: 'Subscription fees pay for access to forecasting content only. They do not pay for lottery entries, winnings, or any lottery outcome. LottoForecasts does not accept or facilitate wagers, sell lottery tickets, operate lottery drawings, award prizes, or guarantee results.',
   },
   {
     title: 'Unofficial',
@@ -23,11 +27,11 @@ const sections = [
   },
   {
     title: 'Subscriptions',
-    body: 'Subscriptions help support the draw machines, daily publishing, and the website. Plans renew through Stripe until you cancel. Canceling closes forecast access. Taxes, where they apply, are added by the payment provider.',
+    body: 'Plans renew through Stripe until you cancel. Canceling closes forecast access at the end of the current period. Taxes, where they apply, are added by the payment provider.',
   },
   {
-    title: 'Texts',
-    body: 'Text consent is optional. Until text delivery is active, saving a number or consent only records your choice. You can remove the number from your account at any time.',
+    title: 'Optional SMS and email notifications',
+    body: 'Messaging consent is optional and is not a condition of purchase or use of the service. You may enroll during registration or later in account preferences. Frequency is up to one daily forecast message per enrolled channel, plus any necessary confirmation or opt-out messages. SMS message and data rates may apply according to your carrier plan. Reply STOP to cancel SMS, or HELP for assistance. Email includes an unsubscribe link. Full details are in the Messaging policy.',
   },
   {
     title: 'Accounts',
@@ -51,7 +55,12 @@ export default function TermsPage() {
         ))}
       </div>
       <p className="mt-6 text-sm text-[#667085]">
-        Questions and corrections:{' '}
+        Messaging:{' '}
+        <Link href="/messaging" className="font-medium text-[#101828] hover:underline">
+          Messaging policy
+        </Link>
+        {' · '}
+        Questions:{' '}
         <Link href="/contact" className="font-medium text-[#101828] hover:underline">
           Contact
         </Link>

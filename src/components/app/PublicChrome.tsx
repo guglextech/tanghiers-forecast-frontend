@@ -139,6 +139,9 @@ export function PublicFooter() {
           <Link href="/terms" className="hover:text-foreground">
             Terms
           </Link>
+          <Link href="/messaging" className="hover:text-foreground">
+            Messaging
+          </Link>
         </nav>
       </div>
     </footer>

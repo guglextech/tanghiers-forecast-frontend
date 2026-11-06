@@ -77,6 +77,7 @@ export function GuestHome() {
             <Link href="/contact" className="hover:text-foreground">Contact</Link>
             <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link href="/terms" className="hover:text-foreground">Terms</Link>
+            <Link href="/messaging" className="hover:text-foreground">Messaging</Link>
           </nav>
         </div>
       </footer>

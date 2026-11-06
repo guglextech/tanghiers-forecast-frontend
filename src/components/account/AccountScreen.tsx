@@ -405,7 +405,11 @@ export function AccountScreen() {
         <CardHeading title="Preferences" hint="Display and app behaviour." />
         <div className="mt-2 divide-y divide-[#e8eaee]">
           <ThemeRow />
-          <SettingRow icon={Bell} title="Forecast texts" hint="Optional. Delivery is not live yet.">
+          <SettingRow
+            icon={Bell}
+            title="Forecast texts"
+            hint="Optional. Up to 1 msg/day. Msg & data rates may apply. Reply STOP to cancel."
+          >
             <Switch
               size="lg"
               checked={consent}
@@ -414,6 +418,13 @@ export function AccountScreen() {
             />
           </SettingRow>
         </div>
+        <p className="mt-3 text-xs leading-5 text-[#98a2b3]">
+          Consent is optional and not required to use the service. Full details are in the{' '}
+          <Link href="/messaging" className="font-medium text-[#667085] hover:text-[#101828]">
+            messaging policy
+          </Link>
+          .
+        </p>
       </Card>
 
       <Card className="mt-4">

@@ -14,11 +14,11 @@ export const dynamic = 'force-dynamic';
 const faqs = [
   {
     title: 'What a plan unlocks',
-    body: 'The daily numbers, the archive, and the draw video. The same forecast is also sent by email and SMS.',
+    body: 'Access to the daily forecast, archive, and draw video. Optional email and SMS notifications may also deliver up to one forecast message per day per enrolled channel if you opt in.',
   },
   {
     title: 'Cancel anytime',
-    body: 'Manage or cancel from Subscription. Access stays through the end of the current period.',
+    body: 'Manage or cancel from Subscription. Access stays through the end of the current period. Messaging consent is optional and separate from your plan.',
   },
 ];
 
@@ -42,7 +42,8 @@ export default async function PricingPage() {
       </div>
 
       <p className="mt-8 text-sm text-[#98a2b3]">
-        Every plan includes the daily numbers, the draw video, the archive, and email and SMS.
+        Every plan includes the daily forecast, draw video, and archive. Email and SMS are optional
+        and can be managed in your account.
       </p>
 
       <div className="mt-10 space-y-6">
