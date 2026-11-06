@@ -38,22 +38,24 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <PublicFrame>
-      <h1 className="text-[1.75rem] font-semibold tracking-tight">Privacy</h1>
-      <p className="mt-1 text-sm leading-6 text-[#667085]">
+      <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Privacy</h1>
+      <p className="mt-2 max-w-xl text-sm leading-6 text-[#667085]">
         How LottoForecasts uses account, billing, and messaging information.
       </p>
-      <div className="mt-8 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
+
+      <div className="mt-8 space-y-6">
         {sections.map((section) => (
-          <section key={section.title} className="py-4">
-            <h2 className="text-[15px] font-medium">{section.title}</h2>
-            <p className="mt-1.5 text-sm leading-6 text-[#667085]">{section.body}</p>
+          <section key={section.title}>
+            <h2 className="text-sm font-semibold text-[#101828]">{section.title}</h2>
+            <p className="mt-1 text-sm leading-6 text-[#667085]">{section.body}</p>
           </section>
         ))}
       </div>
-      <p className="mt-6 text-sm text-[#667085]">
-        Messaging details:{' '}
+
+      <p className="mt-8 text-sm leading-6 text-[#667085]">
+        Messaging details are in the{' '}
         <Link href="/messaging" className="font-medium text-[#101828] hover:underline">
-          Messaging policy
+          messaging policy
         </Link>
         . Questions:{' '}
         <a className="font-medium text-[#101828] hover:underline" href={`mailto:${SITE.email}`}>
