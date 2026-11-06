@@ -33,9 +33,9 @@ export function ContactForm() {
 
   if (sent) {
     return (
-      <div className="rounded-2xl border border-[#eef0f3] bg-[#fafbfc] px-5 py-8 text-center sm:px-8">
-        <span className="mx-auto grid size-10 place-items-center rounded-full bg-[#101828] text-white">
-          <Check className="size-4" strokeWidth={2} aria-hidden />
+      <div className="py-2">
+        <span className="grid size-9 place-items-center rounded-full bg-[#101828] text-white">
+          <Check className="size-3.5" strokeWidth={2} aria-hidden />
         </span>
         <p className="mt-4 text-base font-semibold tracking-tight text-[#101828]">Message sent</p>
         <p className="mt-1 text-sm leading-6 text-[#667085]">
@@ -43,7 +43,7 @@ export function ContactForm() {
         </p>
         <button
           type="button"
-          className="mt-6 text-sm font-medium text-[#667085] hover:text-[#101828]"
+          className="mt-5 text-sm font-medium text-[#667085] hover:text-[#101828]"
           onClick={() => setSent(false)}
         >
           Send another
@@ -53,10 +53,7 @@ export function ContactForm() {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-5 rounded-2xl border border-[#eef0f3] bg-white p-5 sm:p-6"
-    >
+    <form onSubmit={onSubmit} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>

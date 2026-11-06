@@ -36,14 +36,14 @@ export default function ContactPage() {
 
       <a
         href={`mailto:${SITE.email}`}
-        className="mt-6 flex items-center gap-3 rounded-2xl border border-[#eef0f3] bg-[#fafbfc] px-4 py-3.5 transition-colors hover:border-[#d0d5dd] hover:bg-white"
+        className="mt-6 inline-flex items-center gap-3 text-sm transition-colors hover:text-[#101828]"
       >
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white text-[#101828] ring-1 ring-[#eef0f3]">
-          <Mail className="size-4" strokeWidth={1.75} aria-hidden />
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f4f6f8] text-[#101828]">
+          <Mail className="size-3.5" strokeWidth={1.75} aria-hidden />
         </span>
         <span className="min-w-0">
           <span className="block text-xs text-[#98a2b3]">Email</span>
-          <span className="block truncate text-sm font-medium text-[#101828]">{SITE.email}</span>
+          <span className="block truncate font-medium text-[#101828]">{SITE.email}</span>
         </span>
       </a>
 
@@ -51,16 +51,16 @@ export default function ContactPage() {
         <ContactForm />
       </div>
 
-      <div className="mt-10 divide-y divide-[#eef0f3] border-y border-[#eef0f3]">
+      <div className="mt-10 space-y-5">
         {topics.map((topic) => (
-          <section key={topic.title} className="py-4">
+          <section key={topic.title}>
             <h2 className="text-sm font-medium text-[#101828]">{topic.title}</h2>
             <p className="mt-1 text-sm leading-6 text-[#667085]">{topic.body}</p>
           </section>
         ))}
       </div>
 
-      <p className="mt-6 text-sm leading-6 text-[#667085]">
+      <p className="mt-8 text-sm leading-6 text-[#667085]">
         Optional SMS and email notifications are covered in the{' '}
         <Link href="/messaging" className="font-medium text-[#101828] hover:underline">
           messaging policy
