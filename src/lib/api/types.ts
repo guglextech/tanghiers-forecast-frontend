@@ -166,9 +166,11 @@ export type ApiSubscription = {
   planCode?: string;
   planId?: string;
   planName?: string;
+  currency?: string;
   currentPeriodEnd?: string | null;
   currentPeriodStart?: string | null;
   createdAt?: string;
+  canceledAt?: string | null;
   productSlug?: string;
   cancelAtPeriodEnd?: boolean;
 };

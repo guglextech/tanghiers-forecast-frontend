@@ -321,12 +321,19 @@ function isDayPassPayment(row: ApiPayment) {
   return hint.includes('day') || hint.includes('pass');
 }
 
+function looksLikeId(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 export type AccountSubscription = {
   id: string;
   planCode: string;
+  planId: string;
   name: string;
   status: string;
+  currency: string;
   renewsAt: string | null;
+  cancelAtPeriodEnd: boolean;
   active: boolean;
 };
 
@@ -334,6 +341,7 @@ export type AccountPayment = {
   id: string;
   planCode: string;
   label: string;
+  invoiceNumber: string | null;
   status: string;
   amount: number;
   currency: string;
@@ -344,29 +352,39 @@ export type AccountPayment = {
 
 export function mapAccountSubscription(row: ApiSubscription, index = 0): AccountSubscription {
   const status = String(row.status || '').toLowerCase();
-  const planCode = String(row.planCode || row.planId || '').toLowerCase();
+  const planCode = String(row.planCode || '').toLowerCase();
+  const planId = String(row.planId || '').toLowerCase();
+  const codeHint = planCode || planId;
   const name =
     row.planName ||
-    (planCode ? planCode.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Subscription');
+    (codeHint && !looksLikeId(codeHint)
+      ? codeHint.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+      : 'Subscription');
   return {
     id: row.id || `sub-${index}`,
     planCode,
+    planId,
     name,
     status: status || 'unknown',
+    currency: String(row.currency || 'USD').toUpperCase(),
     renewsAt: row.currentPeriodEnd || null,
+    cancelAtPeriodEnd: Boolean(row.cancelAtPeriodEnd),
     active: status === 'active' || status === 'trialing',
   };
 }
 
 export function mapAccountPayment(row: ApiPayment, index = 0): AccountPayment {
   const planCode = String(row.planCode || row.planId || '').toLowerCase();
-  const dayPass = isDayPassPayment(row) || (!planCode && !row.planName && !row.label && !row.description);
+  const invoice = row.invoiceNumber?.trim() || null;
+  const dayPass =
+    isDayPassPayment(row) ||
+    (!planCode && !row.planName && !row.label && !row.description && !invoice);
   const money = paymentMoney(row);
-  const invoice = row.invoiceNumber?.trim();
   return {
     id: row.id || `pay-${index}`,
     planCode,
-    label: row.planName || row.label || row.description || (invoice ? `Invoice ${invoice}` : 'One-day pass'),
+    label: row.planName || row.label || row.description || (invoice ? `Invoice ${invoice}` : 'Payment'),
+    invoiceNumber: invoice,
     status: String(row.status || 'paid').toLowerCase(),
     amount: money.amount,
     currency: money.currency,
