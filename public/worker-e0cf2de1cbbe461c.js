@@ -1,0 +1,1 @@
+self.addEventListener("notificationclick",n=>{n.notification.close();let e=new URL("/feed",self.location.origin).href;n.waitUntil(self.clients.matchAll({type:"window",includeUncontrolled:!0}).then(n=>{let i=n.find(n=>n.url.includes(self.location.origin));if(i){i.focus(),"navigate"in i&&i.navigate(e);return}return self.clients.openWindow(e)}))});

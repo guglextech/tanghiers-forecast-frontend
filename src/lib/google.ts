@@ -1,7 +1,6 @@
 const PENDING_KEY = 'tg.social.pending.v1';
 
 export type PendingSocial = {
-  signupToken: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -16,10 +15,12 @@ export function readPendingSocial(): PendingSocial | null {
   try {
     const raw = window.sessionStorage.getItem(PENDING_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<PendingSocial>;
-    if (!parsed?.signupToken) return null;
+    const parsed = JSON.parse(raw) as Partial<PendingSocial> & { signupToken?: string };
+    // Legacy payloads may still include signupToken in storage; never use it client-side.
+    if (!parsed || (!parsed.email && !parsed.firstName && !parsed.lastName && !parsed.signupToken)) {
+      return null;
+    }
     return {
-      signupToken: parsed.signupToken,
       email: parsed.email || '',
       firstName: parsed.firstName || '',
       lastName: parsed.lastName || '',
@@ -31,7 +32,14 @@ export function readPendingSocial(): PendingSocial | null {
 
 export function writePendingSocial(pending: PendingSocial) {
   if (!canUseStorage()) return;
-  window.sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+  window.sessionStorage.setItem(
+    PENDING_KEY,
+    JSON.stringify({
+      email: pending.email || '',
+      firstName: pending.firstName || '',
+      lastName: pending.lastName || '',
+    }),
+  );
 }
 
 export function clearPendingSocial() {
@@ -53,5 +61,20 @@ export function readIdTokenProfile(idToken: string) {
     };
   } catch {
     return { email: '', firstName: '', lastName: '' };
+  }
+}
+
+export async function hasPendingSocialSignup() {
+  try {
+    const response = await fetch('/api/auth/social/status', {
+      method: 'GET',
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    if (!response.ok) return false;
+    const payload = (await response.json().catch(() => null)) as { pending?: boolean } | null;
+    return Boolean(payload?.pending);
+  } catch {
+    return false;
   }
 }

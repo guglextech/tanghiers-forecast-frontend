@@ -1,8 +1,10 @@
 import { PRODUCT_SLUG } from '@/lib/api/config';
 import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { admin, asList, auth, billing, catalog, me } from '@/lib/api/resources';
-import { ensureAccessToken, readTokens, writeTokens } from '@/lib/api/client';
+import { ensureAccessToken, normalizeTokens, readTokens, writeTokens } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
+import { postGoogleAuth, postSocialComplete } from '@/lib/auth/api';
+import type { GoogleAuthClientResponse } from '@/lib/auth/types';
 import {
   clearPendingSocial,
   readIdTokenProfile,
@@ -231,7 +233,6 @@ function concludeAuth(result: LoginResult, email = ''): Promise<SessionUser> {
     }
     const profile = result.profile;
     writePendingSocial({
-      signupToken: result.signupToken,
       email: (typeof profile?.email === 'string' && profile.email) || email,
       firstName: typeof profile?.firstName === 'string' ? profile.firstName : '',
       lastName: typeof profile?.lastName === 'string' ? profile.lastName : '',
@@ -239,6 +240,57 @@ function concludeAuth(result: LoginResult, email = ''): Promise<SessionUser> {
     throw new ApiError('Finish creating your account.', 202, 'SOCIAL_SIGNUP');
   }
   return sessionFromLogin(result);
+}
+
+async function concludeGoogleClientAuth(
+  result: GoogleAuthClientResponse,
+  fallbackEmail = '',
+): Promise<SessionUser> {
+  const email = result.email || fallbackEmail;
+  if (result.status === 'mfa_required') {
+    if (!result.mfaToken) {
+      throw new ApiError(result.message || 'Authenticator verification is required.', 401, 'MFA_VERIFY');
+    }
+    writePendingMfa({
+      mfaToken: result.mfaToken,
+      enrollmentRequired: Boolean(result.mfaEnrollmentRequired),
+      email,
+    });
+    throw new ApiError(
+      result.message ||
+        (result.mfaEnrollmentRequired
+          ? 'Set up an authenticator app to finish signing in.'
+          : 'Enter the code from your authenticator app.'),
+      401,
+      result.code === 'MFA_ENROLL' || result.mfaEnrollmentRequired ? 'MFA_ENROLL' : 'MFA_VERIFY',
+    );
+  }
+
+  if (result.status === 'signup_required') {
+    writePendingSocial({
+      email,
+      firstName: result.firstName || '',
+      lastName: result.lastName || '',
+    });
+    throw new ApiError(result.message || 'Finish creating your account.', 202, 'SOCIAL_SIGNUP');
+  }
+
+  if (result.status !== 'authenticated' || !result.tokens?.accessToken) {
+    throw new ApiError(
+      result.message || 'Google authentication failed.',
+      400,
+      result.code || 'GOOGLE_AUTH_FAILED',
+    );
+  }
+
+  const tokens = normalizeTokens(result.tokens);
+  if (!tokens) throw new ApiError('Could not sign in.', 401);
+  writeTokens(tokens);
+  clearPendingMfa();
+  clearPendingSocial();
+  const session = await hydrateSession();
+  if (!session) throw new ApiError('Signed in, but the profile could not be loaded.');
+  return session;
 }
 
 export async function loginAccount(input: { email: string; password: string }): Promise<SessionUser> {
@@ -311,48 +363,58 @@ export async function continueWithGoogle(idToken: string, nonce?: string): Promi
   const token = idToken.trim();
   if (!token) throw new Error('Google did not return an ID token.');
   const fromToken = readIdTokenProfile(token);
-  const result = await auth.google(token, nonce);
-  const profile = result.profile;
-  return concludeAuth(
+  const { result } = await postGoogleAuth(token, nonce);
+  return concludeGoogleClientAuth(
     {
       ...result,
-      profile: {
-        email: (typeof profile?.email === 'string' && profile.email) || fromToken.email,
-        firstName: (typeof profile?.firstName === 'string' && profile.firstName) || fromToken.firstName,
-        lastName: (typeof profile?.lastName === 'string' && profile.lastName) || fromToken.lastName,
-      },
+      email: result.email || fromToken.email,
+      firstName: result.firstName || fromToken.firstName,
+      lastName: result.lastName || fromToken.lastName,
     },
     fromToken.email,
   );
 }
 
 export type SocialSignupInput = {
-  consents: { terms: string; privacy: string; age: string };
+  countryCode: string;
   dateOfBirth: string;
+  acceptedTerms: boolean;
+  acceptedPrivacy: boolean;
+  acceptedAge: boolean;
+  minAge?: number;
+  /** @deprecated Consent versions are applied server-side. Kept for older callers. */
+  consents?: { terms: string; privacy: string; age: string };
 };
 
 export async function completeGoogleSignup(input: SocialSignupInput): Promise<SessionUser> {
   const pending = readPendingSocial();
-  if (!pending?.signupToken) {
-    throw new ApiError('Start with Google again to finish creating this account.');
-  }
   const dateOfBirth = input.dateOfBirth.trim();
+  const countryCode = input.countryCode.trim().toUpperCase();
   if (!dateOfBirth) throw new Error('Enter your date of birth.');
-  return concludeAuth(
-    await auth.completeSocial({
-      signupToken: pending.signupToken,
-      countryCode: 'US',
-      dateOfBirth,
-      ...(pending.firstName ? { firstName: pending.firstName } : {}),
-      ...(pending.lastName ? { lastName: pending.lastName } : {}),
-      consents: {
-        terms: input.consents.terms,
-        privacy: input.consents.privacy,
-        age: input.consents.age,
-      },
-    }),
-    pending.email,
-  );
+  if (!/^[A-Z]{2}$/.test(countryCode)) throw new Error('Choose a country.');
+  if (!input.acceptedTerms || !input.acceptedPrivacy || !input.acceptedAge) {
+    throw new Error('Agree to the terms, privacy policy, and age confirmation to continue.');
+  }
+
+  const { result } = await postSocialComplete({
+    countryCode,
+    dateOfBirth,
+    acceptedTerms: input.acceptedTerms,
+    acceptedPrivacy: input.acceptedPrivacy,
+    acceptedAge: input.acceptedAge,
+    minAge: input.minAge,
+  });
+
+  if (result.status === 'error' && result.code === 'MISSING_SIGNUP_TOKEN') {
+    clearPendingSocial();
+    throw new ApiError(
+      result.message || 'Start with Google again to finish creating this account.',
+      401,
+      'MISSING_SIGNUP_TOKEN',
+    );
+  }
+
+  return concludeGoogleClientAuth(result, pending?.email || '');
 }
 
 export async function logoutAccount() {

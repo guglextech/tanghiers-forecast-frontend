@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
-import { GoogleContinueButton } from '@/components/auth/GoogleContinueButton';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useSession } from '@/components/app/SessionProvider';
 import { ApiError } from '@/lib/api/errors';
 import { mfaPathFor, readPendingMfa } from '@/lib/mfa';
@@ -22,7 +22,7 @@ const choiceClass =
   'inline-flex h-9 w-full items-center justify-center gap-2 rounded-[var(--radius)] text-sm font-medium transition-colors';
 
 export function AuthForm() {
-  const { user, ready, login, continueWithGoogle } = useSession();
+  const { user, ready, login } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '';
@@ -33,7 +33,8 @@ export function AuthForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState<'google' | 'password' | null>(null);
+  const [busy, setBusy] = useState<'password' | null>(null);
+  const notice = searchParams.get('message') || '';
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -42,27 +43,6 @@ export function AuthForm() {
 
   const go = (sessionRole: 'member' | 'admin') => {
     router.replace(destinationFor(sessionRole, next));
-  };
-
-  const onGoogle = async (idToken: string, nonce: string) => {
-    setError('');
-    setBusy('google');
-    try {
-      const session = await continueWithGoogle(idToken, nonce);
-      toast.success('Signed in with Google.');
-      go(session.role);
-    } catch (err) {
-      if (err instanceof ApiError && err.code === 'SOCIAL_SIGNUP') {
-        router.replace(`/signup${query}`);
-        return;
-      }
-      if (err instanceof ApiError && (err.code === 'MFA_ENROLL' || err.code === 'MFA_VERIFY')) {
-        router.replace(mfaPathFor(readPendingMfa(), next));
-        return;
-      }
-      setError(err instanceof Error ? err.message : 'Could not continue with Google.');
-      setBusy(null);
-    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -103,13 +83,11 @@ export function AuthForm() {
           Continue with Google, or use email and password.
         </p>
 
+        {notice ? <p className="mt-4 text-sm text-[#667085]">{notice}</p> : null}
+
         {step === 'choose' ? (
           <div className="mt-6 space-y-2">
-            <GoogleContinueButton
-              disabled={busy === 'google'}
-              onSuccess={(idToken, nonce) => void onGoogle(idToken, nonce)}
-              onError={(message) => setError(message)}
-            />
+            <GoogleSignInButton next={next} onSignedIn={go} />
             <button
               type="button"
               onClick={() => {
