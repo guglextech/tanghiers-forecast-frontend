@@ -5,21 +5,21 @@ import { AdaptiveFrame } from '@/components/chrome/Frames';
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'LottoForecasts.com publishes daily number forecasts for national lottery games in the USA. Forecasts are for infotainment and are not guaranteed.',
+    'LottoForecasts.com publishes manually prepared lottery-related numerical forecasts for informational and entertainment purposes. Results are not guaranteed.',
 };
 
 const sections = [
   {
     title: 'How forecasts are made',
-    body: 'Each day, our team runs dedicated draw machines and manually reviews the results to publish forecasts for our community. We do not use artificial intelligence. The forecasting process is carried out manually.',
+    body: 'Each day, our team prepares lottery-related numerical forecasts through independent review and analysis. The forecasting process is carried out manually. We do not use artificial intelligence.',
   },
   {
-    title: 'What a subscription supports',
-    body: 'Subscriptions help support the ongoing operation of our draw machines, daily publishing, website maintenance, and the community we are building together.',
+    title: 'What a subscription covers',
+    body: 'Subscription fees pay for access to forecasting content only. They do not pay for lottery entries, winnings, or any lottery outcome. LottoForecasts does not accept or facilitate wagers, sell lottery tickets, operate lottery drawings, award prizes, or guarantee results.',
   },
   {
-    title: 'Infotainment, not a guarantee',
-    body: 'LottoForecasts.com is for infotainment only. Forecasts are predictions, not guarantees of future lottery results. Lottery games are games of chance, and users should play responsibly. We take care when preparing and posting forecasts, and we make no warranty about the accuracy, completeness, or reliability of anything on this site.',
+    title: 'Informational and entertainment only',
+    body: 'LottoForecasts.com is for informational and entertainment purposes only. Forecasts are not guarantees of winning outcomes and are not recommendations to place any wager. Lottery games are games of chance, and users should play responsibly.',
   },
   {
     title: 'Important disclaimer',
@@ -50,7 +50,11 @@ export default function AboutPage() {
         <Link href="/contact" className="font-medium text-[#101828] hover:underline">
           Contact
         </Link>{' '}
-        page. You can also subscribe for daily forecasts, site updates, and community news.
+        page. Optional SMS and email notifications are covered in the{' '}
+        <Link href="/messaging" className="font-medium text-[#101828] hover:underline">
+          messaging policy
+        </Link>
+        .
       </p>
 
       <Link

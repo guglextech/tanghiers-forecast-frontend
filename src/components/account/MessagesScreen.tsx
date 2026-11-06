@@ -32,8 +32,8 @@ export function MessagesScreen() {
     <div>
       <h1 className="text-[1.75rem] font-semibold tracking-tight">Delivery messages</h1>
       <p className="mt-2 text-[15px] leading-6 text-[#667085]">
-        Each published forecast is listed here for your account. Text delivery is not active yet, so
-        SMS stays queued until that channel is connected.
+        Each published forecast is listed here for your account. Optional SMS and email delivery
+        follow the messaging policy: up to one forecast message per day per enrolled channel.
       </p>
       {rows.length === 0 ? (
         <p className="mt-8 text-sm leading-6 text-[#667085]">

@@ -133,11 +133,11 @@ export function PublicFooter() {
 
   return (
     <footer className="mt-auto pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
-      <div className={cn(shellClass, 'flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between')}>
+      <div className={cn(shellClass, 'flex flex-col gap-3 py-6')}>
         <p className="text-[13px] leading-5 text-[#98a2b3]">
           A {SITE.project} product. {SITE.disclaimer}
         </p>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-1 sm:shrink-0 sm:flex-nowrap">
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-1">
           {footerNav.public.map((link) => (
             <Link key={link.href} href={link.href} className={footerLinkClass(pathname === link.href)}>
               {link.label}

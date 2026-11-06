@@ -2,11 +2,11 @@ export const SITE = {
   name: ' Lotto Forecasts',
   shortName: 'TG',
   project: 'TG',
-  tagline: 'Daily lotto forecasts for active subscribers, on the site, by email, and by SMS.',
+  tagline: 'Daily lottery forecasts for informational and entertainment purposes.',
   description:
-    ' Lotto Forecasts publishes one daily forecast and delivers it to active subscribers on the website, by email, and by text. Subscribe online with Stripe.',
-  email: 'desk@tanghiers.com',
-  disclaimer: 'For infotainment only. Forecasts are not guaranteed.',
+    'LottoForecasts publishes manually prepared lottery-related numerical forecasts for informational and entertainment purposes. Active subscribers can read them on the site, with optional email and SMS delivery.',
+  email: 'support@lottoforecasts.com',
+  disclaimer: 'For informational and entertainment purposes only. Results are not guaranteed.',
 } as const;
 
 export const publicNav = [
@@ -22,6 +22,7 @@ export const footerNav = {
     { href: '/contact', label: 'Contact' },
     { href: '/privacy', label: 'Privacy' },
     { href: '/terms', label: 'Terms' },
+    { href: '/messaging', label: 'Messaging' },
   ],
 } as const;
 
@@ -65,26 +66,26 @@ export const homeFaqs = [
   {
     question: 'Who can see the numbers and the video?',
     answer:
-      'Active subscribers. Anyone can create an account, but the current forecast, the archive, and the machine video stay closed until a plan is active.',
+      'Active subscribers. Anyone can create an account, but the current forecast, the archive, and the draw video stay closed until a plan is active.',
   },
   {
     question: 'How do I pay?',
     answer:
-      'Online, with a recurring Stripe subscription. Tanghiers does not use short codes, USSD, or mobile money.',
+      'Online, with a recurring Stripe subscription. Subscription fees pay for access to forecasting content only. LottoForecasts does not use short codes, USSD, or mobile money.',
   },
   {
     question: 'When does a forecast arrive?',
     answer:
-      'When the desk publishes it. It appears on the site for active subscribers, and email and SMS delivery are recorded for each of them.',
+      'When the desk publishes it. It appears on the site for active subscribers. Optional email and SMS notifications may also send up to one forecast message per day per enrolled channel.',
   },
   {
-    question: 'Can I save a mobile number before texts are live?',
+    question: 'Are SMS and email required?',
     answer:
-      'Yes. Saving a number or consent only records your choice. Nothing is sent to the number, and it is not verified, until text delivery is active.',
+      'No. Messaging consent is optional and is not a condition of purchase. You can enroll or change preferences in your account. Reply STOP to cancel SMS, or HELP for assistance. Email includes an unsubscribe link.',
   },
   {
     question: 'Are the forecasts guaranteed?',
     answer:
-      'No. Forecasts are for infotainment. They are predictions, not guarantees, and lottery games are games of chance.',
+      'No. Forecasts are for informational and entertainment purposes only. Results are not guaranteed, and lottery games are games of chance.',
   },
 ] as const;
