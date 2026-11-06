@@ -6,10 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
-import { GoogleContinueButton } from '@/components/auth/GoogleContinueButton';
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { useSession } from '@/components/app/SessionProvider';
 import { ApiError } from '@/lib/api/errors';
-import { readPendingSocial } from '@/lib/google';
+import { hasPendingSocialSignup } from '@/lib/google';
 import { mfaPathFor, readPendingMfa } from '@/lib/mfa';
 import { catalog } from '@/lib/api/resources';
 import type { ApiConsentMap } from '@/lib/api/types';
@@ -71,18 +71,6 @@ function ConsentRow({
   );
 }
 
-function ageFromIso(iso: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!match) return 0;
-  const born = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  if (Number.isNaN(born.getTime())) return 0;
-  const today = new Date();
-  let age = today.getFullYear() - born.getFullYear();
-  const month = today.getMonth() - born.getMonth();
-  if (month < 0 || (month === 0 && today.getDate() < born.getDate())) age -= 1;
-  return age;
-}
-
 const CONSENT_NOTE = 'Agree to the terms, privacy policy, and age confirmation to continue.';
 
 const STEP_COPY = [
@@ -91,7 +79,7 @@ const STEP_COPY = [
 ] as const;
 
 export function SignupScreen() {
-  const { user, ready, signup, continueWithGoogle, completeGoogleSignup } = useSession();
+  const { user, ready, signup } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '';
@@ -110,8 +98,6 @@ export function SignupScreen() {
   const [minAge, setMinAge] = React.useState(18);
   const [error, setError] = React.useState('');
   const [busy, setBusy] = React.useState(false);
-  const [dateOfBirth, setDateOfBirth] = React.useState('');
-  const [pendingSocial, setPendingSocial] = React.useState<string | null>(null);
   const [done, setDone] = React.useState(false);
 
   React.useEffect(() => {
@@ -120,11 +106,10 @@ export function SignupScreen() {
   }, [ready, user, next, router]);
 
   React.useEffect(() => {
-    const pending = readPendingSocial();
-    if (!pending?.signupToken) return;
-    setPendingSocial(pending.email || 'your Google account');
-    setStep(1);
-  }, []);
+    void hasPendingSocialSignup().then((pending) => {
+      if (pending) router.replace(`/complete-registration${query}`);
+    });
+  }, [router, query]);
 
   React.useEffect(() => {
     void Promise.all([
@@ -149,37 +134,14 @@ export function SignupScreen() {
     text: `I confirm I am at least ${minAge} years old.`,
   };
 
-  const onGoogle = async (idToken: string, nonce: string) => {
-    setError('');
-    try {
-      await continueWithGoogle(idToken, nonce);
-    } catch (err) {
-      if (err instanceof ApiError && err.code === 'SOCIAL_SIGNUP') {
-        const pending = readPendingSocial();
-        setPendingSocial(pending?.email || 'your Google account');
-        setStep(1);
-        return;
-      }
-      if (err instanceof ApiError && (err.code === 'MFA_ENROLL' || err.code === 'MFA_VERIFY')) {
-        router.replace(mfaPathFor(readPendingMfa(), next));
-        return;
-      }
-      setError(err instanceof Error ? err.message : 'Could not continue with Google.');
-    }
-  };
-
   const validateStep = (index: number) => {
-    if (index === 0 && !pendingSocial) {
+    if (index === 0) {
       if (!firstName.trim()) throw new Error('Enter a first name.');
       if (!lastName.trim()) throw new Error('Enter a last name.');
       if (!email.trim()) throw new Error('Enter an email.');
       if (password.length < 8) throw new Error('Use a password of at least 8 characters.');
     }
     if (index === 1) {
-      if (pendingSocial && !dateOfBirth) throw new Error('Enter your date of birth.');
-      if (pendingSocial && ageFromIso(dateOfBirth) < minAge) {
-        throw new Error(`You must be at least ${minAge} years old.`);
-      }
       if (!agreeTerms || !agreePrivacy || !agreeAge) {
         throw new Error(CONSENT_NOTE);
       }
@@ -204,11 +166,6 @@ export function SignupScreen() {
       validateStep(1);
       setBusy(true);
       const versions = { terms: terms.version, privacy: privacy.version, age: age.version };
-      if (pendingSocial) {
-        await completeGoogleSignup({ consents: versions, dateOfBirth });
-        toast.success('Signed in with Google.');
-        return;
-      }
       await signup({
         email,
         password,
@@ -254,14 +211,8 @@ export function SignupScreen() {
         ) : (
           <>
             <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">Create account</p>
-            <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">
-              {pendingSocial && step === 1 ? 'Finish with Google' : STEP_COPY[step].title}
-            </h1>
-            {pendingSocial && step === 1 ? (
-              <p className="mt-1 text-sm leading-6 text-[#667085]">
-                Agree to continue as {pendingSocial}.
-              </p>
-            ) : STEP_COPY[step].hint ? (
+            <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">{STEP_COPY[step].title}</h1>
+            {STEP_COPY[step].hint ? (
               <p className="mt-1 text-sm leading-6 text-[#667085]">{STEP_COPY[step].hint}</p>
             ) : null}
 
@@ -278,10 +229,7 @@ export function SignupScreen() {
             <form onSubmit={submit} className="mt-8 space-y-4">
               {step === 0 ? (
                 <>
-                  <GoogleContinueButton
-                    onSuccess={(idToken, nonce) => void onGoogle(idToken, nonce)}
-                    onError={setError}
-                  />
+                  <GoogleSignInButton next={next} />
                   <p className="text-center text-xs text-[#98a2b3]">or with email</p>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
@@ -350,46 +298,32 @@ export function SignupScreen() {
               ) : null}
 
               {step === 1 ? (
-                <>
-                  {pendingSocial ? (
-                    <div className="space-y-2">
-                      <Label htmlFor="dateOfBirth">Date of birth</Label>
-                      <Input
-                        id="dateOfBirth"
-                        type="date"
-                        required
-                        value={dateOfBirth}
-                        onChange={(event) => setDateOfBirth(event.target.value)}
-                      />
-                    </div>
-                  ) : null}
-                  <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
-                    <ConsentRow
-                      id="agree-terms"
-                      checked={agreeTerms}
-                      onChange={setAgreeTerms}
-                      text={terms.text}
-                      href="/terms"
-                      linkLabel="Read terms"
-                    />
-                    <div className="h-px bg-[#eef0f3]" />
-                    <ConsentRow
-                      id="agree-privacy"
-                      checked={agreePrivacy}
-                      onChange={setAgreePrivacy}
-                      text={privacy.text}
-                      href="/privacy"
-                      linkLabel="Read privacy"
-                    />
-                    <div className="h-px bg-[#eef0f3]" />
-                    <ConsentRow
-                      id="agree-age"
-                      checked={agreeAge}
-                      onChange={setAgreeAge}
-                      text={age.text}
-                    />
-                  </div>
-                </>
+                <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
+                  <ConsentRow
+                    id="agree-terms"
+                    checked={agreeTerms}
+                    onChange={setAgreeTerms}
+                    text={terms.text}
+                    href="/terms"
+                    linkLabel="Read terms"
+                  />
+                  <div className="h-px bg-[#eef0f3]" />
+                  <ConsentRow
+                    id="agree-privacy"
+                    checked={agreePrivacy}
+                    onChange={setAgreePrivacy}
+                    text={privacy.text}
+                    href="/privacy"
+                    linkLabel="Read privacy"
+                  />
+                  <div className="h-px bg-[#eef0f3]" />
+                  <ConsentRow
+                    id="agree-age"
+                    checked={agreeAge}
+                    onChange={setAgreeAge}
+                    text={age.text}
+                  />
+                </div>
               ) : null}
 
               {step === 1 ? (
@@ -428,13 +362,7 @@ export function SignupScreen() {
                   </Button>
                 ) : (
                   <Button type="submit" className="flex-1" loading={busy}>
-                    {busy
-                      ? pendingSocial
-                        ? 'Finishing'
-                        : 'Creating account'
-                      : pendingSocial
-                        ? 'Finish signup'
-                        : 'Create account'}
+                    {busy ? 'Creating account' : 'Create account'}
                   </Button>
                 )}
               </div>
