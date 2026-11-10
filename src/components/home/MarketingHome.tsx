@@ -1,8 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Flame, Lock, Play } from '@/components/ui/icons';
+import { shellClass } from '@/components/chrome/Chrome';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';
@@ -42,28 +44,35 @@ function SectionBar({
 
 function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-[#0B3A82] px-5 pt-7 pb-6 text-white sm:px-8 sm:pt-9">
-      <div className="relative">
-        <h1 className="text-[2rem] leading-[1.05] font-extrabold tracking-tight sm:text-5xl">
-          Stop Leaving Millions to <span className="text-[#facc15]">Pure Luck</span>
+    <section className="relative -mt-6 ml-[calc(50%-50vw)] min-h-[34rem] w-screen overflow-hidden bg-[#040d22] text-white md:-mt-10 sm:min-h-[42rem]">
+      <Image src="/home/machine.jpg" alt="" fill priority sizes="100vw" className="object-cover object-right" />
+      <div className="absolute inset-0 bg-[#040d22]/60" />
+      <div
+        className={cn(
+          shellClass,
+          'relative flex min-h-[34rem] flex-col items-center justify-center py-14 text-center sm:min-h-[42rem]',
+        )}
+      >
+        <h1 className="text-4xl leading-[1.02] font-extrabold tracking-tight sm:text-5xl">
+          Stop Leaving Millions to <span className="text-[#FB11A8]">Pure Luck</span>
         </h1>
-        <p className="mt-3 text-base font-medium text-white/90 sm:text-lg">
+        <p className="mt-4 text-base font-medium text-white/90 sm:text-lg">
           Play numbers selected with an edge, not just hope.
         </p>
         <p className="mt-1.5 text-sm text-white/65">
           You never know when you&apos;ll hit it big. Make sure you&apos;re ready.
         </p>
 
-        <div className="mt-5 flex items-center gap-2" aria-hidden>
+        <div className="mt-6 flex items-center justify-center gap-2" aria-hidden>
           {Array.from({ length: 5 }).map((_, index) => (
             <span
               key={index}
-              className="size-9 rounded-full bg-white shadow-[inset_0_-4px_8px_rgba(16,24,40,0.12),0_4px_10px_rgba(0,0,0,0.25)] sm:size-11"
+              className="size-9 rounded-full bg-white shadow-[inset_0_-4px_8px_rgba(16,24,40,0.12),0_4px_10px_rgba(0,0,0,0.25)] sm:size-12"
             />
           ))}
         </div>
 
-        <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+        <div className="mt-7 flex flex-col items-center gap-2.5 sm:flex-row sm:justify-center">
           <Button asChild className="h-11 bg-[#facc15] px-6 text-sm font-bold text-[#422006] hover:bg-[#eab308]">
             <Link href={href}>
               <Lock className="size-4" strokeWidth={2.4} />
