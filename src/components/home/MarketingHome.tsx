@@ -58,10 +58,8 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
           {Array.from({ length: 5 }).map((_, index) => (
             <span
               key={index}
-              className="grid size-9 place-items-center rounded-full bg-white text-sm font-extrabold text-[#0B3A82] shadow-[inset_0_-4px_8px_rgba(16,24,40,0.12),0_4px_10px_rgba(0,0,0,0.25)] sm:size-11 sm:text-base"
-            >
-              ?
-            </span>
+              className="size-9 rounded-full bg-white shadow-[inset_0_-4px_8px_rgba(16,24,40,0.12),0_4px_10px_rgba(0,0,0,0.25)] sm:size-11"
+            />
           ))}
         </div>
 
