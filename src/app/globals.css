@@ -33,8 +33,8 @@
   --brand-border: #e6e8ee;
   --page-bg: #ffffff;
   --surface-muted: #f7f8fa;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
   --radius: 0.75rem;
 
   --background: #ffffff;
@@ -580,8 +580,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
 
   --color-black: #111827;
   --color-ink: #111827;

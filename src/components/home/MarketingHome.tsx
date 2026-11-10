@@ -46,17 +46,14 @@ function SectionBar({
         </span>
       ) : null}
       <h2 className="text-sm font-extrabold tracking-wide text-[#101828] uppercase">{title}</h2>
-      <span className="h-px flex-1 bg-gradient-to-r from-[#d0d5dd] to-transparent" />
+      <span className="h-px flex-1 bg-[#e4e7ec]" />
     </div>
   );
 }
 
 function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B3A82] via-[#123f8f] to-[#062457] px-5 pt-7 pb-6 text-white  sm:px-8 sm:pt-9">
-      <div className="pointer-events-none absolute -top-16 -right-16 size-56 rounded-full bg-[#0ea5e9]/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 size-56 rounded-full bg-[#16a34a]/20 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:16px_16px]" />
+    <section className="relative overflow-hidden rounded-3xl bg-[#0B3A82] px-5 pt-7 pb-6 text-white sm:px-8 sm:pt-9">
 
       <div className="relative">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#facc15] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[#422006] uppercase">
@@ -154,7 +151,7 @@ export function MarketingHome() {
             size="lg"
             badge="Members"
           />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-5 pt-14 pb-4 sm:px-6">
+          <div className="absolute inset-x-0 bottom-0 bg-[#040d22]/75 px-5 pt-3 pb-4 sm:px-6">
             <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-[#0B3A82] uppercase">
               <span className="size-1.5 animate-pulse rounded-full bg-[#d92d20]" />
               New today
@@ -164,7 +161,7 @@ export function MarketingHome() {
         </button>
       </section>
 
-      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#b9e6fe] bg-gradient-to-r from-[#e0f2fe] via-white to-[#dcfce7] px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#e4e7ec] bg-white px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[#344054]">
           <span className="font-semibold text-[#101828]">Unlock every forecast and video.</span>{' '}
           {leadPrice ? `From ${leadPrice}${lead?.period ? `/${lead.period}` : ''}.` : 'Checkout opens in Stripe.'}

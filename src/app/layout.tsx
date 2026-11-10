@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Work_Sans } from 'next/font/google';
 import { AppProviders } from '@/components/providers/AppProviders';
 import { SITE } from '@/data/site';
 import './globals.css';
 
-const inter = Inter({
-  variable: '--font-inter',
+const workSans = Work_Sans({
+  variable: '--font-work-sans',
   subsets: ['latin'],
   display: 'swap',
 });
@@ -77,7 +77,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content={SITE.name} />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${workSans.variable} font-sans antialiased`}>
         <AppProviders>
           <div className="min-h-screen bg-white text-[#101828]">{children}</div>
         </AppProviders>

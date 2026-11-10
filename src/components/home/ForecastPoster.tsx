@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils';
 
 export type PosterTone = 'blue' | 'green' | 'slate' | 'sky';
 
-const TONES: Record<PosterTone, { bg: string; glow: string }> = {
-  blue: { bg: 'from-[#06245a] via-[#0B3A82] to-[#1d5bbf]', glow: 'bg-[#3b82f6]/40' },
-  green: { bg: 'from-[#06301f] via-[#125d4a] to-[#1f8a6c]', glow: 'bg-[#34d399]/30' },
-  slate: { bg: 'from-[#0f1420] via-[#344054] to-[#56627a]', glow: 'bg-[#94a3b8]/30' },
-  sky: { bg: 'from-[#0a2b6b] via-[#175cd3] to-[#3d8bfd]', glow: 'bg-[#93c5fd]/40' },
+const TONES: Record<PosterTone, string> = {
+  blue: 'bg-[#0B3A82]',
+  green: 'bg-[#125d4a]',
+  slate: 'bg-[#344054]',
+  sky: 'bg-[#175cd3]',
 };
 
 export function ForecastPoster({
@@ -32,13 +32,12 @@ export function ForecastPoster({
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
-  const palette = TONES[tone];
   return (
     <div
       aria-hidden
       className={cn(
-        'relative isolate overflow-hidden bg-gradient-to-br text-white',
-        palette.bg,
+        'relative isolate overflow-hidden text-white',
+        TONES[tone],
         size === 'sm' ? 'aspect-[16/10]' : size === 'lg' ? 'aspect-[4/3] sm:aspect-video' : 'aspect-video',
         className,
       )}
@@ -59,14 +58,9 @@ export function ForecastPoster({
             }
             className="-z-20 object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#040d22]/85 via-[#040d22]/45 to-[#040d22]/10" />
+          <div className="absolute inset-0 -z-10 bg-[#040d22]/55" />
         </>
-      ) : (
-        <>
-          <div className={cn('absolute -top-1/3 -right-1/4 -z-10 size-3/4 rounded-full blur-3xl', palette.glow)} />
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:14px_14px]" />
-        </>
-      )}
+      ) : null}
 
       <div
         className={cn(
