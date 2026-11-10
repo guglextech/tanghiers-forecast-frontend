@@ -74,6 +74,15 @@ export const TEASERS: Teaser[] = [
     title: 'Cold numbers due for a return, explained in five minutes',
     daysAgo: 3,
   },
+  {
+    id: 'p5-strategy',
+    game: 'Pick 5',
+    label: 'Strategy session',
+    balls: 5,
+    tone: 'sky',
+    title: 'Pick 5 strategy: how we build a forecast from scratch',
+    daysAgo: 4,
+  },
 ];
 
 export function ago(days: number) {

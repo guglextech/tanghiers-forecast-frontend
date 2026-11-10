@@ -27,7 +27,7 @@ export function Paywall({
 }) {
   return (
     <Dialog open={Boolean(teaser)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="gap-0 overflow-hidden rounded-2xl border-0 p-0 sm:max-w-md">
+      <DialogContent className="max-h-[92dvh] gap-0 overflow-y-auto rounded-2xl border-0 p-0 sm:max-w-md [&>[data-slot=dialog-close]]:z-10 [&>[data-slot=dialog-close]]:grid [&>[data-slot=dialog-close]]:size-8 [&>[data-slot=dialog-close]]:place-items-center [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:bg-black/40 [&>[data-slot=dialog-close]]:text-white [&>[data-slot=dialog-close]]:opacity-100 [&>[data-slot=dialog-close]]:top-3 [&>[data-slot=dialog-close]]:right-3">
         {teaser ? (
           <>
             <div className="relative">
@@ -37,6 +37,7 @@ export function Paywall({
                 balls={teaser.balls}
                 tone={teaser.tone}
                 badge="Locked"
+                className="!aspect-[16/7]"
               />
               <div className="absolute inset-0 grid place-items-center bg-[#040d22]/55 backdrop-blur-[2px]">
                 <span className="grid size-12 place-items-center rounded-full bg-white text-[#0B3A82] shadow-lg">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Flame, Lock, Play, Sparkles } from 'lucide-react';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
-import { formatMoney, type Plan } from '@/data/site';
+import { SITE, formatMoney, type Plan } from '@/data/site';
 import { getCatalogPlans } from '@/lib/plans';
 import { ForecastPoster } from '@/components/home/ForecastPoster';
 import { Paywall, checkoutHref } from '@/components/home/Paywall';
@@ -115,7 +115,7 @@ export function MarketingHome() {
               <span className="flex flex-1 flex-col px-3 pt-2.5 pb-3">
                 <span className="line-clamp-2 text-sm leading-snug font-semibold text-[#101828]">{teaser.title}</span>
                 <span className="mt-auto flex items-center justify-between pt-2 text-xs">
-                  <span className="font-medium text-[#0B3A82]">TG Forecasts</span>
+                  <span className="hidden font-medium text-[#0B3A82] sm:inline">{SITE.name.trim()}</span>
                   <span className="text-[#98a2b3]">{ago(teaser.daysAgo)}</span>
                 </span>
               </span>
