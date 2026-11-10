@@ -93,9 +93,9 @@ export function PublicHeader() {
               </Link>
               <Link
                 href="/signup?next=/pricing"
-                className="inline-flex h-9 items-center rounded-[var(--radius)] bg-[#101828] px-4 text-sm font-semibold text-white hover:bg-[#1d2939]"
+                className="inline-flex h-9 items-center rounded-[var(--radius)] bg-[#FB11A8] px-4 text-sm font-semibold text-white hover:bg-[#d10e8e]"
               >
-                Subscribe
+                Join
               </Link>
             </>
           )}
@@ -103,9 +103,9 @@ export function PublicHeader() {
         {ready && !user ? (
           <Link
             href="/signup?next=/pricing"
-            className="inline-flex h-8 items-center rounded-[var(--radius)] bg-[#101828] px-3.5 text-[13px] font-semibold text-white md:hidden"
+            className="inline-flex h-8 items-center rounded-[var(--radius)] bg-[#FB11A8] px-3.5 text-[13px] font-semibold text-white hover:bg-[#d10e8e] md:hidden"
           >
-            Subscribe
+            Join
           </Link>
         ) : null}
       </div>
