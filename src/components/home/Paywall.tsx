@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock } from '@/components/ui/icons';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';
@@ -36,10 +36,11 @@ export function Paywall({
                 label={teaser.label}
                 balls={teaser.balls}
                 tone={teaser.tone}
+                image={teaser.image}
                 badge="Locked"
                 className="!aspect-[16/7]"
               />
-              <div className="absolute inset-0 grid place-items-center bg-[#040d22]/55 backdrop-blur-[2px]">
+              <div className="absolute inset-0 grid place-items-center bg-[#040d22]/40 backdrop-blur-[3px]">
                 <span className="grid size-12 place-items-center rounded-full bg-white text-[#0B3A82] shadow-lg">
                   <Lock className="size-5" strokeWidth={2} />
                 </span>

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ListFilter, Search } from 'lucide-react';
+import { ListFilter, Search } from '@/components/ui/icons';
 import { Pager } from '@/components/ui/pager';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PAGE_SIZE } from '@/lib/pagination';

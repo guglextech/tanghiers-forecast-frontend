@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check } from 'lucide-react';
+import { Check } from '@/components/ui/icons';
 import { useSession } from '@/components/app/SessionProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

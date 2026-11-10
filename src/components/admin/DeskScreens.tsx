@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Mail, Plus, Smartphone, Users } from 'lucide-react';
+import { ArrowRight, CalendarDays, Mail, Plus, Smartphone, Users } from '@/components/ui/icons';
 import { type Forecast } from '@/data/forecasts';
 import { formatDeskDate, formatDeskStamp } from '@/lib/dates';
 import { listAccounts, refreshAccounts } from '@/lib/session';

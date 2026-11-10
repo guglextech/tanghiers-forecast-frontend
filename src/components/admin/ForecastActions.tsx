@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from '@/components/ui/icons';
 import { toast } from 'sonner';
 import type { Forecast } from '@/data/forecasts';
 import {

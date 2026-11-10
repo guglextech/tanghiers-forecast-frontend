@@ -3,8 +3,15 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Clock, CreditCard, Download, Loader2, Mail, Shield, Trash2 } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import {
+  ChevronRight,
+  CreditCard,
+  Download,
+  Loader2,
+  Shield,
+  Smartphone,
+  Trash2,
+} from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
 import { LoadingState } from '@/components/app/LoadingState';
@@ -68,93 +75,89 @@ function accountType(role: string) {
   return role === 'admin' ? 'Admin' : 'Customer';
 }
 
-function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+function Section({
+  title,
+  children,
+  footer,
+}: {
+  title: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
   return (
-    <section className={cn('rounded-[28px] bg-[#f4f6f8] px-5 py-5 sm:px-6 sm:py-6', className)}>
-      {children}
+    <section className="mt-6">
+      <h2 className="px-1 text-xs font-semibold tracking-[0.08em] text-[#98a2b3] uppercase">{title}</h2>
+      <div className="mt-2 divide-y divide-[#f0f1f4] overflow-hidden rounded-xl border border-[#e4e7ec] bg-white">
+        {children}
+      </div>
+      {footer ? <p className="mt-2 px-1 text-xs leading-5 text-[#98a2b3]">{footer}</p> : null}
     </section>
-  );
-}
-
-function CardHeading({ title, hint }: { title: string; hint: string }) {
-  return (
-    <div className="px-1">
-      <h2 className="text-[17px] font-semibold tracking-tight text-[#101828]">{title}</h2>
-      <p className="mt-0.5 text-sm text-[#98a2b3]">{hint}</p>
-    </div>
   );
 }
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0">
-      <p className="text-[11px] font-medium tracking-[0.14em] text-[#98a2b3] uppercase">{label}</p>
-      <p className="mt-1 truncate text-sm font-medium text-[#101828]">{value}</p>
+    <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+      <dt className="shrink-0 text-sm text-[#667085]">{label}</dt>
+      <dd className="min-w-0 truncate text-right text-sm font-medium text-[#101828]">{value}</dd>
     </div>
   );
 }
+
+const ICON_TONES = {
+  blue: 'bg-[#eef4ff] text-[#0B3A82]',
+  green: 'bg-[#ecfdf3] text-[#067647]',
+  slate: 'bg-[#f2f4f7] text-[#344054]',
+  danger: 'bg-[#fef3f2] text-[#b42318]',
+} as const;
 
 function SettingRow({
   icon: Icon,
   title,
   hint,
-  tone = 'default',
+  tone = 'slate',
+  interactive = false,
   children,
 }: {
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   title: string;
-  hint: string;
-  tone?: 'default' | 'danger';
+  hint?: string;
+  tone?: keyof typeof ICON_TONES;
+  interactive?: boolean;
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 px-1 py-3.5">
-      <span
-        className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-full bg-white',
-          tone === 'danger' ? 'text-[#b42318]' : 'text-[#101828]',
-        )}
-      >
-        <Icon className="size-[18px]" strokeWidth={1.75} />
+    <div
+      className={cn(
+        'flex items-center gap-3 px-4 py-3 text-left',
+        interactive && 'transition-colors hover:bg-[#f9fafb]',
+      )}
+    >
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-lg', ICON_TONES[tone])}>
+        <Icon className="size-4" strokeWidth={1.9} />
       </span>
-      <div className="min-w-0 flex-1 text-left">
-        <p className={cn('text-sm font-semibold', tone === 'danger' ? 'text-[#b42318]' : 'text-[#101828]')}>
+      <div className="min-w-0 flex-1">
+        <p className={cn('text-sm font-medium', tone === 'danger' ? 'text-[#b42318]' : 'text-[#101828]')}>
           {title}
         </p>
-        <p className="mt-0.5 text-sm leading-5 text-[#98a2b3]">{hint}</p>
+        {hint ? <p className="mt-0.5 text-xs leading-[18px] text-[#98a2b3]">{hint}</p> : null}
       </div>
       {children}
     </div>
   );
 }
 
-function StatusPill({ children }: { children: React.ReactNode }) {
+const PILL_TONES = {
+  success: 'bg-[#ecfdf3] text-[#067647]',
+  warning: 'bg-[#fef3f2] text-[#b42318]',
+  neutral: 'bg-[#f2f4f7] text-[#667085]',
+} as const;
+
+function StatusPill({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: keyof typeof PILL_TONES }) {
   return (
-    <span className="shrink-0 rounded-full bg-[#e8f1ff] px-2.5 py-1 text-xs font-medium text-[#2e90fa]">
+    <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', PILL_TONES[tone])}>
       {children}
     </span>
-  );
-}
-
-function ThemeRow() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && resolvedTheme === 'dark';
-
-  return (
-    <SettingRow icon={Clock} title="Dark theme" hint="Switch between light and dark mode">
-      <Switch
-        size="lg"
-        checked={isDark}
-        onCheckedChange={(on) => setTheme(on ? 'dark' : 'light')}
-        aria-label="Dark theme"
-      />
-    </SettingRow>
   );
 }
 
@@ -289,43 +292,36 @@ export function AccountScreen() {
 
   return (
     <div>
-      <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#101828]">Settings</h1>
-      <p className="mt-1 text-sm text-[#98a2b3]">Manage your account and preferences.</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-[#101828]">Settings</h1>
+      <p className="mt-1 text-sm text-[#667085]">Manage your account and preferences.</p>
 
-      <Card className="mt-8">
-        <div className="flex items-center gap-4">
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold tracking-wide text-[#101828]">
+      <section className="mt-6 overflow-hidden rounded-xl border border-[#e4e7ec] bg-white">
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="grid size-11 shrink-0 place-items-center rounded-full bg-[#0B3A82] text-sm font-semibold tracking-wide text-white">
             {initialsFromName(user.name)}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[17px] font-semibold tracking-tight text-[#101828]">{user.name}</p>
-            <p className="mt-0.5 truncate text-sm text-[#98a2b3]">{phoneLabel || 'No mobile number'}</p>
+            <p className="truncate text-[15px] font-semibold text-[#101828]">{user.name}</p>
+            <p className="truncate text-sm text-[#667085]">{user.email}</p>
           </div>
-          <button
+          <Button
             type="button"
-            className="shrink-0 text-sm font-medium text-[#667085] hover:text-[#101828]"
+            size="sm"
+            variant="outline"
+            className="h-8 shrink-0 px-3"
             onClick={() => {
               setEditing((open) => !open);
               setError('');
             }}
           >
             {editing ? 'Close' : 'Edit'}
-          </button>
-        </div>
-
-        <div className="mt-5 border-t border-[#e8eaee] pt-5">
-          <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-            <Fact label="Full name" value={user.name} />
-            <Fact label="Phone" value={phoneLabel || '—'} />
-            <Fact label="Email" value={user.email} />
-            <Fact label="Account" value={typeLabel} />
-          </div>
+          </Button>
         </div>
 
         {editing ? (
-          <form onSubmit={onUpdate} className="mt-6 space-y-4 border-t border-[#e8eaee] pt-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
+          <form onSubmit={onUpdate} className="space-y-3.5 border-t border-[#f0f1f4] px-4 py-4">
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="firstName">First name</Label>
                 <Input
                   id="firstName"
@@ -335,7 +331,7 @@ export function AccountScreen() {
                   onChange={(event) => setFirstName(event.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="lastName">Last name</Label>
                 <Input
                   id="lastName"
@@ -346,7 +342,7 @@ export function AccountScreen() {
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="timezone">Timezone</Label>
               <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger id="timezone">
@@ -361,19 +357,11 @@ export function AccountScreen() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Mobile number</Label>
-              <PhoneInput
-                id="phone"
-                countries={[]}
-                countryCode={phoneCountry}
-                onCountryChange={setPhoneCountry}
-                value={phoneNational}
-                onChange={setPhoneNational}
-              />
-              {user.phone ? (
-                <div className="flex justify-end">
-                  {confirmRemove ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="phone">Mobile number</Label>
+                {user.phone ? (
+                  confirmRemove ? (
                     <button type="button" className="text-xs font-medium text-[#b42318]" onClick={onRemove}>
                       Confirm remove
                     </button>
@@ -385,132 +373,142 @@ export function AccountScreen() {
                     >
                       Remove
                     </button>
-                  )}
-                </div>
-              ) : null}
+                  )
+                ) : null}
+              </div>
+              <PhoneInput
+                id="phone"
+                countries={[]}
+                countryCode={phoneCountry}
+                onCountryChange={setPhoneCountry}
+                value={phoneNational}
+                onChange={setPhoneNational}
+              />
             </div>
             {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-            <div className="flex justify-end">
-              <Button type="submit" size="sm" loading={saving}>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                loading={saving}
+                className="bg-[#0B3A82] text-white hover:bg-[#092e68]"
+              >
                 {saving ? 'Saving' : 'Save changes'}
               </Button>
             </div>
           </form>
-        ) : error ? (
-          <p className="mt-4 text-sm text-[#b42318]">{error}</p>
-        ) : null}
-      </Card>
+        ) : (
+          <>
+            <dl className="divide-y divide-[#f0f1f4] border-t border-[#f0f1f4]">
+              <Fact label="Phone" value={phoneLabel || '—'} />
+              <Fact label="Timezone" value={zoneLabel(user.timezone || detectedTimezone())} />
+              <Fact label="Account" value={typeLabel} />
+            </dl>
+            {error ? <p className="border-t border-[#f0f1f4] px-4 py-2.5 text-sm text-[#b42318]">{error}</p> : null}
+          </>
+        )}
+      </section>
 
-      <Card className="mt-4">
-        <CardHeading title="Preferences" hint="Display and app behaviour." />
-        <div className="mt-2 divide-y divide-[#e8eaee]">
-          <ThemeRow />
-          <SettingRow
-            icon={Bell}
-            title="Forecast texts"
-            hint="Optional. Up to 1 msg/day. Msg & data rates may apply. Reply STOP to cancel."
-          >
-            <Switch
-              size="lg"
-              checked={consent}
-              onCheckedChange={onSmsChange}
-              aria-label="Forecast texts"
+      <Section title="Plan">
+        <Link href="/subscription" className="block">
+          <SettingRow icon={CreditCard} title="Subscription" hint="Plan, billing, and renewal" tone="blue" interactive>
+            <StatusPill tone={user.subscriptionStatus === 'active' ? 'success' : 'neutral'}>{planLabel}</StatusPill>
+            <ChevronRight className="size-4 text-[#d0d5dd]" />
+          </SettingRow>
+        </Link>
+      </Section>
+
+      <Section
+        title="Preferences"
+        footer={
+          <>
+            Text consent is optional. Up to 1 msg/day, msg &amp; data rates may apply, reply STOP to cancel. See the{' '}
+            <Link href="/messaging" className="font-medium text-[#667085] underline-offset-2 hover:underline">
+              messaging policy
+            </Link>
+            .
+          </>
+        }
+      >
+        <SettingRow icon={Smartphone} title="Forecast texts" hint="Get the daily forecast by text" tone="green">
+          <Switch checked={consent} onCheckedChange={onSmsChange} aria-label="Forecast texts" />
+        </SettingRow>
+      </Section>
+
+      <Section title="Security">
+        <SettingRow
+          icon={Shield}
+          title="Email verification"
+          hint={user.emailVerified ? 'Your email is confirmed' : 'Confirm your email to protect this account'}
+          tone="blue"
+        >
+          <StatusPill tone={user.emailVerified ? 'success' : 'warning'}>
+            {user.emailVerified ? 'Verified' : 'Needed'}
+          </StatusPill>
+        </SettingRow>
+      </Section>
+
+      {/* <button type="button" className="block w-full" disabled={exporting} onClick={onExport}>
+        <SettingRow
+          icon={Download}
+          title="Export data"
+          hint={exporting ? 'Preparing your download' : 'Download a copy of your account'}
+        >
+          {exporting ? <Loader2 className="size-4 animate-spin text-[#667085]" aria-hidden /> : null}
+        </SettingRow>
+      </button> */}
+
+      <Section title="Danger zone">
+        {showDelete ? (
+          <form onSubmit={onDelete} className="space-y-3 px-4 py-3.5">
+            <p className="text-sm text-[#667085]">Enter your password to permanently delete this account.</p>
+            <Input
+              id="delete-password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Password"
+              value={deletePassword}
+              onChange={(event) => setDeletePassword(event.target.value)}
             />
-          </SettingRow>
-        </div>
-        <p className="mt-3 text-xs leading-5 text-[#98a2b3]">
-          Consent is optional and not required to use the service. Full details are in the{' '}
-          <Link href="/messaging" className="font-medium text-[#667085] hover:text-[#101828]">
-            messaging policy
-          </Link>
-          .
-        </p>
-      </Card>
-
-      <Card className="mt-4">
-        <CardHeading title="Security" hint="How you sign in and protect this account." />
-        <div className="mt-2 divide-y divide-[#e8eaee]">
-          <SettingRow
-            icon={Shield}
-            title="Email verification"
-            hint={user.emailVerified ? 'Your email is confirmed' : 'Confirm your email to protect this account'}
-          >
-            <StatusPill>{user.emailVerified ? 'Active' : 'Needed'}</StatusPill>
-          </SettingRow>
-          <SettingRow icon={Shield} title="Two-factor authentication" hint="Extra protection beyond your password">
-            <StatusPill>Soon</StatusPill>
-          </SettingRow>
-        </div>
-      </Card>
-
-      <Card className="mt-4">
-        <CardHeading title="Notifications" hint="Choose how we reach you." />
-        <div className="mt-2 divide-y divide-[#e8eaee]">
-          <SettingRow icon={Bell} title="Push notifications" hint="Forecast updates on this device">
-            <StatusPill>Soon</StatusPill>
-          </SettingRow>
-          <SettingRow icon={Mail} title="Email receipts" hint="Send receipts to your email">
-            <StatusPill>Soon</StatusPill>
-          </SettingRow>
-        </div>
-      </Card>
-
-      <Card className="mt-4">
-        <CardHeading title="Account" hint="Plan, data, and this login." />
-        <div className="mt-2 divide-y divide-[#e8eaee]">
-          <Link href="/subscription" className="block">
-            <SettingRow icon={CreditCard} title="Subscription" hint="Plan, billing, and renewal">
-              <StatusPill>{planLabel}</StatusPill>
-            </SettingRow>
-          </Link>
-          <button type="button" className="block w-full" disabled={exporting} onClick={onExport}>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setShowDelete(false);
+                  setDeletePassword('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                loading={deleting}
+                className="bg-[#d92d20] text-white hover:bg-[#b42318]"
+              >
+                {deleting ? 'Deleting' : 'Delete account'}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <button type="button" className="block w-full" onClick={() => setShowDelete(true)}>
             <SettingRow
-              icon={Download}
-              title="Export data"
-              hint={exporting ? 'Preparing your download' : 'Download a copy of your account'}
+              icon={Trash2}
+              title="Delete account"
+              hint="Permanently remove this login"
+              tone="danger"
+              interactive
             >
-              {exporting ? <Loader2 className="size-4 animate-spin text-[#667085]" aria-hidden /> : null}
+              <ChevronRight className="size-4 text-[#fda29b]" />
             </SettingRow>
           </button>
-          {showDelete ? (
-            <form onSubmit={onDelete} className="space-y-3 px-1 py-4">
-              <p className="text-sm text-[#667085]">Enter your password to delete this account.</p>
-              <Input
-                id="delete-password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="Password"
-                value={deletePassword}
-                onChange={(event) => setDeletePassword(event.target.value)}
-              />
-              <div className="flex items-center gap-4">
-                <Button type="submit" size="sm" variant="outline" loading={deleting}>
-                  {deleting ? 'Deleting' : 'Delete account'}
-                </Button>
-                <button
-                  type="button"
-                  className="text-sm font-medium text-[#667085] hover:text-[#101828]"
-                  onClick={() => {
-                    setShowDelete(false);
-                    setDeletePassword('');
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <button type="button" className="block w-full" onClick={() => setShowDelete(true)}>
-              <SettingRow
-                icon={Trash2}
-                title="Delete account"
-                hint="Permanently remove this login"
-                tone="danger"
-              />
-            </button>
-          )}
-        </div>
-      </Card>
+        )}
+      </Section>
     </div>
   );
 }

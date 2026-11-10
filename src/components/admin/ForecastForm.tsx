@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard } from '@/components/ui/icons';
 import { type Forecast } from '@/data/forecasts';
 import { ForecastActions } from '@/components/admin/ForecastActions';
 import {

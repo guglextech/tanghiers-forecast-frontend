@@ -1,7 +1,7 @@
 'use client';
 
 import type { ComponentProps, ReactNode } from 'react';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2 } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { LucideIcon } from 'lucide-react';
-import { Flame, House, Info, LogIn, Tag } from 'lucide-react';
+import type { LucideIcon } from '@/components/ui/icons';
+import { Flame, House, Info, LogIn, Tag } from '@/components/ui/icons';
 import { useSession } from '@/components/app/SessionProvider';
 import { useNotifications } from '@/components/app/useNotifications';
 import { accountNav, deskNav, mainNav } from '@/components/chrome/app-nav';

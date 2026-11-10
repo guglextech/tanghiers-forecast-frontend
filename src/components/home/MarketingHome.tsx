@@ -2,34 +2,15 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Flame, Lock, Play, Sparkles, Star, Trophy } from 'lucide-react';
+import { Flame, Lock, Play } from '@/components/ui/icons';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
-import { SITE, formatMoney, type Plan } from '@/data/site';
+import { formatMoney, type Plan } from '@/data/site';
 import { getCatalogPlans } from '@/lib/plans';
 import { ForecastPoster } from '@/components/home/ForecastPoster';
 import { Paywall, checkoutHref } from '@/components/home/Paywall';
 import { TEASERS, ago, type Teaser } from '@/components/home/teasers';
 import { cn } from '@/lib/utils';
-
-const BALLS = [
-  { bg: 'bg-[#d92d20]', ring: 'ring-[#fda29b]' },
-  { bg: 'bg-[#facc15] text-[#422006]', ring: 'ring-[#fef08a]' },
-  { bg: 'bg-[#16a34a]', ring: 'ring-[#86efac]' },
-  { bg: 'bg-[#0ea5e9]', ring: 'ring-[#7dd3fc]' },
-  { bg: 'bg-[#7c3aed]', ring: 'ring-[#c4b5fd]' },
-];
-
-const GAMES = [
-  { name: 'Pick 2', className: 'bg-[#eef4ff] text-[#0B3A82] ring-[#c7d7fe]' },
-  { name: 'Pick 3', className: 'bg-[#ecfdf3] text-[#067647] ring-[#abefc6]' },
-  { name: 'Pick 4', className: 'bg-[#f0f9ff] text-[#026aa2] ring-[#b9e6fe]' },
-  { name: 'Pick 5', className: 'bg-[#f4f3ff] text-[#5925dc] ring-[#d9d6fe]' },
-  {
-    name: 'Daily draws',
-    className: 'bg-[#fef3f2] text-[#b42318] ring-[#fecdca]',
-  },
-];
 
 const SECTION_TONES = {
   red: 'bg-[#d92d20]',
@@ -42,34 +23,28 @@ function SectionBar({
   title,
   tone = 'blue',
 }: {
-  icon: typeof Flame;
+  icon?: typeof Flame;
   title: string;
   tone?: keyof typeof SECTION_TONES;
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className={cn('grid size-7 place-items-center rounded-lg text-white', SECTION_TONES[tone])}>
-        <Icon className="size-4" strokeWidth={2.2} />
-      </span>
+      {Icon ? (
+        <span className={cn('grid size-7 place-items-center rounded-lg text-white', SECTION_TONES[tone])}>
+          <Icon className="size-4" strokeWidth={2.2} />
+        </span>
+      ) : null}
       <h2 className="text-sm font-extrabold tracking-wide text-[#101828] uppercase">{title}</h2>
-      <span className="h-px flex-1 bg-gradient-to-r from-[#d0d5dd] to-transparent" />
+      <span className="h-px flex-1 bg-[#e4e7ec]" />
     </div>
   );
 }
 
 function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B3A82] via-[#123f8f] to-[#062457] px-5 pt-7 pb-6 text-white  sm:px-8 sm:pt-9">
-      <div className="pointer-events-none absolute -top-16 -right-16 size-56 rounded-full bg-[#0ea5e9]/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 size-56 rounded-full bg-[#16a34a]/20 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:16px_16px]" />
-
+    <section className="relative overflow-hidden rounded-3xl bg-[#0B3A82] px-5 pt-7 pb-6 text-white sm:px-8 sm:pt-9">
       <div className="relative">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#facc15] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[#422006] uppercase">
-          <Trophy className="size-3.5" strokeWidth={2.4} />
-          The best lotto forecasts
-        </span>
-        <h1 className="mt-4 text-[2rem] leading-[1.05] font-extrabold tracking-tight sm:text-5xl">
+        <h1 className="text-[2rem] leading-[1.05] font-extrabold tracking-tight sm:text-5xl">
           Stop Leaving Millions to <span className="text-[#facc15]">Pure Luck</span>
         </h1>
         <p className="mt-3 text-base font-medium text-white/90 sm:text-lg">
@@ -80,17 +55,11 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
         </p>
 
         <div className="mt-5 flex items-center gap-2" aria-hidden>
-          {BALLS.map((ball, index) => (
+          {Array.from({ length: 5 }).map((_, index) => (
             <span
               key={index}
-              className={cn(
-                'grid size-9 place-items-center rounded-full text-sm font-extrabold text-white shadow-[inset_0_-4px_8px_rgba(0,0,0,0.25),0_4px_10px_rgba(0,0,0,0.25)] ring-2 sm:size-11 sm:text-base',
-                ball.bg,
-                ball.ring,
-              )}
-            >
-              ?
-            </span>
+              className="size-9 rounded-full bg-white shadow-[inset_0_-4px_8px_rgba(16,24,40,0.12),0_4px_10px_rgba(0,0,0,0.25)] sm:size-11"
+            />
           ))}
         </div>
 
@@ -136,19 +105,8 @@ export function MarketingHome() {
     <PublicFrame>
       <Hero href={checkoutHref(lead?.id)} onPreview={() => setOpen(feature)} />
 
-      <ul className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-        {GAMES.map((game) => (
-          <li
-            key={game.name}
-            className={cn('shrink-0 rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset', game.className)}
-          >
-            {game.name}
-          </li>
-        ))}
-      </ul>
-
       <section className="mt-7">
-        <SectionBar icon={Star} title="Featured forecast" />
+        <SectionBar title="Featured forecast" />
         <button
           type="button"
           onClick={() => setOpen(feature)}
@@ -159,10 +117,12 @@ export function MarketingHome() {
             label={feature.label}
             balls={feature.balls}
             tone={feature.tone}
+            image={feature.image}
+            priority
             size="lg"
             badge="Members"
           />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent px-5 pt-14 pb-4 sm:px-6">
+          <div className="absolute inset-x-0 bottom-0 bg-[#040d22]/75 px-5 pt-3 pb-4 sm:px-6">
             <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-[#0B3A82] uppercase">
               <span className="size-1.5 animate-pulse rounded-full bg-[#d92d20]" />
               New today
@@ -172,7 +132,7 @@ export function MarketingHome() {
         </button>
       </section>
 
-      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#b9e6fe] bg-gradient-to-r from-[#e0f2fe] via-white to-[#dcfce7] px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#e4e7ec] bg-white px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-[#344054]">
           <span className="font-semibold text-[#101828]">Unlock every forecast and video.</span>{' '}
           {leadPrice ? `From ${leadPrice}${lead?.period ? `/${lead.period}` : ''}.` : 'Checkout opens in Stripe.'}
@@ -183,7 +143,7 @@ export function MarketingHome() {
       </div>
 
       <section className="mt-8">
-        <SectionBar icon={Flame} title="Trending now" tone="red" />
+        <SectionBar title="Trending now" />
         <ul className="mt-3 space-y-2.5">
           {trending.map((teaser) => (
             <li key={teaser.id}>
@@ -197,6 +157,7 @@ export function MarketingHome() {
                   label={teaser.label}
                   balls={teaser.balls}
                   tone={teaser.tone}
+                  image={teaser.image}
                   size="sm"
                   className="w-28 shrink-0 rounded-lg sm:w-32"
                 />
@@ -220,13 +181,16 @@ export function MarketingHome() {
               onClick={() => setOpen(teaser)}
               className="group flex flex-col overflow-hidden rounded-xl border border-[#e6e8ee] bg-white text-left transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)]"
             >
-              <ForecastPoster game={teaser.game} label={teaser.label} balls={teaser.balls} tone={teaser.tone} />
+              <ForecastPoster
+                game={teaser.game}
+                label={teaser.label}
+                balls={teaser.balls}
+                tone={teaser.tone}
+                image={teaser.image}
+              />
               <span className="flex flex-1 flex-col px-3 pt-2.5 pb-3">
                 <span className="line-clamp-2 text-sm leading-snug font-semibold text-[#101828]">{teaser.title}</span>
-                <span className="mt-auto flex items-center justify-between pt-2 text-xs">
-                  <span className="hidden font-medium text-[#0B3A82] sm:inline">{SITE.name.trim()}</span>
-                  <span className="text-[#98a2b3]">{ago(teaser.daysAgo)}</span>
-                </span>
+                <span className="mt-auto pt-2 text-xs text-[#98a2b3]">{ago(teaser.daysAgo)}</span>
               </span>
             </button>
           ))}
@@ -235,7 +199,6 @@ export function MarketingHome() {
 
       <section className="mt-10 overflow-hidden rounded-2xl bg-[#0B3A82] px-5 py-6 text-white sm:px-6">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase">
-          <Sparkles className="size-3.5" strokeWidth={2} />
           Membership
         </span>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight">See the numbers behind every video</h2>

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { admin } from '@/lib/api/resources';
 import { mapAdminUser, type AdminAccount } from '@/lib/api/mappers';

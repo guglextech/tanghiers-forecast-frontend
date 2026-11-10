@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@/components/ui/icons';
 import {
   BookOpen,
   Briefcase,
@@ -8,7 +8,7 @@ import {
   Home,
   Settings,
   Users,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 export type NavItem = {
   title: string;
