@@ -45,7 +45,7 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
     <section className="relative overflow-hidden rounded-3xl bg-[#0B3A82] px-5 pt-7 pb-6 text-white sm:px-8 sm:pt-9">
       <div className="relative">
         <h1 className="text-[2rem] leading-[1.05] font-extrabold tracking-tight sm:text-5xl">
-          Stop Leaving Millions to <span className="text-[#facc15]">Pure Luck</span>
+          Stop Leaving Millions to <span className="text-[#FB11A8]">Pure Luck</span>
         </h1>
         <p className="mt-3 text-base font-medium text-white/90 sm:text-lg">
           Play numbers selected with an edge, not just hope.
