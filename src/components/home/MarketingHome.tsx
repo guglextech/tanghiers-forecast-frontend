@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Flame, Lock, Play, Trophy } from '@/components/ui/icons';
+import { Flame, Lock, Play } from '@/components/ui/icons';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';
@@ -11,17 +11,6 @@ import { ForecastPoster } from '@/components/home/ForecastPoster';
 import { Paywall, checkoutHref } from '@/components/home/Paywall';
 import { TEASERS, ago, type Teaser } from '@/components/home/teasers';
 import { cn } from '@/lib/utils';
-
-const GAMES = [
-  { name: 'Pick 2', className: 'bg-[#eef4ff] text-[#0B3A82] ring-[#c7d7fe]' },
-  { name: 'Pick 3', className: 'bg-[#ecfdf3] text-[#067647] ring-[#abefc6]' },
-  { name: 'Pick 4', className: 'bg-[#f0f9ff] text-[#026aa2] ring-[#b9e6fe]' },
-  { name: 'Pick 5', className: 'bg-[#f4f3ff] text-[#5925dc] ring-[#d9d6fe]' },
-  {
-    name: 'Daily draws',
-    className: 'bg-[#fef3f2] text-[#b42318] ring-[#fecdca]',
-  },
-];
 
 const SECTION_TONES = {
   red: 'bg-[#d92d20]',
@@ -54,13 +43,8 @@ function SectionBar({
 function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-[#0B3A82] px-5 pt-7 pb-6 text-white sm:px-8 sm:pt-9">
-
       <div className="relative">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#facc15] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[#422006] uppercase">
-          <Trophy className="size-3.5" strokeWidth={2.4} />
-          The best lotto forecasts
-        </span>
-        <h1 className="mt-4 text-[2rem] leading-[1.05] font-extrabold tracking-tight sm:text-5xl">
+        <h1 className="text-[2rem] leading-[1.05] font-extrabold tracking-tight sm:text-5xl">
           Stop Leaving Millions to <span className="text-[#facc15]">Pure Luck</span>
         </h1>
         <p className="mt-3 text-base font-medium text-white/90 sm:text-lg">
@@ -122,17 +106,6 @@ export function MarketingHome() {
   return (
     <PublicFrame>
       <Hero href={checkoutHref(lead?.id)} onPreview={() => setOpen(feature)} />
-
-      <ul className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-        {GAMES.map((game) => (
-          <li
-            key={game.name}
-            className={cn('shrink-0 rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset', game.className)}
-          >
-            {game.name}
-          </li>
-        ))}
-      </ul>
 
       <section className="mt-7">
         <SectionBar title="Featured forecast" />
