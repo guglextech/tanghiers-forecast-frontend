@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { shellClass } from '@/components/chrome/Chrome';
 import { cn } from '@/lib/utils';
-import { Check, Eye, EyeOff, Loader2, X } from 'lucide-react';
+import { Check, Eye, EyeOff, Loader2, X } from '@/components/ui/icons';
 import { notifications } from '@/lib/api/resources';
 import { forgotPassword, resetPasswordToken, verifyEmailToken } from '@/lib/session';
 

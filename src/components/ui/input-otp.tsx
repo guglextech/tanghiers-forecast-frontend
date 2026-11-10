@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
-import { MinusIcon } from "lucide-react"
+import { MinusIcon } from "@/components/ui/icons"
 
 import { controlRadius, fieldActive } from "@/components/ui/field"
 import { cn } from "@/lib/utils"

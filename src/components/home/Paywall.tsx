@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock } from '@/components/ui/icons';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';

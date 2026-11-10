@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Check, Copy, Download, Info } from 'lucide-react';
+import { Check, Copy, Download, Info } from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { StepBars } from '@/components/auth/StepBars';
 import { BrandLockup } from '@/components/brand/Logo';

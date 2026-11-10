@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { BrandLockup } from '@/components/brand/Logo';
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';

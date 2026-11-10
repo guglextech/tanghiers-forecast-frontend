@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Lock, Play } from 'lucide-react';
+import { Lock, Play } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
 
 export type PosterTone = 'blue' | 'green' | 'slate' | 'sky';

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Flame, Lock, Play, Sparkles, Star, Trophy } from 'lucide-react';
+import { Flame, Lock, Play, Sparkles, Star, Trophy } from '@/components/ui/icons';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
 import { SITE, formatMoney, type Plan } from '@/data/site';

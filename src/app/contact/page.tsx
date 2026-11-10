@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Mail } from 'lucide-react';
+import { Mail } from '@/components/ui/icons';
 import { AdaptiveFrame } from '@/components/chrome/Frames';
 import { ContactForm } from '@/app/contact/ContactForm';
 import { SITE } from '@/data/site';

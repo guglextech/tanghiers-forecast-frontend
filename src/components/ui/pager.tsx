@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from '@/components/ui/icons';
 import { PAGE_SIZE, PAGE_SIZES, pageCount } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
 

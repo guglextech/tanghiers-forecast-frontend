@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal, Plus, RefreshCw } from 'lucide-react';
+import { MoreHorizontal, Plus, RefreshCw } from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { admin, asList } from '@/lib/api/resources';
 import { mapAdminPlan, type AdminPlan } from '@/lib/api/mappers';

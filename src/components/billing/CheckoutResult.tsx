@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Check, X } from 'lucide-react';
+import { Check, X } from '@/components/ui/icons';
 import { useSession } from '@/components/app/SessionProvider';
 import { hasForecastAccess } from '@/lib/session';
 import { getCatalogPlans, planFromList } from '@/lib/plans';

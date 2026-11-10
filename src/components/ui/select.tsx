@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, type LucideIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, type LucideIcon } from "@/components/ui/icons"
 
 import { controlRadius, fieldFocus, fieldOpen } from "@/components/ui/field"
 import { cn } from "@/lib/utils"

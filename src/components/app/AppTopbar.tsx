@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CircleHelp, Home, LogOut, Search, Settings } from 'lucide-react';
+import { CircleHelp, Home, LogOut, Search, Settings } from '@/components/ui/icons';
 import { ThemeToggle } from '@/components/app/ThemeToggle';
 import { useSession } from '@/components/app/SessionProvider';
 import { Button } from '@/components/ui/button';

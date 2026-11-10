@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Clock, CreditCard, Download, Loader2, Mail, Shield, Trash2 } from 'lucide-react';
+import { Bell, Clock, CreditCard, Download, Loader2, Mail, Shield, Trash2 } from '@/components/ui/icons';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { useSession } from '@/components/app/SessionProvider';
@@ -463,7 +463,7 @@ export function AccountScreen() {
               <StatusPill>{planLabel}</StatusPill>
             </SettingRow>
           </Link>
-          <button type="button" className="block w-full" disabled={exporting} onClick={onExport}>
+          {/* <button type="button" className="block w-full" disabled={exporting} onClick={onExport}>
             <SettingRow
               icon={Download}
               title="Export data"
@@ -471,7 +471,7 @@ export function AccountScreen() {
             >
               {exporting ? <Loader2 className="size-4 animate-spin text-[#667085]" aria-hidden /> : null}
             </SettingRow>
-          </button>
+          </button> */}
           {showDelete ? (
             <form onSubmit={onDelete} className="space-y-3 px-1 py-4">
               <p className="text-sm text-[#667085]">Enter your password to delete this account.</p>

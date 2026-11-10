@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { CheckCircle2, ExternalLink } from 'lucide-react';
+import { CheckCircle2, ExternalLink } from '@/components/ui/icons';
 import { formatMoney, formatPlanPrice, type Plan, type PlanId } from '@/data/site';
 import { formatLongDate } from '@/lib/dates';
 import { PRODUCT_SLUG } from '@/lib/api/config';

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { BellOff, CheckCheck, ChevronRight, Lock, Send, Sparkles, Sun, type LucideIcon } from 'lucide-react';
+import { BellOff, CheckCheck, ChevronRight, Lock, Send, Sparkles, Sun, type LucideIcon } from '@/components/ui/icons';
 import { LoadingState } from '@/components/app/LoadingState';
 import { useNotifications } from '@/components/app/useNotifications';
 import type { Notice } from '@/lib/notifications';

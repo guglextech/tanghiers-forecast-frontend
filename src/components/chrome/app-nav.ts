@@ -7,7 +7,7 @@ import {
   History,
   Settings,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 export type AppNavItem = {
   href: string;

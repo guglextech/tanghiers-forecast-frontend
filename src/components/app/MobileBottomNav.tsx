@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, CalendarDays, FolderOpen, Home, MoreHorizontal } from 'lucide-react';
+import { BookOpen, CalendarDays, FolderOpen, Home, MoreHorizontal } from '@/components/ui/icons';
 import { mainNav, secondaryNav } from '@/components/app/nav-config';
 import { ThemeToggle } from '@/components/app/ThemeToggle';
 import { cn } from '@/lib/utils';

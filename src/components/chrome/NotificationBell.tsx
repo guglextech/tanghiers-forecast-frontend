@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell } from 'lucide-react';
+import { Bell } from '@/components/ui/icons';
 import { useNotifications } from '@/components/app/useNotifications';
 import { cn } from '@/lib/utils';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { Check } from '@/components/ui/icons';
 import { Label } from '@/components/ui/label';
 import { FORM_LABEL } from '@/lib/form-styles';
 import { cn } from '@/lib/utils';

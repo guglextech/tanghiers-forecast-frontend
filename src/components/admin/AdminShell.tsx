@@ -27,7 +27,7 @@ import {
   Users,
   X,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 const deskLinks: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/admin', label: 'Overview', icon: LayoutGrid },

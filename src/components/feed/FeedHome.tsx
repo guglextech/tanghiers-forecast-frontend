@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Heart, MessageCircle, Repeat2, Share } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, Share } from '@/components/ui/icons';
 import { BrandMark } from '@/components/mba/BrandMark';
 import { ThemeToggle } from '@/components/app/ThemeToggle';
 import { mainNav, secondaryNav } from '@/components/app/nav-config';
