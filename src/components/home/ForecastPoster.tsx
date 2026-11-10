@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils';
 
 export type PosterTone = 'blue' | 'green' | 'slate' | 'sky';
 
-const TONES: Record<PosterTone, { bg: string; glow: string; ball: string }> = {
-  blue: { bg: 'from-[#06245a] via-[#0B3A82] to-[#1d5bbf]', glow: 'bg-[#3b82f6]/40', ball: 'bg-[#2e6fd8]' },
-  green: { bg: 'from-[#06301f] via-[#125d4a] to-[#1f8a6c]', glow: 'bg-[#34d399]/30', ball: 'bg-[#1f8a6c]' },
-  slate: { bg: 'from-[#0f1420] via-[#344054] to-[#56627a]', glow: 'bg-[#94a3b8]/30', ball: 'bg-[#475467]' },
-  sky: { bg: 'from-[#0a2b6b] via-[#175cd3] to-[#3d8bfd]', glow: 'bg-[#93c5fd]/40', ball: 'bg-[#2f74e6]' },
+const TONES: Record<PosterTone, { bg: string; glow: string }> = {
+  blue: { bg: 'from-[#06245a] via-[#0B3A82] to-[#1d5bbf]', glow: 'bg-[#3b82f6]/40' },
+  green: { bg: 'from-[#06301f] via-[#125d4a] to-[#1f8a6c]', glow: 'bg-[#34d399]/30' },
+  slate: { bg: 'from-[#0f1420] via-[#344054] to-[#56627a]', glow: 'bg-[#94a3b8]/30' },
+  sky: { bg: 'from-[#0a2b6b] via-[#175cd3] to-[#3d8bfd]', glow: 'bg-[#93c5fd]/40' },
 };
 
 export function ForecastPoster({
@@ -108,8 +108,7 @@ export function ForecastPoster({
             <span
               key={index}
               className={cn(
-                'grid place-items-center rounded-full font-bold text-white/90 ring-1 ring-white/30 shadow-[inset_0_-3px_6px_rgba(0,0,0,0.25),inset_0_2px_4px_rgba(255,255,255,0.35)]',
-                palette.ball,
+                'grid place-items-center rounded-full bg-white font-bold text-[#0B3A82] shadow-[inset_0_-3px_6px_rgba(16,24,40,0.15),0_2px_6px_rgba(0,0,0,0.25)]',
                 size === 'sm'
                   ? 'size-4 text-[8px]'
                   : size === 'lg'
