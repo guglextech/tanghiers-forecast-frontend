@@ -159,6 +159,8 @@ export function MarketingHome() {
             label={feature.label}
             balls={feature.balls}
             tone={feature.tone}
+            image={feature.image}
+            priority
             size="lg"
             badge="Members"
           />
@@ -197,6 +199,7 @@ export function MarketingHome() {
                   label={teaser.label}
                   balls={teaser.balls}
                   tone={teaser.tone}
+                  image={teaser.image}
                   size="sm"
                   className="w-28 shrink-0 rounded-lg sm:w-32"
                 />
@@ -220,7 +223,13 @@ export function MarketingHome() {
               onClick={() => setOpen(teaser)}
               className="group flex flex-col overflow-hidden rounded-xl border border-[#e6e8ee] bg-white text-left transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)]"
             >
-              <ForecastPoster game={teaser.game} label={teaser.label} balls={teaser.balls} tone={teaser.tone} />
+              <ForecastPoster
+                game={teaser.game}
+                label={teaser.label}
+                balls={teaser.balls}
+                tone={teaser.tone}
+                image={teaser.image}
+              />
               <span className="flex flex-1 flex-col px-3 pt-2.5 pb-3">
                 <span className="line-clamp-2 text-sm leading-snug font-semibold text-[#101828]">{teaser.title}</span>
                 <span className="mt-auto flex items-center justify-between pt-2 text-xs">

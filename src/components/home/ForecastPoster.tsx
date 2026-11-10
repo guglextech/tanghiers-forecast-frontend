@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Lock, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,8 @@ export function ForecastPoster({
   label,
   balls,
   tone,
+  image,
+  priority = false,
   badge,
   size = 'md',
   className,
@@ -23,6 +26,8 @@ export function ForecastPoster({
   label: string;
   balls: number;
   tone: PosterTone;
+  image?: string;
+  priority?: boolean;
   badge?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -38,8 +43,30 @@ export function ForecastPoster({
         className,
       )}
     >
-      <div className={cn('absolute -top-1/3 -right-1/4 -z-10 size-3/4 rounded-full blur-3xl', palette.glow)} />
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:14px_14px]" />
+      {image ? (
+        <>
+          <Image
+            src={image}
+            alt=""
+            fill
+            priority={priority}
+            sizes={
+              size === 'lg'
+                ? '(min-width: 672px) 672px, 100vw'
+                : size === 'sm'
+                  ? '128px'
+                  : '(min-width: 672px) 330px, 50vw'
+            }
+            className="-z-20 object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#040d22]/85 via-[#040d22]/45 to-[#040d22]/10" />
+        </>
+      ) : (
+        <>
+          <div className={cn('absolute -top-1/3 -right-1/4 -z-10 size-3/4 rounded-full blur-3xl', palette.glow)} />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:14px_14px]" />
+        </>
+      )}
 
       <div
         className={cn(
@@ -70,7 +97,11 @@ export function ForecastPoster({
         <div
           className={cn(
             'flex',
-            size === 'sm' ? 'mt-1.5 gap-1' : size === 'lg' ? 'mt-4 gap-2 sm:mt-5 sm:gap-2.5' : 'mt-2 gap-1 sm:mt-3 sm:gap-1.5',
+            size === 'sm'
+              ? 'mt-1.5 gap-1'
+              : size === 'lg'
+                ? 'mt-4 gap-2 sm:mt-5 sm:gap-2.5'
+                : 'mt-2 gap-1 sm:mt-3 sm:gap-1.5',
           )}
         >
           {Array.from({ length: balls }).map((_, index) => (
@@ -96,7 +127,9 @@ export function ForecastPoster({
         <span
           className={cn(
             'absolute right-[12%] grid place-items-center rounded-full bg-white/15 ring-1 ring-white/30 backdrop-blur-sm transition-transform group-hover:scale-110',
-            size === 'lg' ? 'top-12 size-12 sm:top-[22%] sm:size-16' : 'top-1/2 hidden size-10 -translate-y-1/2 sm:grid',
+            size === 'lg'
+              ? 'top-12 size-12 sm:top-[22%] sm:size-16'
+              : 'top-1/2 hidden size-10 -translate-y-1/2 sm:grid',
           )}
         >
           <Play className="ml-0.5 size-5 fill-white sm:size-6" strokeWidth={0} />
