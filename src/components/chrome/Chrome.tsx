@@ -72,7 +72,7 @@ export function PublicHeader() {
   const pathname = usePathname();
 
   return (
-    <header className={barClass}>
+    <header className={cn(barClass, 'border-b border-[#e4e7ec] bg-white/90')}>
       <div className={cn(shellClass, 'flex h-14 items-center justify-between gap-4 md:h-16')}>
         <BrandLockup />
         <nav aria-label="Site" className="hidden items-center gap-6 md:flex">
@@ -132,7 +132,7 @@ export function PublicFooter() {
   const pathname = usePathname();
 
   return (
-    <footer className="mt-auto pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+    <footer className="mt-auto border-t border-[#e4e7ec] bg-white pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <div className={cn(shellClass, 'flex flex-col gap-3 py-6')}>
         <p className="text-[13px] leading-5 text-[#98a2b3]">
           A {SITE.project} product. {SITE.disclaimer}

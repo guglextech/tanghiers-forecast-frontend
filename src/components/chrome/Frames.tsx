@@ -41,7 +41,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
 export function PublicFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#101828]">
+    <div className="flex min-h-screen flex-col bg-[#f2f4f7] text-[#101828]">
       <PublicHeader />
       <main className={cn(shellClass, bottomNavPad, 'flex-1 py-6 md:py-10')}>{children}</main>
       <PublicFooter />
