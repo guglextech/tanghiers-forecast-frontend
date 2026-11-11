@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload: Record<string, unknown> = { idToken: parsed.data.idToken };
-  if (parsed.data.nonce) payload.nonce = parsed.data.nonce;
-
-  const upstream = await postUpstream('/v1/auth/social/google', payload);
+  const upstream = await postUpstream('/v1/auth/social/google', {
+    idToken: parsed.data.idToken,
+    nonce: parsed.data.nonce,
+  });
   if (!upstream.ok) {
     return NextResponse.json(
       {

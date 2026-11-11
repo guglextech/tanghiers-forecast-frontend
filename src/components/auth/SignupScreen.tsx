@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { StepBars } from '@/components/auth/StepBars';
 import { shellClass } from '@/components/chrome/Chrome';
+import { SITE } from '@/data/site';
 import { cn } from '@/lib/utils';
 
 const STEPS = [
@@ -74,7 +75,7 @@ function ConsentRow({
 const CONSENT_NOTE = 'Agree to the terms, privacy policy, and age confirmation to continue.';
 
 const STEP_COPY = [
-  { title: 'Join Tanghiers', hint: 'Continue with Google, or use email and a password.' },
+  { title: `Join ${SITE.name.trim()}`, hint: 'Continue with Google, or use email and a password.' },
   { title: 'Almost done', hint: '' },
 ] as const;
 

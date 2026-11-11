@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { clearSignupTokenCookie, readSignupTokenCookie } from '@/lib/auth/cookies';
 import { assertSameOrigin } from '@/lib/auth/csrf';
-import { consentVersions, productSlug } from '@/lib/auth/env';
+import { productSlug } from '@/lib/auth/env';
 import { toClientAuthResponse } from '@/lib/auth/response';
 import { postUpstream } from '@/lib/auth/upstream';
-import {
-  ageFromIso,
-  isFutureIsoDate,
-  isValidIsoDate,
-  socialCompleteBodySchema,
-} from '@/lib/auth/validation';
+import { isFutureIsoDate, isValidIsoDate, socialCompleteBodySchema } from '@/lib/auth/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,41 +50,32 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { countryCode, dateOfBirth, minAge } = parsed.data;
-  if (!isValidIsoDate(dateOfBirth)) {
+  const { firstName, lastName, countryCode, phone, dateOfBirth, consents } = parsed.data;
+  if (dateOfBirth && !isValidIsoDate(dateOfBirth)) {
     return NextResponse.json(
       { status: 'error', message: 'Enter a valid date of birth.', code: 'VALIDATION' },
       { status: 400 },
     );
   }
-  if (isFutureIsoDate(dateOfBirth)) {
+  if (dateOfBirth && isFutureIsoDate(dateOfBirth)) {
     return NextResponse.json(
       { status: 'error', message: 'Date of birth cannot be in the future.', code: 'VALIDATION' },
       { status: 400 },
     );
   }
-  if (typeof minAge === 'number' && ageFromIso(dateOfBirth) < minAge) {
-    return NextResponse.json(
-      {
-        status: 'error',
-        message: `You must be at least ${minAge} years old.`,
-        code: 'VALIDATION',
-      },
-      { status: 400 },
-    );
-  }
 
-  const versions = consentVersions();
+  const optional = {
+    firstName,
+    lastName,
+    countryCode,
+    phone,
+    dateOfBirth,
+  };
   const upstream = await postUpstream('/v1/auth/social/complete', {
     signupToken,
-    countryCode,
-    dateOfBirth,
     productSlug: productSlug(),
-    consents: {
-      terms: versions.terms,
-      privacy: versions.privacy,
-      age: versions.age,
-    },
+    consents,
+    ...Object.fromEntries(Object.entries(optional).filter(([, value]) => Boolean(value))),
   });
 
   if (!upstream.ok) {

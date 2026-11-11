@@ -21,6 +21,7 @@ export function GoogleSignInButton({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [resetKey, setResetKey] = useState(0);
   const query = next ? `?next=${encodeURIComponent(next)}` : '';
 
   const finish = (role: 'member' | 'admin') => {
@@ -54,6 +55,7 @@ export function GoogleSignInButton({
       }
       setError(err instanceof Error ? err.message : 'Google authentication failed.');
       setBusy(false);
+      setResetKey((key) => key + 1);
     }
   };
 
@@ -61,6 +63,7 @@ export function GoogleSignInButton({
     <div className={className}>
       <GoogleContinueButton
         disabled={busy}
+        resetKey={resetKey}
         onSuccess={(idToken, nonce) => void onSuccess(idToken, nonce)}
         onError={(message) => {
           setError(message);

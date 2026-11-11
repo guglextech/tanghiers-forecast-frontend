@@ -21,58 +21,28 @@ import { shellClass } from '@/components/chrome/Chrome';
 import { ApiError } from '@/lib/api/errors';
 import { catalog } from '@/lib/api/resources';
 import type { ApiConsentMap } from '@/lib/api/types';
-import { ageFromIso } from '@/lib/auth/validation';
+import { isFutureIsoDate, isValidIsoDate } from '@/lib/auth/validation';
 import { clearPendingSocial, hasPendingSocialSignup, readPendingSocial } from '@/lib/google';
 import { mfaPathFor, readPendingMfa } from '@/lib/mfa';
 import { cn } from '@/lib/utils';
 
 type Country = { code: string; name: string };
+type ConsentField = 'terms' | 'privacy' | 'age' | 'sms' | 'emailMarketing';
 
-function consentOf(map: ApiConsentMap, keys: string[]) {
-  const entries = Object.entries(map ?? {});
-  for (const want of keys) {
-    const match = entries.find(([key]) => key.toLowerCase() === want.toLowerCase());
-    const entry = match?.[1];
-    if (entry?.version) return entry;
-  }
-  return null;
-}
+const CONSENT_FIELDS: { kind: string; field: ConsentField; required: boolean }[] = [
+  { kind: 'TERMS', field: 'terms', required: true },
+  { kind: 'PRIVACY', field: 'privacy', required: true },
+  { kind: 'AGE', field: 'age', required: true },
+  { kind: 'SMS', field: 'sms', required: false },
+  { kind: 'EMAIL_MARKETING', field: 'emailMarketing', required: false },
+];
 
-function ConsentRow({
-  id,
-  checked,
-  onChange,
-  text,
-  href,
-  linkLabel,
-  error,
-}: {
-  id: string;
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  text: string;
-  href?: string;
-  linkLabel?: string;
-  error?: string;
-}) {
-  return (
-    <div className="px-4 py-3.5">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <Label htmlFor={id} className="text-sm font-normal leading-5 text-[#344054]">
-            {text}
-          </Label>
-          {href && linkLabel ? (
-            <Link href={href} className="mt-1 block text-xs font-medium text-[#667085] hover:text-[#101828]">
-              {linkLabel}
-            </Link>
-          ) : null}
-        </div>
-        <Switch id={id} size="sm" checked={checked} onCheckedChange={onChange} className="shadow-none" />
-      </div>
-      {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
-    </div>
-  );
+const NONE = 'none';
+
+function consentOf(map: ApiConsentMap, kind: string) {
+  const match = Object.entries(map ?? {}).find(([key]) => key.toLowerCase() === kind.toLowerCase());
+  const entry = match?.[1];
+  return entry?.version ? entry : null;
 }
 
 export function RegistrationForm() {
@@ -84,14 +54,15 @@ export function RegistrationForm() {
 
   const [checking, setChecking] = React.useState(true);
   const [email, setEmail] = React.useState('');
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
   const [countries, setCountries] = React.useState<Country[]>([]);
   const [countryCode, setCountryCode] = React.useState('');
+  const [phone, setPhone] = React.useState('');
   const [dateOfBirth, setDateOfBirth] = React.useState('');
-  const [agreeTerms, setAgreeTerms] = React.useState(false);
-  const [agreePrivacy, setAgreePrivacy] = React.useState(false);
-  const [agreeAge, setAgreeAge] = React.useState(false);
   const [consents, setConsents] = React.useState<ApiConsentMap>({});
-  const [minAge, setMinAge] = React.useState<number | null>(null);
+  const [accepted, setAccepted] = React.useState<Partial<Record<ConsentField, boolean>>>({});
+  const [catalogueReady, setCatalogueReady] = React.useState(false);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
   const [error, setError] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -108,11 +79,15 @@ export function RegistrationForm() {
       if (cancelled) return;
       if (!pending) {
         clearPendingSocial();
-        router.replace(`/login${query ? `${query}&` : '?'}message=${encodeURIComponent('Continue with Google to finish registration.')}`);
+        router.replace(
+          `/login${query ? `${query}&` : '?'}message=${encodeURIComponent('Continue with Google to finish registration.')}`,
+        );
         return;
       }
       const profile = readPendingSocial();
       setEmail(profile?.email || '');
+      setFirstName(profile?.firstName || '');
+      setLastName(profile?.lastName || '');
       setChecking(false);
     })();
     return () => {
@@ -124,53 +99,34 @@ export function RegistrationForm() {
     void Promise.all([
       catalog.countries().catch(() => [] as Country[]),
       catalog.consents().catch(() => ({}) as ApiConsentMap),
-      catalog.product().catch(() => null),
-    ]).then(([countryRows, consentMap, product]) => {
+    ]).then(([countryRows, consentMap]) => {
       const list = (Array.isArray(countryRows) ? countryRows : [])
         .map((row) => ({ code: String(row.code || '').toUpperCase(), name: String(row.name || row.code || '') }))
         .filter((row) => /^[A-Z]{2}$/.test(row.code) && row.name);
       setCountries(list);
       setConsents(consentMap ?? {});
-      if (product?.minAge && product.minAge > 0) setMinAge(product.minAge);
-      setCountryCode((current) => {
-        if (current) return current;
-        const locale = typeof navigator !== 'undefined' ? navigator.language : '';
-        const guess = locale.split('-')[1]?.toUpperCase() || '';
-        const match = guess ? list.find((row) => row.code === guess) : undefined;
-        return match ? match.code : '';
-      });
+      setCatalogueReady(true);
     });
   }, []);
 
-  const terms = consentOf(consents, ['terms', 'TERMS']) ?? {
-    version: 'terms-2026-10',
-    text: 'I agree to the Terms and Conditions.',
-  };
-  const privacy = consentOf(consents, ['privacy', 'PRIVACY']) ?? {
-    version: 'privacy-2026-10',
-    text: 'I agree to the Privacy Policy.',
-  };
-  const age = consentOf(consents, ['age', 'AGE']) ?? {
-    version: 'age-2026-10',
-    text: minAge ? `I confirm I am at least ${minAge} years old.` : 'I confirm that I meet the age requirement.',
-  };
+  const visibleConsents = CONSENT_FIELDS.flatMap((field) => {
+    const entry = consentOf(consents, field.kind);
+    return entry ? [{ ...field, version: entry.version, text: entry.text }] : [];
+  });
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
-    if (!/^[A-Z]{2}$/.test(countryCode)) nextErrors.countryCode = 'Choose a country.';
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
-      nextErrors.dateOfBirth = 'Enter your date of birth.';
-    } else {
-      const today = new Date();
-      const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      if (dateOfBirth > iso) nextErrors.dateOfBirth = 'Date of birth cannot be in the future.';
-      else if (minAge && ageFromIso(dateOfBirth) < minAge) {
-        nextErrors.dateOfBirth = `You must be at least ${minAge} years old.`;
-      }
+    if (dateOfBirth && (!isValidIsoDate(dateOfBirth) || isFutureIsoDate(dateOfBirth))) {
+      nextErrors.dateOfBirth = isFutureIsoDate(dateOfBirth)
+        ? 'Date of birth cannot be in the future.'
+        : 'Enter a valid date of birth.';
     }
-    if (!agreeTerms) nextErrors.agreeTerms = 'Agree to the Terms and Conditions.';
-    if (!agreePrivacy) nextErrors.agreePrivacy = 'Agree to the Privacy Policy.';
-    if (!agreeAge) nextErrors.agreeAge = 'Confirm that you meet the age requirement.';
+    for (const field of visibleConsents) {
+      if (field.required && !accepted[field.field]) nextErrors[field.field] = 'This agreement is required.';
+    }
+    if (!visibleConsents.some((field) => field.field === 'terms' && field.required)) {
+      nextErrors.form = 'The consent text could not be loaded. Refresh and try again.';
+    }
     setFieldErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -179,15 +135,29 @@ export function RegistrationForm() {
     event.preventDefault();
     setError('');
     if (!validate()) return;
+    const chosen: Partial<Record<ConsentField, string>> = {};
+    for (const field of visibleConsents) {
+      if (accepted[field.field]) chosen[field.field] = field.version;
+    }
+    if (!chosen.terms || !chosen.privacy || !chosen.age) {
+      setError('Agree to the terms, privacy policy, and age confirmation to continue.');
+      return;
+    }
     setBusy(true);
     try {
       const session = await completeGoogleSignup({
-        countryCode,
-        dateOfBirth,
-        acceptedTerms: agreeTerms,
-        acceptedPrivacy: agreePrivacy,
-        acceptedAge: agreeAge,
-        ...(minAge ? { minAge } : {}),
+        firstName: firstName.trim() || undefined,
+        lastName: lastName.trim() || undefined,
+        countryCode: countryCode || undefined,
+        phone: phone.trim() || undefined,
+        dateOfBirth: dateOfBirth || undefined,
+        consents: {
+          terms: chosen.terms,
+          privacy: chosen.privacy,
+          age: chosen.age,
+          ...(chosen.sms ? { sms: chosen.sms } : {}),
+          ...(chosen.emailMarketing ? { emailMarketing: chosen.emailMarketing } : {}),
+        },
       });
       toast.success('Registration complete.');
       if (next.startsWith('/') && !next.startsWith('//')) {
@@ -228,17 +198,49 @@ export function RegistrationForm() {
         <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">Google signup</p>
         <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">Complete registration</h1>
         <p className="mt-1 text-sm leading-6 text-[#667085]">
-          {email ? `Finish setting up ${email}.` : 'Finish setting up your Google account.'}
+          {email ? (
+            <>
+              Finish creating the account for <span className="font-medium text-[#101828]">{email}</span>.
+            </>
+          ) : (
+            'Finish creating your account.'
+          )}
         </p>
 
         <form onSubmit={(event) => void submit(event)} className="mt-8 space-y-4" noValidate>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First name</Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                maxLength={100}
+                autoComplete="given-name"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last name</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                maxLength={100}
+                autoComplete="family-name"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="countryCode">Country</Label>
-            <Select value={countryCode || undefined} onValueChange={setCountryCode}>
-              <SelectTrigger id="countryCode" aria-invalid={Boolean(fieldErrors.countryCode)}>
-                <SelectValue placeholder="Select country" />
+            <Label htmlFor="countryCode">Country (optional)</Label>
+            <Select value={countryCode || NONE} onValueChange={(value) => setCountryCode(value === NONE ? '' : value)}>
+              <SelectTrigger id="countryCode">
+                <SelectValue placeholder="Not specified" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={NONE}>Not specified</SelectItem>
                 {countries.map((country) => (
                   <SelectItem key={country.code} value={country.code}>
                     {country.name}
@@ -246,15 +248,25 @@ export function RegistrationForm() {
                 ))}
               </SelectContent>
             </Select>
-            {fieldErrors.countryCode ? <p className="text-xs text-destructive">{fieldErrors.countryCode}</p> : null}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of birth</Label>
+            <Label htmlFor="phone">Phone (optional)</Label>
+            <Input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="+1 415 555 0100"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dateOfBirth">Date of birth (optional)</Label>
             <Input
               id="dateOfBirth"
               type="date"
-              required
               value={dateOfBirth}
               onChange={(event) => setDateOfBirth(event.target.value)}
               aria-invalid={Boolean(fieldErrors.dateOfBirth)}
@@ -263,39 +275,39 @@ export function RegistrationForm() {
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
-            <ConsentRow
-              id="agree-terms"
-              checked={agreeTerms}
-              onChange={setAgreeTerms}
-              text={terms.text}
-              href="/terms"
-              linkLabel="Read terms"
-              error={fieldErrors.agreeTerms}
-            />
-            <div className="h-px bg-[#eef0f3]" />
-            <ConsentRow
-              id="agree-privacy"
-              checked={agreePrivacy}
-              onChange={setAgreePrivacy}
-              text={privacy.text}
-              href="/privacy"
-              linkLabel="Read privacy"
-              error={fieldErrors.agreePrivacy}
-            />
-            <div className="h-px bg-[#eef0f3]" />
-            <ConsentRow
-              id="agree-age"
-              checked={agreeAge}
-              onChange={setAgreeAge}
-              text={age.text}
-              error={fieldErrors.agreeAge}
-            />
+            {visibleConsents.length === 0 ? (
+              <p className="px-4 py-3.5 text-sm text-[#667085]">
+                {catalogueReady ? 'Consent text is unavailable. Refresh and try again.' : 'Loading agreements…'}
+              </p>
+            ) : (
+              visibleConsents.map((field, index) => (
+                <div key={field.field} className={index > 0 ? 'border-t border-[#eef0f3]' : ''}>
+                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+                    <Label htmlFor={`consent-${field.field}`} className="text-sm font-normal leading-5 text-[#344054]">
+                      {field.text}
+                      {field.required ? null : <span className="text-[#98a2b3]"> (optional)</span>}
+                    </Label>
+                    <Switch
+                      id={`consent-${field.field}`}
+                      size="sm"
+                      checked={Boolean(accepted[field.field])}
+                      onCheckedChange={(value) => setAccepted((current) => ({ ...current, [field.field]: value }))}
+                      className="shadow-none"
+                    />
+                  </div>
+                  {fieldErrors[field.field] ? (
+                    <p className="px-4 pb-3 text-xs text-destructive">{fieldErrors[field.field]}</p>
+                  ) : null}
+                </div>
+              ))
+            )}
           </div>
 
+          {fieldErrors.form ? <p className="text-sm text-destructive">{fieldErrors.form}</p> : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-          <Button type="submit" className="w-full" loading={busy}>
-            {busy ? 'Completing registration' : 'Complete Registration'}
+          <Button type="submit" className="w-full" loading={busy} disabled={!catalogueReady}>
+            {busy ? 'Creating account' : 'Create account'}
           </Button>
         </form>
 
