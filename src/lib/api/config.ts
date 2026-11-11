@@ -13,7 +13,14 @@ export const AUTH_STORAGE_KEY = 'tg.auth.v1';
  */
 const GOOGLE_CLIENT_ID_DEFAULT = '513881883923-fqcp6edrctm9j0i0bbr2n6q7i99p7vsu.apps.googleusercontent.com';
 
-export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID_DEFAULT;
+function googleClientId(value?: string) {
+  const cleaned = value?.trim().replace(/^['"]+|['"]+$/g, '') || '';
+  return /^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/i.test(cleaned)
+    ? cleaned
+    : GOOGLE_CLIENT_ID_DEFAULT;
+}
+
+export const GOOGLE_CLIENT_ID = googleClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
 type QueryValue = string | number | boolean | null | undefined;
 
