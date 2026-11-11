@@ -6,8 +6,14 @@ export const PRODUCT_SLUG = process.env.NEXT_PUBLIC_PRODUCT_SLUG ?? 'tanghiers-f
 
 export const AUTH_STORAGE_KEY = 'tg.auth.v1';
 
-/** Google Identity Services client ID. Must also be in the API `GOOGLE_CLIENT_IDS`. */
-export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+/**
+ * Google Identity Services client ID. Public (it is not a secret) and must be
+ * one of the API's GOOGLE_CLIENT_IDS. Next inlines NEXT_PUBLIC_* at build time,
+ * so a missing deploy env would ship an empty id. Fall back to the known client.
+ */
+const GOOGLE_CLIENT_ID_DEFAULT = '513881883923-fqcp6edrctm9j0i0bbr2n6q7i99p7vsu.apps.googleusercontent.com';
+
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID_DEFAULT;
 
 type QueryValue = string | number | boolean | null | undefined;
 
