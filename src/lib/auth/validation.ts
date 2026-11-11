@@ -2,29 +2,37 @@ import { z } from 'zod';
 
 export const googleAuthBodySchema = z.object({
   idToken: z.string().trim().min(1, 'Google ID token is required.'),
-  nonce: z.string().trim().min(1).optional(),
+  nonce: z.string().trim().min(1, 'Google nonce is required.'),
 });
 
+const consentVersion = z.string().trim().min(1).max(80);
+
 export const socialCompleteBodySchema = z.object({
+  firstName: z.string().trim().max(100).optional(),
+  lastName: z.string().trim().max(100).optional(),
   countryCode: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2}$/, 'Enter a valid country code.'),
+    .regex(/^[A-Z]{2}$/, 'Enter a valid country code.')
+    .optional()
+    .or(z.literal('')),
+  phone: z.string().trim().max(40).optional(),
   dateOfBirth: z
     .string()
     .trim()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD for date of birth.'),
-  acceptedTerms: z.boolean().refine((value) => value === true, {
-    message: 'Agree to the Terms and Conditions.',
-  }),
-  acceptedPrivacy: z.boolean().refine((value) => value === true, {
-    message: 'Agree to the Privacy Policy.',
-  }),
-  acceptedAge: z.boolean().refine((value) => value === true, {
-    message: 'Confirm that you meet the age requirement.',
-  }),
-  minAge: z.number().int().positive().optional(),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD for date of birth.')
+    .optional()
+    .or(z.literal('')),
+  consents: z
+    .object({
+      terms: consentVersion,
+      privacy: consentVersion,
+      age: consentVersion,
+      sms: consentVersion.optional(),
+      emailMarketing: consentVersion.optional(),
+    })
+    .strict(),
 });
 
 export function isValidIsoDate(value: string) {

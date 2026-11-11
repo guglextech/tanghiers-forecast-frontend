@@ -68,10 +68,10 @@ export const auth = {
     }),
   changePassword: (currentPassword: string, newPassword: string) =>
     apiRequest<unknown>('/v1/auth/password/change', { method: 'POST', body: { currentPassword, newPassword } }),
-  google: (idToken: string, nonce?: string) =>
+  google: (idToken: string, nonce: string) =>
     apiRequest<LoginResult>('/v1/auth/social/google', {
       method: 'POST',
-      body: nonce ? { idToken, nonce } : { idToken },
+      body: { idToken, nonce },
       auth: false,
     }),
   completeSocial: (body: Record<string, unknown>) =>

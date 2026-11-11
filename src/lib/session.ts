@@ -359,11 +359,13 @@ export async function signupAccount(input: SignupInput): Promise<SessionUser> {
   );
 }
 
-export async function continueWithGoogle(idToken: string, nonce?: string): Promise<SessionUser> {
+export async function continueWithGoogle(idToken: string, nonce: string): Promise<SessionUser> {
   const token = idToken.trim();
+  const proof = nonce.trim();
   if (!token) throw new Error('Google did not return an ID token.');
+  if (!proof) throw new Error('Google sign-in could not be verified. Try again.');
   const fromToken = readIdTokenProfile(token);
-  const { result } = await postGoogleAuth(token, nonce);
+  const { result } = await postGoogleAuth(token, proof);
   return concludeGoogleClientAuth(
     {
       ...result,
@@ -376,33 +378,33 @@ export async function continueWithGoogle(idToken: string, nonce?: string): Promi
 }
 
 export type SocialSignupInput = {
-  countryCode: string;
-  dateOfBirth: string;
-  acceptedTerms: boolean;
-  acceptedPrivacy: boolean;
-  acceptedAge: boolean;
-  minAge?: number;
-  /** @deprecated Consent versions are applied server-side. Kept for older callers. */
-  consents?: { terms: string; privacy: string; age: string };
+  firstName?: string;
+  lastName?: string;
+  countryCode?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  consents: {
+    terms: string;
+    privacy: string;
+    age: string;
+    sms?: string;
+    emailMarketing?: string;
+  };
 };
 
 export async function completeGoogleSignup(input: SocialSignupInput): Promise<SessionUser> {
   const pending = readPendingSocial();
-  const dateOfBirth = input.dateOfBirth.trim();
-  const countryCode = input.countryCode.trim().toUpperCase();
-  if (!dateOfBirth) throw new Error('Enter your date of birth.');
-  if (!/^[A-Z]{2}$/.test(countryCode)) throw new Error('Choose a country.');
-  if (!input.acceptedTerms || !input.acceptedPrivacy || !input.acceptedAge) {
+  if (!input.consents.terms || !input.consents.privacy || !input.consents.age) {
     throw new Error('Agree to the terms, privacy policy, and age confirmation to continue.');
   }
 
   const { result } = await postSocialComplete({
-    countryCode,
-    dateOfBirth,
-    acceptedTerms: input.acceptedTerms,
-    acceptedPrivacy: input.acceptedPrivacy,
-    acceptedAge: input.acceptedAge,
-    minAge: input.minAge,
+    firstName: input.firstName?.trim() || undefined,
+    lastName: input.lastName?.trim() || undefined,
+    countryCode: input.countryCode?.trim().toUpperCase() || undefined,
+    phone: input.phone?.trim() || undefined,
+    dateOfBirth: input.dateOfBirth?.trim() || undefined,
+    consents: input.consents,
   });
 
   if (result.status === 'error' && result.code === 'MISSING_SIGNUP_TOKEN') {

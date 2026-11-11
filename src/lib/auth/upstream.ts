@@ -37,7 +37,7 @@ function asLoginResult(payload: unknown): LoginResult {
 
 export async function postUpstream(path: string, body: Record<string, unknown>): Promise<UpstreamResult> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 25_000);
+  const timer = setTimeout(() => controller.abort(), 90_000);
   try {
     const response = await fetch(`${apiBaseUrl()}${path}`, {
       method: 'POST',
