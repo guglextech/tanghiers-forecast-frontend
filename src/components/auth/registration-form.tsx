@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { StepBars } from '@/components/auth/StepBars';
 import {
   Select,
   SelectContent,
@@ -21,7 +22,6 @@ import { shellClass } from '@/components/chrome/Chrome';
 import { ApiError } from '@/lib/api/errors';
 import { catalog } from '@/lib/api/resources';
 import type { ApiConsentMap } from '@/lib/api/types';
-import { isFutureIsoDate, isValidIsoDate } from '@/lib/auth/validation';
 import { clearPendingSocial, hasPendingSocialSignup, readPendingSocial } from '@/lib/google';
 import { mfaPathFor, readPendingMfa } from '@/lib/mfa';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ const CONSENT_FIELDS: { kind: string; field: ConsentField; required: boolean }[]
 ];
 
 const NONE = 'none';
+const STEPS = [{ title: 'Profile' }, { title: 'Agreements' }] as const;
 
 function consentOf(map: ApiConsentMap, kind: string) {
   const match = Object.entries(map ?? {}).find(([key]) => key.toLowerCase() === kind.toLowerCase());
@@ -54,12 +55,12 @@ export function RegistrationForm() {
 
   const [checking, setChecking] = React.useState(true);
   const [email, setEmail] = React.useState('');
+  const [step, setStep] = React.useState(0);
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [countries, setCountries] = React.useState<Country[]>([]);
   const [countryCode, setCountryCode] = React.useState('');
   const [phone, setPhone] = React.useState('');
-  const [dateOfBirth, setDateOfBirth] = React.useState('');
   const [consents, setConsents] = React.useState<ApiConsentMap>({});
   const [accepted, setAccepted] = React.useState<Partial<Record<ConsentField, boolean>>>({});
   const [catalogueReady, setCatalogueReady] = React.useState(false);
@@ -116,11 +117,6 @@ export function RegistrationForm() {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
-    if (dateOfBirth && (!isValidIsoDate(dateOfBirth) || isFutureIsoDate(dateOfBirth))) {
-      nextErrors.dateOfBirth = isFutureIsoDate(dateOfBirth)
-        ? 'Date of birth cannot be in the future.'
-        : 'Enter a valid date of birth.';
-    }
     for (const field of visibleConsents) {
       if (field.required && !accepted[field.field]) nextErrors[field.field] = 'This agreement is required.';
     }
@@ -150,7 +146,6 @@ export function RegistrationForm() {
         lastName: lastName.trim() || undefined,
         countryCode: countryCode || undefined,
         phone: phone.trim() || undefined,
-        dateOfBirth: dateOfBirth || undefined,
         consents: {
           terms: chosen.terms,
           privacy: chosen.privacy,
@@ -196,119 +191,169 @@ export function RegistrationForm() {
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
         <p className="text-[11px] font-medium tracking-[0.16em] text-[#98a2b3] uppercase">Google signup</p>
-        <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">Complete registration</h1>
+        <h1 className="mt-2 text-[1.75rem] font-semibold tracking-tight">
+          {step === 0 ? 'Complete your profile' : 'Review agreements'}
+        </h1>
         <p className="mt-1 text-sm leading-6 text-[#667085]">
-          {email ? (
+          {step === 0 && email ? (
             <>
               Finish creating the account for <span className="font-medium text-[#101828]">{email}</span>.
             </>
+          ) : step === 0 ? (
+            'Add any optional profile details.'
           ) : (
-            'Finish creating your account.'
+            'Required agreements must be accepted to create your account.'
           )}
         </p>
 
+        <StepBars
+          label="Google signup progress"
+          steps={STEPS}
+          current={step}
+          onSelect={(index) => {
+            setError('');
+            setFieldErrors({});
+            setStep(index);
+          }}
+        />
+
         <form onSubmit={(event) => void submit(event)} className="mt-8 space-y-4" noValidate>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First name</Label>
-              <Input
-                id="firstName"
-                name="firstName"
-                maxLength={100}
-                autoComplete="given-name"
-                value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last name</Label>
-              <Input
-                id="lastName"
-                name="lastName"
-                maxLength={100}
-                autoComplete="family-name"
-                value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="countryCode">Country (optional)</Label>
-            <Select value={countryCode || NONE} onValueChange={(value) => setCountryCode(value === NONE ? '' : value)}>
-              <SelectTrigger id="countryCode">
-                <SelectValue placeholder="Not specified" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>Not specified</SelectItem>
-                {countries.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone (optional)</Label>
-            <Input
-              id="phone"
-              type="tel"
-              autoComplete="tel"
-              placeholder="+1 415 555 0100"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of birth (optional)</Label>
-            <Input
-              id="dateOfBirth"
-              type="date"
-              value={dateOfBirth}
-              onChange={(event) => setDateOfBirth(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.dateOfBirth)}
-            />
-            {fieldErrors.dateOfBirth ? <p className="text-xs text-destructive">{fieldErrors.dateOfBirth}</p> : null}
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
-            {visibleConsents.length === 0 ? (
-              <p className="px-4 py-3.5 text-sm text-[#667085]">
-                {catalogueReady ? 'Consent text is unavailable. Refresh and try again.' : 'Loading agreements…'}
-              </p>
-            ) : (
-              visibleConsents.map((field, index) => (
-                <div key={field.field} className={index > 0 ? 'border-t border-[#eef0f3]' : ''}>
-                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-                    <Label htmlFor={`consent-${field.field}`} className="text-sm font-normal leading-5 text-[#344054]">
-                      {field.text}
-                      {field.required ? null : <span className="text-[#98a2b3]"> (optional)</span>}
-                    </Label>
-                    <Switch
-                      id={`consent-${field.field}`}
-                      size="sm"
-                      checked={Boolean(accepted[field.field])}
-                      onCheckedChange={(value) => setAccepted((current) => ({ ...current, [field.field]: value }))}
-                      className="shadow-none"
-                    />
-                  </div>
-                  {fieldErrors[field.field] ? (
-                    <p className="px-4 pb-3 text-xs text-destructive">{fieldErrors[field.field]}</p>
-                  ) : null}
+          {step === 0 ? (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    maxLength={100}
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                  />
                 </div>
-              ))
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    maxLength={100}
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="countryCode">Country (optional)</Label>
+                <Select
+                  value={countryCode || NONE}
+                  onValueChange={(value) => setCountryCode(value === NONE ? '' : value)}
+                >
+                  <SelectTrigger id="countryCode">
+                    <SelectValue placeholder="Not specified" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>Not specified</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone (optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+1 415 555 0100"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                />
+              </div>
+            </>
+          ) : null}
+
+          {step === 1 ? (
+            <>
+              <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">
+                {visibleConsents.length === 0 ? (
+                  <p className="px-4 py-3.5 text-sm text-[#667085]">
+                    {catalogueReady ? 'Consent text is unavailable. Refresh and try again.' : 'Loading agreements…'}
+                  </p>
+                ) : (
+                  visibleConsents.map((field, index) => (
+                    <div key={field.field} className={index > 0 ? 'border-t border-[#eef0f3]' : ''}>
+                      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+                        <Label
+                          htmlFor={`consent-${field.field}`}
+                          className="text-sm font-normal leading-5 text-[#344054]"
+                        >
+                          {field.text}
+                          {field.required ? null : <span className="text-[#98a2b3]"> (optional)</span>}
+                        </Label>
+                        <Switch
+                          id={`consent-${field.field}`}
+                          size="sm"
+                          checked={Boolean(accepted[field.field])}
+                          onCheckedChange={(value) =>
+                            setAccepted((current) => ({ ...current, [field.field]: value }))
+                          }
+                          className="shadow-none"
+                        />
+                      </div>
+                      {fieldErrors[field.field] ? (
+                        <p className="px-4 pb-3 text-xs text-destructive">{fieldErrors[field.field]}</p>
+                      ) : null}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {fieldErrors.form ? <p className="text-sm text-destructive">{fieldErrors.form}</p> : null}
+              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            </>
+          ) : null}
+
+          <div className="flex items-center gap-3 pt-1">
+            {step > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setError('');
+                  setFieldErrors({});
+                  setStep(0);
+                }}
+              >
+                Back
+              </Button>
+            ) : null}
+
+            {step === 0 ? (
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={() => {
+                  setError('');
+                  setFieldErrors({});
+                  setStep(1);
+                }}
+              >
+                Continue
+              </Button>
+            ) : (
+              <Button type="submit" className="flex-1" loading={busy} disabled={!catalogueReady}>
+                {busy ? 'Creating account' : 'Create account'}
+              </Button>
             )}
           </div>
-
-          {fieldErrors.form ? <p className="text-sm text-destructive">{fieldErrors.form}</p> : null}
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-          <Button type="submit" className="w-full" loading={busy} disabled={!catalogueReady}>
-            {busy ? 'Creating account' : 'Create account'}
-          </Button>
         </form>
 
         <p className="mt-6 text-sm text-[#667085]">

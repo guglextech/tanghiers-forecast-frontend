@@ -4,7 +4,7 @@ import { assertSameOrigin } from '@/lib/auth/csrf';
 import { productSlug } from '@/lib/auth/env';
 import { toClientAuthResponse } from '@/lib/auth/response';
 import { postUpstream } from '@/lib/auth/upstream';
-import { isFutureIsoDate, isValidIsoDate, socialCompleteBodySchema } from '@/lib/auth/validation';
+import { socialCompleteBodySchema } from '@/lib/auth/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,26 +50,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { firstName, lastName, countryCode, phone, dateOfBirth, consents } = parsed.data;
-  if (dateOfBirth && !isValidIsoDate(dateOfBirth)) {
-    return NextResponse.json(
-      { status: 'error', message: 'Enter a valid date of birth.', code: 'VALIDATION' },
-      { status: 400 },
-    );
-  }
-  if (dateOfBirth && isFutureIsoDate(dateOfBirth)) {
-    return NextResponse.json(
-      { status: 'error', message: 'Date of birth cannot be in the future.', code: 'VALIDATION' },
-      { status: 400 },
-    );
-  }
+  const { firstName, lastName, countryCode, phone, consents } = parsed.data;
 
   const optional = {
     firstName,
     lastName,
     countryCode,
     phone,
-    dateOfBirth,
   };
   const upstream = await postUpstream('/v1/auth/social/complete', {
     signupToken,
