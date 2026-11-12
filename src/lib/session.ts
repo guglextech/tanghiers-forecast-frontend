@@ -382,7 +382,6 @@ export type SocialSignupInput = {
   lastName?: string;
   countryCode?: string;
   phone?: string;
-  dateOfBirth?: string;
   consents: {
     terms: string;
     privacy: string;
@@ -403,7 +402,6 @@ export async function completeGoogleSignup(input: SocialSignupInput): Promise<Se
     lastName: input.lastName?.trim() || undefined,
     countryCode: input.countryCode?.trim().toUpperCase() || undefined,
     phone: input.phone?.trim() || undefined,
-    dateOfBirth: input.dateOfBirth?.trim() || undefined,
     consents: input.consents,
   });
 

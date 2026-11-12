@@ -21,7 +21,6 @@ import { shellClass } from '@/components/chrome/Chrome';
 import { ApiError } from '@/lib/api/errors';
 import { catalog } from '@/lib/api/resources';
 import type { ApiConsentMap } from '@/lib/api/types';
-import { isFutureIsoDate, isValidIsoDate } from '@/lib/auth/validation';
 import { clearPendingSocial, hasPendingSocialSignup, readPendingSocial } from '@/lib/google';
 import { mfaPathFor, readPendingMfa } from '@/lib/mfa';
 import { cn } from '@/lib/utils';
@@ -59,7 +58,6 @@ export function RegistrationForm() {
   const [countries, setCountries] = React.useState<Country[]>([]);
   const [countryCode, setCountryCode] = React.useState('');
   const [phone, setPhone] = React.useState('');
-  const [dateOfBirth, setDateOfBirth] = React.useState('');
   const [consents, setConsents] = React.useState<ApiConsentMap>({});
   const [accepted, setAccepted] = React.useState<Partial<Record<ConsentField, boolean>>>({});
   const [catalogueReady, setCatalogueReady] = React.useState(false);
@@ -116,11 +114,6 @@ export function RegistrationForm() {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
-    if (dateOfBirth && (!isValidIsoDate(dateOfBirth) || isFutureIsoDate(dateOfBirth))) {
-      nextErrors.dateOfBirth = isFutureIsoDate(dateOfBirth)
-        ? 'Date of birth cannot be in the future.'
-        : 'Enter a valid date of birth.';
-    }
     for (const field of visibleConsents) {
       if (field.required && !accepted[field.field]) nextErrors[field.field] = 'This agreement is required.';
     }
@@ -150,7 +143,6 @@ export function RegistrationForm() {
         lastName: lastName.trim() || undefined,
         countryCode: countryCode || undefined,
         phone: phone.trim() || undefined,
-        dateOfBirth: dateOfBirth || undefined,
         consents: {
           terms: chosen.terms,
           privacy: chosen.privacy,
@@ -260,18 +252,6 @@ export function RegistrationForm() {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of birth (optional)</Label>
-            <Input
-              id="dateOfBirth"
-              type="date"
-              value={dateOfBirth}
-              onChange={(event) => setDateOfBirth(event.target.value)}
-              aria-invalid={Boolean(fieldErrors.dateOfBirth)}
-            />
-            {fieldErrors.dateOfBirth ? <p className="text-xs text-destructive">{fieldErrors.dateOfBirth}</p> : null}
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-[#e6e8ee]">

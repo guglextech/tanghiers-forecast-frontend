@@ -26,7 +26,6 @@ export type SocialCompleteRequest = {
   lastName?: string;
   countryCode?: string;
   phone?: string;
-  dateOfBirth?: string;
   consents: {
     terms: string;
     privacy: string;
