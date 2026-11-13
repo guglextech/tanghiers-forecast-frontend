@@ -155,6 +155,7 @@ export type ApiForecast = {
   publishAt?: string | null;
   publishedAt?: string | null;
   createdAt?: string;
+  updatedAt?: string;
   version?: number;
   videoUrl?: string | null;
   message?: string | null;

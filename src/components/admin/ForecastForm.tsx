@@ -187,12 +187,12 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
 
         <section className="grid gap-5 p-5 sm:p-6">
           <div className="space-y-2">
-            <Label htmlFor="permutations">Permutation</Label>
+            <Label htmlFor="permutations">Content</Label>
             <Textarea
               id="permutations"
               value={permutations}
               onChange={(event) => setPermutations(event.target.value)}
-              placeholder="7-12-45"
+              placeholder="Content here..."
               className="min-h-28 font-mono tracking-wide md:text-sm"
             />
           </div>
@@ -202,7 +202,7 @@ export function ForecastForm({ initial }: { initial?: Forecast | null }) {
               id="message"
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="Play responsibly."
+              placeholder="Your message."
             />
           </div>
         </section>

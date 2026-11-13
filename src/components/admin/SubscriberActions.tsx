@@ -1,7 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal } from '@/components/ui/icons';
+import {
+  CalendarDays,
+  Clock,
+  Mail,
+  MoreHorizontal,
+  Shield,
+  Smartphone,
+  Tag,
+  Users,
+  type LucideIcon,
+} from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { admin } from '@/lib/api/resources';
 import { mapAdminUser, type AdminAccount } from '@/lib/api/mappers';
@@ -51,6 +61,42 @@ const confirmCopy: Record<ConfirmAction, { title: string; description: string; c
     needsCode: true,
   },
 };
+
+function AccountDetail({
+  icon: Icon,
+  label,
+  value,
+  tone = 'blue',
+  note,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: React.ReactNode;
+  tone?: 'blue' | 'green' | 'violet' | 'slate';
+  note?: React.ReactNode;
+}) {
+  const tones = {
+    blue: 'bg-[#eef4ff] text-[#0B3A82]',
+    green: 'bg-[#ecfdf3] text-[#067647]',
+    violet: 'bg-[#f4f3ff] text-[#5925dc]',
+    slate: 'bg-[#f2f4f7] text-[#475467]',
+  } as const;
+
+  return (
+    <div className="min-w-0 py-2">
+      <div className="flex items-start gap-3">
+        <span className={`grid size-9 shrink-0 place-items-center rounded-full ${tones[tone]}`}>
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-[#98a2b3]">{label}</p>
+          <div className="mt-0.5 truncate text-sm font-semibold text-[#101828]">{value}</div>
+          {note ? <div className="mt-1">{note}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function SubscriberActions({
   account,
@@ -184,58 +230,130 @@ export function SubscriberActions({
       </DropdownMenu>
 
       <Sheet open={Boolean(detail)} onOpenChange={(open) => !open && setDetail(null)}>
-        <SheetContent side="right" className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{profile.name}</SheetTitle>
-            <SheetDescription>{profile.email}</SheetDescription>
-          </SheetHeader>
-          <dl className="grid gap-4 px-5 py-4 text-sm">
-            <div>
-              <dt className="text-[#98a2b3]">Role</dt>
-              <dd className="mt-1">{profile.role}</dd>
-            </div>
-            <div>
-              <dt className="text-[#98a2b3]">Status</dt>
-              <dd className="mt-1">{profile.status}</dd>
-            </div>
-            {plan ? (
-              <div>
-                <dt className="text-[#98a2b3]">Plan</dt>
-                <dd className="mt-1">{plan.name}</dd>
+        <SheetContent side="right" className="sm:max-w-lg">
+          <SheetHeader className="bg-white py-5">
+            <div className="flex items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#0B3A82] text-sm font-semibold text-white">
+                {profile.name
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join('')
+                  .toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-lg">{profile.name}</SheetTitle>
+                <SheetDescription className="mt-0.5 truncate">{profile.email}</SheetDescription>
               </div>
-            ) : null}
-            <div>
-              <dt className="text-[#98a2b3]">Email</dt>
-              <dd className="mt-1">{profile.emailVerified ? 'Verified' : 'Not verified'}</dd>
             </div>
-            <div>
-              <dt className="text-[#98a2b3]">Phone</dt>
-              <dd className="mt-1">
-                {profile.phone || '—'}
-                {profile.phone ? ` · ${profile.phoneVerified ? 'Verified' : 'Not verified'}` : ''}
-              </dd>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="inline-flex rounded-full bg-[#eef4ff] px-2.5 py-1 text-xs font-semibold text-[#0B3A82] capitalize">
+                {profile.role}
+              </span>
+              <span
+                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
+                  profile.status === 'active'
+                    ? 'bg-[#ecfdf3] text-[#067647]'
+                    : 'bg-[#f2f4f7] text-[#475467]'
+                }`}
+              >
+                {profile.status}
+              </span>
+              {plan ? (
+                <span className="inline-flex rounded-full bg-[#f4f3ff] px-2.5 py-1 text-xs font-semibold text-[#5925dc]">
+                  {plan.name}
+                </span>
+              ) : null}
             </div>
-            <div>
-              <dt className="text-[#98a2b3]">Authenticator</dt>
-              <dd className="mt-1">{profile.mfaEnabled ? 'On' : 'Off'}</dd>
-            </div>
-            <div>
-              <dt className="text-[#98a2b3]">Country</dt>
-              <dd className="mt-1">{profile.countryCode || '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-[#98a2b3]">Timezone</dt>
-              <dd className="mt-1">{profile.timezone || '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-[#98a2b3]">Joined</dt>
-              <dd className="mt-1">{profile.createdAt ? formatDateTime(profile.createdAt) : '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-[#98a2b3]">Last login</dt>
-              <dd className="mt-1">{profile.lastLoginAt ? formatDateTime(profile.lastLoginAt) : 'Never'}</dd>
-            </div>
-          </dl>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto bg-white px-5">
+            <section className="py-5">
+              <h3 className="mb-2.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">Contact</h3>
+              <div className="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+                <AccountDetail
+                  icon={Mail}
+                  label="Email"
+                  value={profile.email}
+                  tone="blue"
+                  note={
+                    <span
+                      className={`text-xs font-medium ${
+                        profile.emailVerified ? 'text-[#067647]' : 'text-[#b42318]'
+                      }`}
+                    >
+                      {profile.emailVerified ? 'Verified' : 'Not verified'}
+                    </span>
+                  }
+                />
+                <AccountDetail
+                  icon={Smartphone}
+                  label="Phone"
+                  value={profile.phone || 'Not added'}
+                  tone="green"
+                  note={
+                    profile.phone ? (
+                      <span
+                        className={`text-xs font-medium ${
+                          profile.phoneVerified ? 'text-[#067647]' : 'text-[#b42318]'
+                        }`}
+                      >
+                        {profile.phoneVerified ? 'Verified' : 'Not verified'}
+                      </span>
+                    ) : null
+                  }
+                />
+              </div>
+            </section>
+
+            <section className="py-5">
+              <h3 className="mb-2.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">Account details</h3>
+              <div className="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+                <AccountDetail
+                  icon={Shield}
+                  label="Authenticator"
+                  value={profile.mfaEnabled ? 'Enabled' : 'Off'}
+                  tone="violet"
+                />
+                <AccountDetail
+                  icon={Users}
+                  label="Country"
+                  value={profile.countryCode || 'Not set'}
+                  tone="green"
+                />
+                <AccountDetail
+                  icon={Clock}
+                  label="Timezone"
+                  value={profile.timezone || 'Not set'}
+                  tone="blue"
+                />
+                <AccountDetail
+                  icon={Tag}
+                  label="Membership"
+                  value={plan?.name || 'No plan'}
+                  tone="slate"
+                />
+              </div>
+            </section>
+
+            <section className="py-5">
+              <h3 className="mb-2.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">Activity</h3>
+              <div className="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+                <AccountDetail
+                  icon={CalendarDays}
+                  label="Joined"
+                  value={profile.createdAt ? formatDateTime(profile.createdAt) : 'Unknown'}
+                  tone="blue"
+                />
+                <AccountDetail
+                  icon={Clock}
+                  label="Last login"
+                  value={profile.lastLoginAt ? formatDateTime(profile.lastLoginAt) : 'Never'}
+                  tone="slate"
+                />
+              </div>
+            </section>
+          </div>
         </SheetContent>
       </Sheet>
 

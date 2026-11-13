@@ -289,7 +289,7 @@ export const admin = {
       method: 'POST',
       body: productBody(body, productSlug),
     }),
-  updatePlan: (id: string, body: { name?: string; description?: string }) =>
+  updatePlan: (id: string, body: { name?: string; description?: string; isActive?: boolean }) =>
     apiRequest<ApiPlan>(`/v1/admin/plans/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
   setPlanPrice: (id: string, amounts: Record<string, number>) =>
     apiRequest<ApiPlan>(`/v1/admin/plans/${encodeURIComponent(id)}/price`, {

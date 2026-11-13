@@ -2,12 +2,21 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Mail, Plus, Smartphone, Users } from '@/components/ui/icons';
-import { type Forecast } from '@/data/forecasts';
+import {
+  ArrowRight,
+  Bell,
+  CalendarDays,
+  Mail,
+  Plus,
+  Smartphone,
+  Users,
+  type LucideIcon,
+} from '@/components/ui/icons';
+import { type Delivery, type Forecast } from '@/data/forecasts';
 import { formatDeskDate, formatDeskStamp } from '@/lib/dates';
 import { listAccounts, refreshAccounts } from '@/lib/session';
 import { admin } from '@/lib/api/resources';
-import { mapForecast, mapOverviewReport } from '@/lib/api/mappers';
+import { mapForecast, mapOverviewReport, type AdminAccount } from '@/lib/api/mappers';
 import type { ApiForecast } from '@/lib/api/types';
 import { ForecastActions } from '@/components/admin/ForecastActions';
 import { SubscriberActions } from '@/components/admin/SubscriberActions';
@@ -15,7 +24,7 @@ import {
   Directory,
   EmptyRow,
   FilterMenu,
-  NameCell,
+  Mark,
   PageLead,
   Pill,
   PrimaryAction,
@@ -33,6 +42,75 @@ import { subscribeDesk } from '@/lib/desk';
 import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
 
+const subscriberTh = 'py-3 text-xs font-medium tracking-normal normal-case text-[#667085]';
+
+function titleCase(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+const CHANNEL_STYLE: Record<Delivery['channel'], { icon: LucideIcon; tile: string; badge: string }> = {
+  email: { icon: Mail, tile: 'bg-[#eff8ff] text-[#175cd3]', badge: 'bg-[#eff8ff] text-[#175cd3]' },
+  sms: { icon: Smartphone, tile: 'bg-[#ecfdf3] text-[#067647]', badge: 'bg-[#ecfdf3] text-[#067647]' },
+  web: { icon: Bell, tile: 'bg-[#f4f3ff] text-[#5925dc]', badge: 'bg-[#f4f3ff] text-[#5925dc]' },
+};
+
+function DeliveryCell({ delivery }: { delivery: Delivery }) {
+  const style = CHANNEL_STYLE[delivery.channel];
+  const Icon = style.icon;
+  const showEmail = delivery.userEmail && delivery.userEmail !== delivery.destination;
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', style.tile)}>
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[#101828]">{delivery.destination || '—'}</p>
+        {showEmail ? <p className="mt-0.5 truncate text-xs text-[#667085]">{delivery.userEmail}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+const FORECAST_TILE: Record<Forecast['status'], string> = {
+  published: 'bg-[#ecfdf3] text-[#067647]',
+  scheduled: 'bg-[#eff8ff] text-[#175cd3]',
+  draft: 'bg-[#f4f3ff] text-[#5925dc]',
+  archived: 'bg-[#f2f4f7] text-[#475467]',
+};
+
+function ForecastCell({ forecast }: { forecast: Forecast }) {
+  return (
+    <Link href={`/admin/forecasts/${forecast.id}`} className="flex min-w-0 items-center gap-3">
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', FORECAST_TILE[forecast.status])}>
+        <CalendarDays className="size-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-medium text-[#101828] hover:underline">{forecast.title}</span>
+        <span className="mt-0.5 block truncate text-xs text-[#667085]">{formatDeskDate(forecast.date)}</span>
+      </span>
+    </Link>
+  );
+}
+
+function SubscriberCell({ account }: { account: AdminAccount }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <Mark name={account.name} round />
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[#101828]">{account.name}</p>
+        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-[#667085]">
+          <span className="truncate">{account.email}</span>
+          {!account.emailVerified ? (
+            <span className="shrink-0 rounded-full bg-[#f2f4f7] px-1.5 py-px text-[10px] font-medium text-[#475467]">
+              Unverified
+            </span>
+          ) : null}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const FORECAST_FILTERS = ['all', 'draft', 'scheduled', 'published', 'archived'] as const;
 type ForecastFilter = (typeof FORECAST_FILTERS)[number];
 
@@ -46,24 +124,35 @@ function pickFeatured(forecasts: Forecast[]) {
   );
 }
 
-function balls(forecast: Forecast) {
-  return {
-    banker: forecast.body?.banker ?? forecast.numbers.slice(0, 1),
-    twoSure: forecast.body?.twoSure ?? forecast.numbers.slice(1, 3),
-    threeDirect: forecast.body?.threeDirect ?? forecast.numbers.slice(3, 6),
-  };
-}
-
-function NumberBall({ value, tone }: { value: number; tone: 'ink' | 'soft' }) {
+function OverviewMetric({
+  label,
+  value,
+  icon: Icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  icon: typeof Users;
+  tone: 'blue' | 'green' | 'violet' | 'slate';
+}) {
+  const tones = {
+    blue: 'bg-[#eef4ff] text-[#0B3A82]',
+    green: 'bg-[#ecfdf3] text-[#067647]',
+    violet: 'bg-[#f4f3ff] text-[#5925dc]',
+    slate: 'bg-[#f2f4f7] text-[#344054]',
+  } as const;
   return (
-    <span
-      className={cn(
-        'grid size-8 place-items-center rounded-full text-xs font-semibold tabular-nums',
-        tone === 'ink' ? 'bg-[#0B3A82] text-white' : 'bg-[#eef2f6] text-[#344054]',
-      )}
-    >
-      {String(value).padStart(2, '0')}
-    </span>
+    <li className="rounded-xl border border-[#e4e7ec] bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium text-[#667085]">{label}</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-[#101828] tabular-nums">{value}</p>
+        </div>
+        <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg', tones[tone])}>
+          <Icon className="size-4" />
+        </span>
+      </div>
+    </li>
   );
 }
 
@@ -94,13 +183,12 @@ export function AdminOverview() {
   const featured = pickFeatured(desk.forecasts);
   const queue = desk.forecasts.filter((item) => item.status === 'draft' || item.status === 'scheduled').slice(0, 5);
   const published = desk.forecasts.filter((item) => item.status === 'published').slice(0, 5);
-  const picks = featured ? balls(featured) : null;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1440px] space-y-6">
       <PageLead
         title="Overview"
-        description="What to publish next, and how the last forecasts landed."
+        description="Manage forecasts and keep track of your publishing activity."
         action={
           <PrimaryAction href="/admin/forecasts/new">
             <Plus className="size-4" />
@@ -109,94 +197,63 @@ export function AdminOverview() {
         }
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
-        <section className="rounded-xl border border-[#e4e7ec] bg-white p-5 sm:p-6">
-          {featured && picks ? (
-            <>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">On deck</p>
-                  <h2 className="mt-1 text-xl font-semibold tracking-tight">{featured.title}</h2>
-                  <p className="mt-1 text-sm text-[#667085]">{formatDeskDate(featured.date)}</p>
-                </div>
-                <Pill tone={toneFor(featured.status)}>{featured.status}</Pill>
-              </div>
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                <div>
-                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Banker</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {picks.banker.map((value, index) => (
-                      <NumberBall key={`b-${index}`} value={value} tone="ink" />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Two sure</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {picks.twoSure.map((value, index) => (
-                      <NumberBall key={`t-${index}`} value={value} tone="soft" />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Three direct</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {picks.threeDirect.map((value, index) => (
-                      <NumberBall key={`d-${index}`} value={value} tone="soft" />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Link
-                  href={`/admin/forecasts/${featured.id}`}
-                  className="inline-flex h-9 items-center rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
-                >
-                  Open forecast
-                </Link>
-                {featured.status === 'published' ? (
-                  <Link href={`/forecasts/${featured.id}`} className="text-sm font-medium text-[#0B3A82] hover:underline">
-                    View on site
-                  </Link>
-                ) : null}
-              </div>
-            </>
-          ) : (
-            <div className="flex min-h-[220px] flex-col items-start justify-center">
-              <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">On deck</p>
-              <h2 className="mt-2 text-xl font-semibold">No forecast yet</h2>
-              <p className="mt-1 max-w-sm text-sm text-[#667085]">Write the next draw, then publish it for subscribers.</p>
-              <div className="mt-5">
-                <PrimaryAction href="/admin/forecasts/new">
-                  <Plus className="size-4" />
-                  New forecast
-                </PrimaryAction>
-              </div>
-            </div>
-          )}
-        </section>
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <OverviewMetric label="Subscribers" value={String(stats.activeSubscribers)} icon={Users} tone="blue" />
+        <OverviewMetric label="Published" value={String(stats.publishedForecasts)} icon={CalendarDays} tone="green" />
+        <OverviewMetric label="Emails sent" value={String(stats.emailsSent)} icon={Mail} tone="violet" />
+        <OverviewMetric label="SMS queued" value={String(stats.smsQueued)} icon={Smartphone} tone="slate" />
+      </ul>
 
-        <ul className="grid grid-cols-2 gap-3 xl:grid-cols-1">
-          {[
-            { label: 'Subscribers', value: String(stats.activeSubscribers), icon: Users },
-            { label: 'Published', value: String(stats.publishedForecasts), icon: CalendarDays },
-            { label: 'Emails sent', value: String(stats.emailsSent), icon: Mail },
-            { label: 'SMS queued', value: String(stats.smsQueued), icon: Smartphone },
-          ].map((item) => (
-            <li key={item.label} className="flex items-center gap-3 rounded-xl border border-[#e4e7ec] bg-white px-4 py-3.5">
-              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#eef3fb] text-[#0B3A82]">
-                <item.icon className="size-4" />
+      <section className="overflow-hidden rounded-xl border border-[#dfe3e8] bg-white">
+        {featured ? (
+          <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#eef4ff] text-[#0B3A82]">
+                <CalendarDays className="size-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{item.label}</p>
-                <p className="text-lg font-semibold tabular-nums">{item.value}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[11px] font-semibold tracking-wide text-[#0B3A82] uppercase">Latest forecast</p>
+                  <Pill tone={toneFor(featured.status)}>{featured.status}</Pill>
+                </div>
+                <h2 className="mt-1 truncate text-xl font-semibold tracking-tight text-[#101828]">{featured.title}</h2>
+                <p className="mt-1 text-sm text-[#667085]">{formatDeskDate(featured.date)}</p>
               </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {featured.status === 'published' ? (
+                <Link
+                  href={`/forecasts/${featured.id}`}
+                  className="inline-flex h-9 items-center rounded-lg border border-[#d0d5dd] bg-white px-3.5 text-sm font-semibold text-[#344054] hover:bg-[#f9fafb]"
+                >
+                  View on site
+                </Link>
+              ) : null}
+              <Link
+                href={`/admin/forecasts/${featured.id}`}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
+              >
+                Open forecast
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold tracking-wide text-[#0B3A82] uppercase">Latest forecast</p>
+              <h2 className="mt-1 text-lg font-semibold">No forecast yet</h2>
+              <p className="mt-1 text-sm text-[#667085]">Create your first forecast and publish it for subscribers.</p>
+            </div>
+            <PrimaryAction href="/admin/forecasts/new">
+              <Plus className="size-4" />
+              New forecast
+            </PrimaryAction>
+          </div>
+        )}
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <QueueCard
           title="Needs attention"
           href="/admin/forecasts"
@@ -226,29 +283,35 @@ function QueueCard({
   items: Forecast[];
 }) {
   return (
-    <section className="rounded-xl border border-[#e4e7ec] bg-white">
-      <div className="flex items-center justify-between px-4 py-3">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-[#0B3A82] hover:underline">
+    <section className="overflow-hidden rounded-xl border border-[#e4e7ec] bg-white">
+      <div className="flex items-center justify-between border-b border-[#eef0f3] px-4 py-3.5">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-[#101828]">{title}</h2>
+          <span className="rounded-full bg-[#f2f4f7] px-2 py-0.5 text-[11px] font-medium text-[#475467]">
+            {items.length}
+          </span>
+        </div>
+        <Link href={href} className="inline-flex items-center gap-1 text-xs font-semibold text-[#0B3A82] hover:underline">
           View all
           <ArrowRight className="size-3.5" />
         </Link>
       </div>
       {items.length === 0 ? (
-        <p className="px-4 pb-5 text-sm text-[#667085]">{empty}</p>
+        <p className="px-4 py-6 text-sm text-[#667085]">{empty}</p>
       ) : (
-        <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3]">
+        <ul className="divide-y divide-[#eef0f3]">
           {items.map((forecast) => (
             <li key={forecast.id}>
               <Link
                 href={`/admin/forecasts/${forecast.id}`}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#f8fafc]"
+                className="group flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-[#f8fafc]"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{forecast.title}</p>
-                  <p className="text-xs text-[#98a2b3]">{formatDeskDate(forecast.date)}</p>
+                  <p className="truncate text-sm font-medium text-[#101828]">{forecast.title}</p>
+                  <p className="mt-0.5 text-xs text-[#98a2b3]">{formatDeskDate(forecast.date)}</p>
                 </div>
                 <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+                <ArrowRight className="size-3.5 shrink-0 text-[#98a2b3] transition-transform group-hover:translate-x-0.5" />
               </Link>
             </li>
           ))}
@@ -260,7 +323,7 @@ function QueueCard({
 
 export function ForecastTable({
   forecasts,
-  title = 'Forecasts',
+  title = 'Forecast Directory',
   toolbar,
   page = 0,
   total,
@@ -283,6 +346,7 @@ export function ForecastTable({
   return (
     <Directory
       title={title}
+      variant="framed"
       toolbar={toolbar}
       page={page}
       total={rowTotal}
@@ -295,25 +359,25 @@ export function ForecastTable({
         <EmptyRow>No forecasts yet.</EmptyRow>
       ) : (
         <>
-          <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] md:hidden">
+          <ul className="divide-y divide-[#f2f4f7] md:hidden">
             {forecasts.map((forecast) => (
-              <li key={forecast.id} className="flex items-center gap-3 px-5 py-3.5">
-                <NameCell name={forecast.title} href={`/admin/forecasts/${forecast.id}`} caps={false} />
-                <div className="ml-auto flex items-center gap-2">
-                  <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+              <li key={forecast.id} className="flex items-center gap-3 px-4 py-3">
+                <ForecastCell forecast={forecast} />
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <Pill tone={toneFor(forecast.status)}>{titleCase(forecast.status)}</Pill>
                   <ForecastActions forecast={forecast} />
                 </div>
               </li>
             ))}
           </ul>
           <DeskScroll className="hidden pb-1 md:block">
-            <table className="w-full min-w-[720px]">
+            <table className="w-full min-w-[760px] table-fixed">
               <thead>
-                <tr className="border-y border-[#f2f4f7]">
-                  <Th className={stickyStart}>Forecast</Th>
-                  <Th>Date</Th>
-                  <Th>Numbers</Th>
-                  <Th>Status</Th>
+                <tr className="border-b border-[#eef0f3]">
+                  <Th className={cn(subscriberTh, 'w-[34%]', stickyStart)}>Forecast</Th>
+                  <Th className={cn(subscriberTh, 'w-[28%]')}>Message</Th>
+                  <Th className={cn(subscriberTh, 'w-[14%]')}>Status</Th>
+                  <Th className={cn(subscriberTh, 'w-[20%]')}>Goes live</Th>
                   <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                     <span className="sr-only">Actions</span>
                   </th>
@@ -322,15 +386,23 @@ export function ForecastTable({
               <tbody>
                 {forecasts.map((forecast) => (
                   <tr key={forecast.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                    <td className={cn(td, stickyStart)}>
-                      <NameCell name={forecast.title} href={`/admin/forecasts/${forecast.id}`} caps={false} />
-                    </td>
-                    <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatDeskDate(forecast.date)}</td>
-                    <td className={cn(td, 'tabular-nums text-[#475467]')}>
-                      {forecast.numbers.length ? forecast.numbers.join(' · ') : '—'}
+                    <td className={cn(td, 'py-3', stickyStart)}>
+                      <ForecastCell forecast={forecast} />
                     </td>
                     <td className={td}>
-                      <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+                      {forecast.message ? (
+                        <p className="truncate text-[#475467]" title={forecast.message}>
+                          {forecast.message}
+                        </p>
+                      ) : (
+                        <span className="text-[#98a2b3]">No message</span>
+                      )}
+                    </td>
+                    <td className={cn(td, 'whitespace-nowrap')}>
+                      <Pill tone={toneFor(forecast.status)}>{titleCase(forecast.status)}</Pill>
+                    </td>
+                    <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
+                      {forecast.publishAt ? formatDeskStamp(forecast.publishAt) : 'Not scheduled'}
                     </td>
                     <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                       <ForecastActions forecast={forecast} />
@@ -469,7 +541,8 @@ export function DeliveryLog() {
     <div className="space-y-6">
       <PageLead title="Deliveries" description="Who each forecast was sent to, and whether it arrived." />
       <Directory
-        title="Delivery log"
+        title="Delivery Log"
+        variant="framed"
         page={page}
         total={rows.length}
         onPage={setPage}
@@ -508,34 +581,45 @@ export function DeliveryLog() {
           <EmptyRow>No deliveries yet.</EmptyRow>
         ) : (
           <>
-            <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] md:hidden">
+            <ul className="divide-y divide-[#f2f4f7] md:hidden">
               {pageRows.map((row) => (
-                <li key={row.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-semibold uppercase">{row.destination || '—'}</p>
-                    <p className="mt-1 text-xs text-[#667085]">{formatDeskStamp(row.at)}</p>
-                  </div>
-                  <Pill tone={toneFor(row.status)}>{row.status}</Pill>
+                <li key={row.id} className="flex items-center gap-3 px-4 py-3">
+                  <DeliveryCell delivery={row} />
+                  <span className="ml-auto flex shrink-0 flex-col items-end gap-1">
+                    <Pill tone={toneFor(row.status)}>{titleCase(row.status)}</Pill>
+                    <span className="text-[11px] text-[#98a2b3]">{formatDeskStamp(row.at)}</span>
+                  </span>
                 </li>
               ))}
             </ul>
             <DeskScroll className="hidden pb-1 md:block">
-              <table className="w-full min-w-[720px]">
+              <table className="w-full min-w-[720px] table-fixed">
                 <thead>
-                  <tr className="border-y border-[#f2f4f7]">
-                    <Th>Destination</Th>
-                    <Th>Channel</Th>
-                    <Th>Status</Th>
-                    <Th>When</Th>
+                  <tr className="border-b border-[#eef0f3]">
+                    <Th className={cn(subscriberTh, 'w-[44%]')}>Destination</Th>
+                    <Th className={cn(subscriberTh, 'w-[16%]')}>Channel</Th>
+                    <Th className={cn(subscriberTh, 'w-[16%]')}>Status</Th>
+                    <Th className={cn(subscriberTh, 'w-[24%]')}>When</Th>
                   </tr>
                 </thead>
                 <tbody>
                   {pageRows.map((row) => (
                     <tr key={row.id} className="border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, 'font-semibold')}>{row.destination || '—'}</td>
-                      <td className={cn(td, 'capitalize text-[#475467]')}>{label(row.channel)}</td>
-                      <td className={td}>
-                        <Pill tone={toneFor(row.status)}>{row.status}</Pill>
+                      <td className={cn(td, 'py-3')}>
+                        <DeliveryCell delivery={row} />
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap')}>
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                            CHANNEL_STYLE[row.channel].badge,
+                          )}
+                        >
+                          {label(row.channel)}
+                        </span>
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap')}>
+                        <Pill tone={toneFor(row.status)}>{titleCase(row.status)}</Pill>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatDeskStamp(row.at)}</td>
                     </tr>
@@ -590,7 +674,8 @@ export function SubscriberTable() {
         description="Accounts on this product. Search by email or id, then change a role or close an account."
       />
       <Directory
-        title="Subscriber directory"
+        title="Subscriber Directory"
+        variant="framed"
         page={page}
         total={total}
         onPage={setPage}
@@ -632,32 +717,23 @@ export function SubscriberTable() {
           <>
             <ul className="divide-y divide-[#f2f4f7] lg:hidden">
               {rows.map((account) => (
-                <li key={account.id}>
-                  <DeskScroll className="flex items-center gap-3 px-4 py-3">
-                    <NameCell name={account.name} />
-                    <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-[#475467]">
-                      {account.email}
-                      {!account.emailVerified ? <Pill tone="muted">unverified</Pill> : null}
-                    </span>
-                    <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{account.role}</Pill>
-                    <Pill tone={toneFor(account.status)}>{account.status}</Pill>
-                    <span className="ml-auto">
-                      <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
-                    </span>
-                  </DeskScroll>
+                <li key={account.id} className="flex items-center gap-3 px-4 py-3">
+                  <SubscriberCell account={account} />
+                  <span className="ml-auto flex shrink-0 items-center gap-2">
+                    <Pill tone={toneFor(account.status)}>{titleCase(account.status)}</Pill>
+                    <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
+                  </span>
                 </li>
               ))}
             </ul>
             <DeskScroll className="hidden pb-1 lg:block">
-              <table className="w-full min-w-[960px]">
+              <table className="w-full min-w-[720px] table-fixed">
                 <thead>
-                  <tr className="border-y border-[#f2f4f7]">
-                    <Th className={stickyStart}>Subscriber</Th>
-                    <Th>Email</Th>
-                    <Th>Role</Th>
-                    <Th>Status</Th>
-                    <Th>Phone</Th>
-                    <Th>Joined</Th>
+                  <tr className="border-b border-[#eef0f3]">
+                    <Th className={cn(subscriberTh, 'w-[46%]', stickyStart)}>Subscriber</Th>
+                    <Th className={cn(subscriberTh, 'w-[14%]')}>Role</Th>
+                    <Th className={cn(subscriberTh, 'w-[14%]')}>Status</Th>
+                    <Th className={cn(subscriberTh, 'w-[18%]')}>Joined</Th>
                     <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                       <span className="sr-only">Actions</span>
                     </th>
@@ -666,33 +742,17 @@ export function SubscriberTable() {
                 <tbody>
                   {rows.map((account) => (
                     <tr key={account.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, 'whitespace-nowrap', stickyStart)}>
-                        <NameCell name={account.name} />
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
-                        <span className="inline-flex items-center gap-2">
-                          {account.email}
-                          {!account.emailVerified ? <Pill tone="muted">unverified</Pill> : null}
-                        </span>
+                      <td className={cn(td, 'py-3', stickyStart)}>
+                        <SubscriberCell account={account} />
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
-                        <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{account.role}</Pill>
+                        <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{titleCase(account.role)}</Pill>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
-                        <Pill tone={toneFor(account.status)}>{account.status}</Pill>
+                        <Pill tone={toneFor(account.status)}>{titleCase(account.status)}</Pill>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
-                        {account.phone ? (
-                          <span className="inline-flex items-center gap-2">
-                            {account.phone}
-                            {!account.phoneVerified ? <Pill tone="muted">unverified</Pill> : null}
-                          </span>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
-                        {account.createdAt ? formatDeskStamp(account.createdAt) : '—'}
+                        {account.createdAt ? formatDeskDate(account.createdAt) : '—'}
                       </td>
                       <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                         <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />

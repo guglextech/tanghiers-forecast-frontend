@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter_Tight } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { AppProviders } from '@/components/providers/AppProviders';
 import { SITE } from '@/data/site';
 import './globals.css';
 
-const interTight = Inter_Tight({
-  variable: '--font-inter-tight',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
   display: 'swap',
 });
@@ -77,7 +77,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content={SITE.name} />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${interTight.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <AppProviders>
           <div className="min-h-screen bg-white text-[#101828]">{children}</div>
         </AppProviders>
