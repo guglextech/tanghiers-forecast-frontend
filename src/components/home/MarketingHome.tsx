@@ -4,7 +4,6 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Flame, Lock, Play } from '@/components/ui/icons';
-import { shellClass } from '@/components/chrome/Chrome';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';
@@ -44,16 +43,19 @@ function SectionBar({
 
 function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
   return (
-    <section className="relative -mt-6 ml-[calc(50%-50vw)] min-h-[34rem] w-screen overflow-hidden bg-[#040d22] text-white md:-mt-10 sm:min-h-[42rem]">
-      <Image src="/home/machine.jpg" alt="" fill priority sizes="100vw" className="object-cover object-right" />
-      <div className="absolute inset-0 bg-[#040d22]/60" />
-      <div
-        className={cn(
-          shellClass,
-          'relative flex min-h-[34rem] flex-col items-center justify-center py-14 text-center sm:min-h-[42rem]',
-        )}
-      >
-        <h1 className="text-4xl leading-[1.02] font-extrabold tracking-tight sm:text-5xl">
+    <section className="relative left-1/2 w-[min(100%,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#040d22] text-white sm:w-[90vw]">
+      <div className="relative min-h-[28rem] sm:min-h-[34rem] lg:min-h-[38rem]">
+        <Image
+          src="/home/machine.jpg"
+          alt=""
+          fill
+          priority
+          sizes="90vw"
+          className="object-cover object-right"
+        />
+        <div className="absolute inset-0 bg-[#040d22]/75" />
+        <div className="relative flex min-h-[28rem] flex-col items-center justify-center px-5 py-12 text-center sm:min-h-[34rem] sm:px-10 lg:min-h-[38rem]">
+        <h1 className="max-w-3xl text-3xl leading-[1.05] font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
           Stop Leaving Millions to <span className="text-[#FB11A8]">Pure Luck</span>
         </h1>
         <p className="mt-4 text-[11px] font-semibold tracking-[0.18em] text-white/70 uppercase sm:text-xs">
@@ -91,6 +93,7 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
             <Play className="size-4" strokeWidth={2.4} />
             Watch today&apos;s forecast
           </Button>
+        </div>
         </div>
       </div>
     </section>
