@@ -212,55 +212,34 @@ export function MarketingHome() {
         </div>
       </section>
 
-      <section className="mt-10 overflow-hidden rounded-2xl bg-[#0B3A82] px-5 py-6 text-white sm:px-6">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase">
-          Membership
-        </span>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight">See the numbers behind every video</h2>
-        <p className="mt-1.5 text-sm text-white/70">Pick a plan, check out with Stripe, and watch right away.</p>
-
-        {plans && plans.length > 0 ? (
-          <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-            {plans.map((plan) => {
-              const price = typeof plan.price === 'number' ? formatMoney(plan.price, plan.currency) : null;
-              const primary = plan.id === lead?.id;
-              return (
-                <Link
-                  key={plan.id}
-                  href={checkoutHref(plan.id)}
-                  className={cn(
-                    'flex items-center justify-between gap-3 rounded-xl px-4 py-3.5 transition-colors',
-                    primary ? 'bg-white text-[#0B3A82] hover:bg-[#eef4fc]' : 'bg-white/10 hover:bg-white/15',
-                  )}
-                >
-                  <span>
-                    <span className="block text-sm font-semibold">{plan.name}</span>
-                    {plan.cadence ? (
-                      <span className={cn('block text-xs', primary ? 'text-[#475467]' : 'text-white/60')}>
-                        {plan.cadence}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="text-base font-semibold tabular-nums">
-                    {price ?? '—'}
-                    {price && plan.period ? (
-                      <span className={cn('text-xs font-medium', primary ? 'text-[#98a2b3]' : 'text-white/60')}>
-                        /{plan.period}
-                      </span>
-                    ) : null}
-                  </span>
-                </Link>
-              );
-            })}
+      <section className="mt-10 rounded-2xl bg-[#0B3A82] px-4 py-4 text-white sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold tracking-tight sm:text-lg">See the numbers behind every video</h2>
+            <p className="mt-0.5 text-sm text-white/70">Pick a plan and watch right away.</p>
           </div>
-        ) : (
-          <Button asChild className="mt-5 h-10 bg-white px-5 text-[#0B3A82] hover:bg-[#eef4fc]">
-            <Link href={checkoutHref()}>
-              <Lock className="size-4" strokeWidth={2} />
-              Get access
+
+          {lead ? (
+            <Link
+              href={checkoutHref(lead.id)}
+              className="inline-flex h-10 shrink-0 items-center gap-3 rounded-full bg-white py-1 pr-1 pl-4 text-[#0B3A82] hover:bg-[#eef4fc]"
+            >
+              <span className="text-sm font-semibold tabular-nums">
+                {leadPrice ?? lead.name}
+                {leadPrice && lead.period ? (
+                  <span className="font-medium text-[#667085]">/{lead.period}</span>
+                ) : null}
+              </span>
+              <span className="inline-flex h-8 items-center rounded-full bg-[#0B3A82] px-3.5 text-sm font-semibold text-white">
+                Get access
+              </span>
             </Link>
-          </Button>
-        )}
+          ) : (
+            <Button asChild className="h-10 shrink-0 rounded-full bg-white px-4 text-[#0B3A82] hover:bg-[#eef4fc]">
+              <Link href={checkoutHref()}>Get access</Link>
+            </Button>
+          )}
+        </div>
       </section>
 
       <Paywall teaser={open} plans={plans} onClose={() => setOpen(null)} />
