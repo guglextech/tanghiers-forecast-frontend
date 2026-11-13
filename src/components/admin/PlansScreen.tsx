@@ -58,12 +58,6 @@ function amountLabel(amounts: Record<string, number>, currency = 'USD') {
   return formatMoney(fromMinorUnits(minor, currency), currency);
 }
 
-function extraCurrencies(amounts: Record<string, number>) {
-  return Object.keys(amounts)
-    .filter((code) => code !== 'USD' && typeof amounts[code] === 'number')
-    .sort();
-}
-
 function accessLabel(plan: AdminPlan) {
   if (plan.kind === 'pass') {
     if (!plan.passDurationHours) return 'Fixed access';
@@ -76,20 +70,6 @@ function accessLabel(plan: AdminPlan) {
   if (!plan.interval) return 'Recurring';
   const count = Math.max(1, plan.intervalCount);
   return count === 1 ? `Every ${plan.interval}` : `Every ${count} ${plan.interval}s`;
-}
-
-function otherPriceLabel(amounts: Record<string, number>) {
-  const codes = extraCurrencies(amounts);
-  if (codes.length === 0) return '—';
-  const shown = codes.slice(0, 2).map((code) => `${code} ${amountLabel(amounts, code)}`);
-  return `${shown.join(' · ')}${codes.length > 2 ? `  +${codes.length - 2}` : ''}`;
-}
-
-function updatedLabel(value: string) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
 }
 
 function toAmountInputs(amounts: Record<string, number>) {
@@ -228,18 +208,53 @@ export function PlansScreen() {
         {pageRows.length === 0 ? (
           <EmptyRow>{query.trim() || kind !== 'all' ? 'No plans match that filter.' : 'No plans yet.'}</EmptyRow>
         ) : (
-          <DeskScroll className="pb-1">
-            <table className="w-full min-w-[1080px]">
+          <>
+            <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] md:hidden">
+              {pageRows.map((plan) => (
+                <li key={plan.id} className="px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-[#101828]">{plan.name}</p>
+                        <span className="shrink-0 rounded bg-[#f2f4f7] px-1.5 py-0.5 font-mono text-[10px] text-[#667085]">
+                          {plan.code}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'active' : 'inactive'}</Pill>
+                        <Pill tone={kindTone(plan.kind)}>{plan.kind || '—'}</Pill>
+                      </div>
+                    </div>
+                    <PlanActions
+                      plan={plan}
+                      onEdit={() => setEditing(plan)}
+                      onPrice={() => setPricing(plan)}
+                      onSynced={load}
+                    />
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-[#f9fafb] px-3 py-2.5 text-xs">
+                    <div>
+                      <dt className="text-[#98a2b3]">Billing / access</dt>
+                      <dd className="mt-0.5 font-medium text-[#344054]">{accessLabel(plan)}</dd>
+                    </div>
+                    <div className="text-right">
+                      <dt className="text-[#98a2b3]">USD price</dt>
+                      <dd className="mt-0.5 font-semibold text-[#101828] tabular-nums">{amountLabel(plan.amounts)}</dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+
+            <DeskScroll className="hidden pb-1 md:block">
+            <table className="w-full min-w-[720px] table-fixed">
               <thead>
                 <tr className="border-y border-[#f2f4f7]">
-                  <Th className={stickyStart}>Plan</Th>
-                  <Th>Status</Th>
-                  <Th>Type</Th>
-                  <Th>Billing / access</Th>
-                  <Th>USD</Th>
-                  <Th>Other prices</Th>
-                  <Th>Channels</Th>
-                  <Th>Updated</Th>
+                  <Th className={cn('w-[34%]', stickyStart)}>Plan</Th>
+                  <Th className="w-[13%]">Status</Th>
+                  <Th className="w-[15%]">Type</Th>
+                  <Th className="w-[20%]">Billing / access</Th>
+                  <Th className="w-[12%]">USD price</Th>
                   <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                     <span className="sr-only">Actions</span>
                   </th>
@@ -249,14 +264,11 @@ export function PlansScreen() {
                 {pageRows.map((plan) => {
                   return (
                     <tr key={plan.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, 'min-w-64', stickyStart)}>
-                        <NameCell name={plan.name} />
-                        <p className="mt-1 ml-11 line-clamp-1 max-w-64 text-xs text-[#98a2b3]">
-                          {plan.description || 'No description'}
-                        </p>
-                        <span className="mt-1 ml-11 inline-flex rounded bg-[#f2f4f7] px-1.5 py-0.5 font-mono text-[10px] text-[#667085]">
-                          {plan.code}
-                        </span>
+                      <td className={cn(td, stickyStart)}>
+                        <div className="min-w-0">
+                          <NameCell name={plan.name} />
+                          <p className="mt-1 ml-11 truncate font-mono text-[10px] text-[#98a2b3]">{plan.code}</p>
+                        </div>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
                         <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'active' : 'inactive'}</Pill>
@@ -267,25 +279,6 @@ export function PlansScreen() {
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{accessLabel(plan)}</td>
                       <td className={cn(td, 'whitespace-nowrap font-medium tabular-nums')}>
                         {amountLabel(plan.amounts)}
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap text-xs text-[#667085]')}>
-                        {otherPriceLabel(plan.amounts)}
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap')}>
-                        <span className="flex gap-1">
-                          {plan.channels.length ? (
-                            plan.channels.map((channel) => (
-                              <Pill key={channel} tone="muted">
-                                {channel}
-                              </Pill>
-                            ))
-                          ) : (
-                            <span className="text-[#98a2b3]">—</span>
-                          )}
-                        </span>
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap text-xs text-[#667085]')}>
-                        {updatedLabel(plan.updatedAt)}
                       </td>
                       <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                         <PlanActions
@@ -300,7 +293,8 @@ export function PlansScreen() {
                 })}
               </tbody>
             </table>
-          </DeskScroll>
+            </DeskScroll>
+          </>
         )}
       </Directory>
 
@@ -562,9 +556,8 @@ function EditPlanSheet({
           <SheetDescription>Name and description shown on the public pricing page.</SheetDescription>
         </SheetHeader>
         <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => void submit(event)}>
-          <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+          <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
             {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
-            {plan ? <PlanSheetSummary plan={plan} /> : null}
             <div className="space-y-2">
               <Label htmlFor="edit-plan-name">Name</Label>
               <Input id="edit-plan-name" value={name} onChange={(event) => setName(event.target.value)} />
