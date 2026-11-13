@@ -68,19 +68,24 @@ function PublicPlanCards({
           <Link
             key={plan.id}
             href={href}
-            className="flex flex-col gap-4 rounded-[28px] bg-[#f4f6f8] px-5 py-5 transition-colors hover:bg-[#eef0f3] sm:flex-row sm:items-center"
+            className={cn(
+              'flex flex-col gap-4 rounded-2xl border bg-white px-5 py-5 transition-colors sm:flex-row sm:items-center',
+              emphasized
+                ? 'border-[#d0d5dd] hover:border-[#0B3A82]'
+                : 'border-[#e6e8ee] hover:border-[#d0d5dd]',
+            )}
           >
             <span className="min-w-0 flex-1">
               <span className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold text-[#101828]">{plan.name}</span>
                 {plan.featured ? (
-                  <span className="rounded-full bg-[#e8f1ff] px-2.5 py-0.5 text-xs font-medium text-[#2e90fa]">
+                  <span className="rounded-full bg-[#eef4ff] px-2.5 py-0.5 text-xs font-medium text-[#0B3A82]">
                     Popular
                   </span>
                 ) : null}
               </span>
               {plan.blurb ? (
-                <span className="mt-1 block text-sm leading-5 text-[#98a2b3]">{plan.blurb}</span>
+                <span className="mt-1 block text-sm leading-5 text-[#667085]">{plan.blurb}</span>
               ) : null}
             </span>
             <span className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
@@ -88,16 +93,16 @@ function PublicPlanCards({
                 <span className="text-[1.25rem] font-semibold tracking-tight tabular-nums text-[#101828]">
                   {formatMoney(plan.price, plan.currency)}
                   {plan.period ? (
-                    <span className="text-sm font-medium text-[#98a2b3]">/{plan.period}</span>
+                    <span className="text-sm font-medium text-[#667085]">/{plan.period}</span>
                   ) : null}
                 </span>
               ) : (
-                <span className="text-sm text-[#98a2b3]">Price on request</span>
+                <span className="text-sm text-[#667085]">Price on request</span>
               )}
               <span
                 className={cn(
-                  'inline-flex h-9 items-center justify-center rounded-[var(--radius)] px-4 text-sm font-semibold',
-                  emphasized ? 'bg-[#101828] text-white' : 'bg-white text-[#101828]',
+                  'inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-semibold',
+                  emphasized ? 'bg-[#0B3A82] text-white' : 'border border-[#d0d5dd] bg-white text-[#101828]',
                 )}
               >
                 {user ? 'Continue' : 'Get started'}
