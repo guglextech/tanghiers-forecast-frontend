@@ -2,12 +2,21 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CalendarDays, Mail, Plus, Smartphone, Users } from '@/components/ui/icons';
-import { type Forecast } from '@/data/forecasts';
+import {
+  ArrowRight,
+  Bell,
+  CalendarDays,
+  Mail,
+  Plus,
+  Smartphone,
+  Users,
+  type LucideIcon,
+} from '@/components/ui/icons';
+import { type Delivery, type Forecast } from '@/data/forecasts';
 import { formatDeskDate, formatDeskStamp } from '@/lib/dates';
 import { listAccounts, refreshAccounts } from '@/lib/session';
 import { admin } from '@/lib/api/resources';
-import { mapForecast, mapOverviewReport } from '@/lib/api/mappers';
+import { mapForecast, mapOverviewReport, type AdminAccount } from '@/lib/api/mappers';
 import type { ApiForecast } from '@/lib/api/types';
 import { ForecastActions } from '@/components/admin/ForecastActions';
 import { SubscriberActions } from '@/components/admin/SubscriberActions';
@@ -15,7 +24,7 @@ import {
   Directory,
   EmptyRow,
   FilterMenu,
-  NameCell,
+  Mark,
   PageLead,
   Pill,
   PrimaryAction,
@@ -32,6 +41,75 @@ import { LoadingState } from '@/components/app/LoadingState';
 import { subscribeDesk } from '@/lib/desk';
 import { PAGE_SIZE, readPage } from '@/lib/pagination';
 import { cn } from '@/lib/utils';
+
+const subscriberTh = 'py-3 text-xs font-medium tracking-normal normal-case text-[#667085]';
+
+function titleCase(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+const CHANNEL_STYLE: Record<Delivery['channel'], { icon: LucideIcon; tile: string; badge: string }> = {
+  email: { icon: Mail, tile: 'bg-[#eff8ff] text-[#175cd3]', badge: 'bg-[#eff8ff] text-[#175cd3]' },
+  sms: { icon: Smartphone, tile: 'bg-[#ecfdf3] text-[#067647]', badge: 'bg-[#ecfdf3] text-[#067647]' },
+  web: { icon: Bell, tile: 'bg-[#f4f3ff] text-[#5925dc]', badge: 'bg-[#f4f3ff] text-[#5925dc]' },
+};
+
+function DeliveryCell({ delivery }: { delivery: Delivery }) {
+  const style = CHANNEL_STYLE[delivery.channel];
+  const Icon = style.icon;
+  const showEmail = delivery.userEmail && delivery.userEmail !== delivery.destination;
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', style.tile)}>
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[#101828]">{delivery.destination || '—'}</p>
+        {showEmail ? <p className="mt-0.5 truncate text-xs text-[#667085]">{delivery.userEmail}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+const FORECAST_TILE: Record<Forecast['status'], string> = {
+  published: 'bg-[#ecfdf3] text-[#067647]',
+  scheduled: 'bg-[#eff8ff] text-[#175cd3]',
+  draft: 'bg-[#f4f3ff] text-[#5925dc]',
+  archived: 'bg-[#f2f4f7] text-[#475467]',
+};
+
+function ForecastCell({ forecast }: { forecast: Forecast }) {
+  return (
+    <Link href={`/admin/forecasts/${forecast.id}`} className="flex min-w-0 items-center gap-3">
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', FORECAST_TILE[forecast.status])}>
+        <CalendarDays className="size-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-medium text-[#101828] hover:underline">{forecast.title}</span>
+        <span className="mt-0.5 block truncate text-xs text-[#667085]">{formatDeskDate(forecast.date)}</span>
+      </span>
+    </Link>
+  );
+}
+
+function SubscriberCell({ account }: { account: AdminAccount }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <Mark name={account.name} round />
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[#101828]">{account.name}</p>
+        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-[#667085]">
+          <span className="truncate">{account.email}</span>
+          {!account.emailVerified ? (
+            <span className="shrink-0 rounded-full bg-[#f2f4f7] px-1.5 py-px text-[10px] font-medium text-[#475467]">
+              Unverified
+            </span>
+          ) : null}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const FORECAST_FILTERS = ['all', 'draft', 'scheduled', 'published', 'archived'] as const;
 type ForecastFilter = (typeof FORECAST_FILTERS)[number];
@@ -245,7 +323,7 @@ function QueueCard({
 
 export function ForecastTable({
   forecasts,
-  title = 'Forecasts',
+  title = 'Forecast Directory',
   toolbar,
   page = 0,
   total,
@@ -268,6 +346,7 @@ export function ForecastTable({
   return (
     <Directory
       title={title}
+      variant="framed"
       toolbar={toolbar}
       page={page}
       total={rowTotal}
@@ -280,25 +359,25 @@ export function ForecastTable({
         <EmptyRow>No forecasts yet.</EmptyRow>
       ) : (
         <>
-          <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] md:hidden">
+          <ul className="divide-y divide-[#f2f4f7] md:hidden">
             {forecasts.map((forecast) => (
-              <li key={forecast.id} className="flex items-center gap-3 px-5 py-3.5">
-                <NameCell name={forecast.title} href={`/admin/forecasts/${forecast.id}`} caps={false} />
-                <div className="ml-auto flex items-center gap-2">
-                  <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+              <li key={forecast.id} className="flex items-center gap-3 px-4 py-3">
+                <ForecastCell forecast={forecast} />
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <Pill tone={toneFor(forecast.status)}>{titleCase(forecast.status)}</Pill>
                   <ForecastActions forecast={forecast} />
                 </div>
               </li>
             ))}
           </ul>
           <DeskScroll className="hidden pb-1 md:block">
-            <table className="w-full min-w-[720px]">
+            <table className="w-full min-w-[760px] table-fixed">
               <thead>
-                <tr className="border-y border-[#f2f4f7]">
-                  <Th className={stickyStart}>Forecast</Th>
-                  <Th>Date</Th>
-                  <Th>Numbers</Th>
-                  <Th>Status</Th>
+                <tr className="border-b border-[#eef0f3]">
+                  <Th className={cn(subscriberTh, 'w-[34%]', stickyStart)}>Forecast</Th>
+                  <Th className={cn(subscriberTh, 'w-[28%]')}>Numbers</Th>
+                  <Th className={cn(subscriberTh, 'w-[14%]')}>Status</Th>
+                  <Th className={cn(subscriberTh, 'w-[20%]')}>Goes live</Th>
                   <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                     <span className="sr-only">Actions</span>
                   </th>
@@ -307,15 +386,33 @@ export function ForecastTable({
               <tbody>
                 {forecasts.map((forecast) => (
                   <tr key={forecast.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                    <td className={cn(td, stickyStart)}>
-                      <NameCell name={forecast.title} href={`/admin/forecasts/${forecast.id}`} caps={false} />
-                    </td>
-                    <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatDeskDate(forecast.date)}</td>
-                    <td className={cn(td, 'tabular-nums text-[#475467]')}>
-                      {forecast.numbers.length ? forecast.numbers.join(' · ') : '—'}
+                    <td className={cn(td, 'py-3', stickyStart)}>
+                      <ForecastCell forecast={forecast} />
                     </td>
                     <td className={td}>
-                      <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+                      {forecast.numbers.length ? (
+                        <span className="flex flex-wrap gap-1">
+                          {forecast.numbers.slice(0, 6).map((value, index) => (
+                            <span
+                              key={`${forecast.id}-${index}`}
+                              className="grid size-7 place-items-center rounded-full border border-[#e4e7ec] bg-white text-[11px] font-semibold text-[#344054] tabular-nums"
+                            >
+                              {String(value).padStart(2, '0')}
+                            </span>
+                          ))}
+                          {forecast.numbers.length > 6 ? (
+                            <span className="self-center text-xs text-[#98a2b3]">+{forecast.numbers.length - 6}</span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        <span className="text-[#98a2b3]">—</span>
+                      )}
+                    </td>
+                    <td className={cn(td, 'whitespace-nowrap')}>
+                      <Pill tone={toneFor(forecast.status)}>{titleCase(forecast.status)}</Pill>
+                    </td>
+                    <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
+                      {forecast.publishAt ? formatDeskStamp(forecast.publishAt) : 'Not scheduled'}
                     </td>
                     <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                       <ForecastActions forecast={forecast} />
@@ -454,7 +551,8 @@ export function DeliveryLog() {
     <div className="space-y-6">
       <PageLead title="Deliveries" description="Who each forecast was sent to, and whether it arrived." />
       <Directory
-        title="Delivery log"
+        title="Delivery Log"
+        variant="framed"
         page={page}
         total={rows.length}
         onPage={setPage}
@@ -493,34 +591,45 @@ export function DeliveryLog() {
           <EmptyRow>No deliveries yet.</EmptyRow>
         ) : (
           <>
-            <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] md:hidden">
+            <ul className="divide-y divide-[#f2f4f7] md:hidden">
               {pageRows.map((row) => (
-                <li key={row.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-semibold uppercase">{row.destination || '—'}</p>
-                    <p className="mt-1 text-xs text-[#667085]">{formatDeskStamp(row.at)}</p>
-                  </div>
-                  <Pill tone={toneFor(row.status)}>{row.status}</Pill>
+                <li key={row.id} className="flex items-center gap-3 px-4 py-3">
+                  <DeliveryCell delivery={row} />
+                  <span className="ml-auto flex shrink-0 flex-col items-end gap-1">
+                    <Pill tone={toneFor(row.status)}>{titleCase(row.status)}</Pill>
+                    <span className="text-[11px] text-[#98a2b3]">{formatDeskStamp(row.at)}</span>
+                  </span>
                 </li>
               ))}
             </ul>
             <DeskScroll className="hidden pb-1 md:block">
-              <table className="w-full min-w-[720px]">
+              <table className="w-full min-w-[720px] table-fixed">
                 <thead>
-                  <tr className="border-y border-[#f2f4f7]">
-                    <Th>Destination</Th>
-                    <Th>Channel</Th>
-                    <Th>Status</Th>
-                    <Th>When</Th>
+                  <tr className="border-b border-[#eef0f3]">
+                    <Th className={cn(subscriberTh, 'w-[44%]')}>Destination</Th>
+                    <Th className={cn(subscriberTh, 'w-[16%]')}>Channel</Th>
+                    <Th className={cn(subscriberTh, 'w-[16%]')}>Status</Th>
+                    <Th className={cn(subscriberTh, 'w-[24%]')}>When</Th>
                   </tr>
                 </thead>
                 <tbody>
                   {pageRows.map((row) => (
                     <tr key={row.id} className="border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, 'font-semibold')}>{row.destination || '—'}</td>
-                      <td className={cn(td, 'capitalize text-[#475467]')}>{label(row.channel)}</td>
-                      <td className={td}>
-                        <Pill tone={toneFor(row.status)}>{row.status}</Pill>
+                      <td className={cn(td, 'py-3')}>
+                        <DeliveryCell delivery={row} />
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap')}>
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                            CHANNEL_STYLE[row.channel].badge,
+                          )}
+                        >
+                          {label(row.channel)}
+                        </span>
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap')}>
+                        <Pill tone={toneFor(row.status)}>{titleCase(row.status)}</Pill>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{formatDeskStamp(row.at)}</td>
                     </tr>
@@ -575,7 +684,8 @@ export function SubscriberTable() {
         description="Accounts on this product. Search by email or id, then change a role or close an account."
       />
       <Directory
-        title="Subscriber directory"
+        title="Subscriber Directory"
+        variant="framed"
         page={page}
         total={total}
         onPage={setPage}
@@ -617,32 +727,23 @@ export function SubscriberTable() {
           <>
             <ul className="divide-y divide-[#f2f4f7] lg:hidden">
               {rows.map((account) => (
-                <li key={account.id}>
-                  <DeskScroll className="flex items-center gap-3 px-4 py-3">
-                    <NameCell name={account.name} />
-                    <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-[#475467]">
-                      {account.email}
-                      {!account.emailVerified ? <Pill tone="muted">unverified</Pill> : null}
-                    </span>
-                    <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{account.role}</Pill>
-                    <Pill tone={toneFor(account.status)}>{account.status}</Pill>
-                    <span className="ml-auto">
-                      <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
-                    </span>
-                  </DeskScroll>
+                <li key={account.id} className="flex items-center gap-3 px-4 py-3">
+                  <SubscriberCell account={account} />
+                  <span className="ml-auto flex shrink-0 items-center gap-2">
+                    <Pill tone={toneFor(account.status)}>{titleCase(account.status)}</Pill>
+                    <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />
+                  </span>
                 </li>
               ))}
             </ul>
             <DeskScroll className="hidden pb-1 lg:block">
-              <table className="w-full min-w-[960px]">
+              <table className="w-full min-w-[720px] table-fixed">
                 <thead>
-                  <tr className="border-y border-[#f2f4f7]">
-                    <Th className={stickyStart}>Subscriber</Th>
-                    <Th>Email</Th>
-                    <Th>Role</Th>
-                    <Th>Status</Th>
-                    <Th>Phone</Th>
-                    <Th>Joined</Th>
+                  <tr className="border-b border-[#eef0f3]">
+                    <Th className={cn(subscriberTh, 'w-[46%]', stickyStart)}>Subscriber</Th>
+                    <Th className={cn(subscriberTh, 'w-[14%]')}>Role</Th>
+                    <Th className={cn(subscriberTh, 'w-[14%]')}>Status</Th>
+                    <Th className={cn(subscriberTh, 'w-[18%]')}>Joined</Th>
                     <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                       <span className="sr-only">Actions</span>
                     </th>
@@ -651,33 +752,17 @@ export function SubscriberTable() {
                 <tbody>
                   {rows.map((account) => (
                     <tr key={account.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, 'whitespace-nowrap', stickyStart)}>
-                        <NameCell name={account.name} />
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
-                        <span className="inline-flex items-center gap-2">
-                          {account.email}
-                          {!account.emailVerified ? <Pill tone="muted">unverified</Pill> : null}
-                        </span>
+                      <td className={cn(td, 'py-3', stickyStart)}>
+                        <SubscriberCell account={account} />
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
-                        <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{account.role}</Pill>
+                        <Pill tone={account.role === 'admin' ? 'ok' : 'muted'}>{titleCase(account.role)}</Pill>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
-                        <Pill tone={toneFor(account.status)}>{account.status}</Pill>
+                        <Pill tone={toneFor(account.status)}>{titleCase(account.status)}</Pill>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
-                        {account.phone ? (
-                          <span className="inline-flex items-center gap-2">
-                            {account.phone}
-                            {!account.phoneVerified ? <Pill tone="muted">unverified</Pill> : null}
-                          </span>
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>
-                        {account.createdAt ? formatDeskStamp(account.createdAt) : '—'}
+                        {account.createdAt ? formatDeskDate(account.createdAt) : '—'}
                       </td>
                       <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                         <SubscriberActions account={account} onChanged={() => void load(query.trim() || undefined, page, pageSize)} />

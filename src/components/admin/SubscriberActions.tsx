@@ -268,7 +268,7 @@ export function SubscriberActions({
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto bg-white px-5">
-            <section className="border-b border-[#e4e7ec] py-5">
+            <section className="py-5">
               <h3 className="mb-2.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">Contact</h3>
               <div className="grid gap-x-5 gap-y-2 sm:grid-cols-2">
                 <AccountDetail
@@ -306,7 +306,7 @@ export function SubscriberActions({
               </div>
             </section>
 
-            <section className="border-b border-[#e4e7ec] py-5">
+            <section className="py-5">
               <h3 className="mb-2.5 text-[11px] font-semibold tracking-wide text-[#667085] uppercase">Account details</h3>
               <div className="grid gap-x-5 gap-y-2 sm:grid-cols-2">
                 <AccountDetail

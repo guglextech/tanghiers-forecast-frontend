@@ -1,7 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal, Plus, RefreshCw } from '@/components/ui/icons';
+import {
+  Clock,
+  MoreHorizontal,
+  Plus,
+  RefreshCw,
+  Repeat2,
+  Tag,
+  type LucideIcon,
+} from '@/components/ui/icons';
 import { toast } from 'sonner';
 import { admin, asList } from '@/lib/api/resources';
 import { mapAdminPlan, type AdminPlan } from '@/lib/api/mappers';
@@ -15,7 +23,6 @@ import {
   Directory,
   EmptyRow,
   FilterMenu,
-  NameCell,
   PageLead,
   Pill,
   SearchField,
@@ -50,6 +57,34 @@ type KindFilter = 'all' | 'subscription' | 'pass';
 
 function kindTone(kind: string): 'ok' | 'muted' {
   return kind === 'subscription' ? 'ok' : 'muted';
+}
+
+const planTh = 'py-3 text-xs font-medium tracking-normal normal-case text-[#667085]';
+
+function planStyle(kind: string): { icon: LucideIcon; tile: string; badge: string } {
+  if (kind === 'subscription') {
+    return { icon: Repeat2, tile: 'bg-[#eff8ff] text-[#175cd3]', badge: 'bg-[#eff8ff] text-[#175cd3]' };
+  }
+  if (kind === 'pass') {
+    return { icon: Clock, tile: 'bg-[#f4f3ff] text-[#5925dc]', badge: 'bg-[#f4f3ff] text-[#5925dc]' };
+  }
+  return { icon: Tag, tile: 'bg-[#f2f4f7] text-[#475467]', badge: 'bg-[#f2f4f7] text-[#475467]' };
+}
+
+function PlanCell({ plan }: { plan: AdminPlan }) {
+  const style = planStyle(plan.kind);
+  const Icon = style.icon;
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', style.tile)}>
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[#101828]">{plan.name}</p>
+        <p className="mt-0.5 truncate text-xs text-[#667085]">{plan.code}</p>
+      </div>
+    </div>
+  );
 }
 
 function amountLabel(amounts: Record<string, number>, currency = 'USD') {
@@ -174,7 +209,8 @@ export function PlansScreen() {
       </div>
 
       <Directory
-        title="Plan directory"
+        title="Plan Directory"
+        variant="framed"
         page={page}
         total={filtered.length}
         onPage={setPage}
@@ -197,9 +233,9 @@ export function PlansScreen() {
                 setPage(0);
               }}
               options={[
-                { id: 'all', label: 'all' },
-                { id: 'subscription', label: 'subscription' },
-                { id: 'pass', label: 'pass' },
+                { id: 'all', label: 'All' },
+                { id: 'subscription', label: 'Subscription' },
+                { id: 'pass', label: 'Pass' },
               ]}
             />
           </>
@@ -209,39 +245,24 @@ export function PlansScreen() {
           <EmptyRow>{query.trim() || kind !== 'all' ? 'No plans match that filter.' : 'No plans yet.'}</EmptyRow>
         ) : (
           <>
-            <ul className="divide-y divide-[#f2f4f7] border-t border-[#f2f4f7] md:hidden">
+            <ul className="divide-y divide-[#f2f4f7] md:hidden">
               {pageRows.map((plan) => (
-                <li key={plan.id} className="px-4 py-4">
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <p className="truncate text-sm font-semibold text-[#101828]">{plan.name}</p>
-                        <span className="shrink-0 rounded bg-[#f2f4f7] px-1.5 py-0.5 font-mono text-[10px] text-[#667085]">
-                          {plan.code}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                        <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'active' : 'inactive'}</Pill>
-                        <Pill tone={kindTone(plan.kind)}>{plan.kind || '—'}</Pill>
-                      </div>
-                    </div>
+                <li key={plan.id} className="flex items-center gap-3 px-4 py-3">
+                  <PlanCell plan={plan} />
+                  <span className="ml-auto flex shrink-0 items-center gap-2">
+                    <span className="text-right">
+                      <span className="block text-sm font-semibold text-[#101828] tabular-nums">
+                        {amountLabel(plan.amounts)}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-[#98a2b3]">{accessLabel(plan)}</span>
+                    </span>
                     <PlanActions
                       plan={plan}
                       onEdit={() => setEditing(plan)}
                       onPrice={() => setPricing(plan)}
                       onSynced={load}
                     />
-                  </div>
-                  <dl className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-[#f9fafb] px-3 py-2.5 text-xs">
-                    <div>
-                      <dt className="text-[#98a2b3]">Billing / access</dt>
-                      <dd className="mt-0.5 font-medium text-[#344054]">{accessLabel(plan)}</dd>
-                    </div>
-                    <div className="text-right">
-                      <dt className="text-[#98a2b3]">USD price</dt>
-                      <dd className="mt-0.5 font-semibold text-[#101828] tabular-nums">{amountLabel(plan.amounts)}</dd>
-                    </div>
-                  </dl>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -249,12 +270,12 @@ export function PlansScreen() {
             <DeskScroll className="hidden pb-1 md:block">
             <table className="w-full min-w-[720px] table-fixed">
               <thead>
-                <tr className="border-y border-[#f2f4f7]">
-                  <Th className={cn('w-[34%]', stickyStart)}>Plan</Th>
-                  <Th className="w-[13%]">Status</Th>
-                  <Th className="w-[15%]">Type</Th>
-                  <Th className="w-[20%]">Billing / access</Th>
-                  <Th className="w-[12%]">USD price</Th>
+                <tr className="border-b border-[#eef0f3]">
+                  <Th className={cn(planTh, 'w-[34%]', stickyStart)}>Plan</Th>
+                  <Th className={cn(planTh, 'w-[14%]')}>Type</Th>
+                  <Th className={cn(planTh, 'w-[20%]')}>Billing / access</Th>
+                  <Th className={cn(planTh, 'w-[14%] text-right')}>USD price</Th>
+                  <Th className={cn(planTh, 'w-[14%] pl-8')}>Status</Th>
                   <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                     <span className="sr-only">Actions</span>
                   </th>
@@ -264,21 +285,25 @@ export function PlansScreen() {
                 {pageRows.map((plan) => {
                   return (
                     <tr key={plan.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, stickyStart)}>
-                        <div className="min-w-0">
-                          <NameCell name={plan.name} />
-                          <p className="mt-1 ml-11 truncate font-mono text-[10px] text-[#98a2b3]">{plan.code}</p>
-                        </div>
+                      <td className={cn(td, 'py-3', stickyStart)}>
+                        <PlanCell plan={plan} />
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
-                        <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'active' : 'inactive'}</Pill>
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap')}>
-                        <Pill tone={kindTone(plan.kind)}>{plan.kind || '—'}</Pill>
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                            planStyle(plan.kind).badge,
+                          )}
+                        >
+                          {plan.kind === 'pass' ? 'Pass' : plan.kind === 'subscription' ? 'Subscription' : '—'}
+                        </span>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{accessLabel(plan)}</td>
-                      <td className={cn(td, 'whitespace-nowrap font-medium tabular-nums')}>
+                      <td className={cn(td, 'whitespace-nowrap text-right font-semibold text-[#101828] tabular-nums')}>
                         {amountLabel(plan.amounts)}
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap pl-8')}>
+                        <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'Active' : 'Inactive'}</Pill>
                       </td>
                       <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                         <PlanActions

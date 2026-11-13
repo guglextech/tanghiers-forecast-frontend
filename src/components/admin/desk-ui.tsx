@@ -39,13 +39,18 @@ export function toneFor(status: string): 'ok' | 'wait' | 'muted' {
 }
 
 const MARKS = ['#0B3A82', '#125d4a', '#344054', '#175cd3'] as const;
+const ROUND_MARKS = ['#2e90fa', '#0e9384', '#7a5af8', '#12b76a', '#ee46bc', '#444ce7'] as const;
 
-export function Mark({ name }: { name: string }) {
+export function Mark({ name, round = false }: { name: string; round?: boolean }) {
   const initials = initialsFromName(name);
-  const color = MARKS[(initials.charCodeAt(0) + (initials.charCodeAt(1) || 0)) % MARKS.length];
+  const palette = round ? ROUND_MARKS : MARKS;
+  const color = palette[(initials.charCodeAt(0) + (initials.charCodeAt(1) || 0)) % palette.length];
   return (
     <span
-      className="grid size-8 shrink-0 place-items-center rounded-lg text-[11px] font-semibold text-white"
+      className={cn(
+        'grid size-8 shrink-0 place-items-center text-[11px] font-semibold text-white',
+        round ? 'rounded-full' : 'rounded-lg',
+      )}
       style={{ backgroundColor: color }}
     >
       {initials}
@@ -179,6 +184,7 @@ export function Directory({
   onPageSize,
   showPager = true,
   extra,
+  variant = 'default',
   children,
 }: {
   title: string;
@@ -190,8 +196,33 @@ export function Directory({
   onPageSize?: (size: number) => void;
   showPager?: boolean;
   extra?: React.ReactNode;
+  variant?: 'default' | 'framed';
   children: React.ReactNode;
 }) {
+  if (variant === 'framed') {
+    return (
+      <section className="rounded-2xl border border-[#e4e7ec] bg-white p-4 sm:p-5">
+        <div className="mb-4 flex min-w-0 items-center gap-3">
+          <h2 className="text-base font-semibold tracking-tight text-[#101828]">{title}</h2>
+          {extra}
+        </div>
+        <div className="overflow-hidden rounded-xl border border-[#e4e7ec]">
+          {toolbar ? (
+            <div className="flex items-center border-b border-[#eef0f3] px-3 py-3">
+              <div className="flex w-full max-w-xl items-center gap-2">{toolbar}</div>
+            </div>
+          ) : null}
+          {children}
+          {showPager ? (
+            <div className="border-t border-[#eef0f3] px-4 py-3">
+              <Pager page={page} total={total} onPage={onPage} pageSize={pageSize} onPageSize={onPageSize} />
+            </div>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="overflow-hidden rounded-xl border border-[#e4e7ec] bg-white">
       <div className="flex flex-col gap-3 border-b border-[#eef0f3] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -233,10 +264,20 @@ export function EmptyRow({ children }: { children: React.ReactNode }) {
   return <p className="px-4 py-10 text-center text-sm text-[#667085]">{children}</p>;
 }
 
-export function NameCell({ name, href, caps = false }: { name: string; href?: string; caps?: boolean }) {
+export function NameCell({
+  name,
+  href,
+  caps = false,
+  round = false,
+}: {
+  name: string;
+  href?: string;
+  caps?: boolean;
+  round?: boolean;
+}) {
   const inner = (
     <>
-      <Mark name={name} />
+      <Mark name={name} round={round} />
       <span className={cn('truncate font-medium text-[#101828]', caps && 'tracking-wide uppercase')}>{name}</span>
     </>
   );
