@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Flame, Lock, Play } from '@/components/ui/icons';
+import { Flame, Lock, Play, Sparkles } from '@/components/ui/icons';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';
@@ -18,6 +18,24 @@ const SECTION_TONES = {
   blue: 'bg-[#0B3A82]',
   green: 'bg-[#067647]',
 } as const;
+
+const HERO_GAMES = [
+  'Numbers',
+  'Cash4Life',
+  'Mega Millions',
+  'Powerball',
+  'Double Play',
+  'Pick 2',
+  'Pick 3',
+  'Pick 4',
+  'Pick 5',
+  'Pick 10',
+  'Daily 4',
+  'All or Nothing',
+  'Cash 5',
+  'Texas 2 Step',
+  '& more',
+] as const;
 
 function SectionBar({
   icon: Icon,
@@ -58,12 +76,24 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
         <h1 className="max-w-3xl text-3xl leading-[1.05] font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
           Stop Leaving Millions to <span className="text-[#FB11A8]">Pure Luck</span>
         </h1>
-        <p className="mt-4 text-[11px] font-semibold tracking-[0.18em] text-white/70 uppercase sm:text-xs">
+        <p className="mt-4 text-lg font-extrabold tracking-wide text-white uppercase sm:text-xl lg:text-2xl">
           Daily forecasts nationwide for
         </p>
-        <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-white/80 sm:text-[15px]">
-          Numbers · Cash4Life · Mega Millions · Powerball · Double Play · Pick 2 · Pick 3 · Pick 4 · Pick 5 ·
-          Pick 10 · Daily 4 · All or Nothing · Cash 5 · Texas 2 Step · &amp; more
+        <ul className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+          {HERO_GAMES.map((game) => (
+            <li
+              key={game}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#FB11A8]/40 bg-[#FB11A8]/12 px-2.5 py-1 text-xs font-semibold text-[#FB11A8] sm:px-3 sm:text-sm"
+            >
+              <Sparkles className="size-3 shrink-0 sm:size-3.5" strokeWidth={2.2} />
+              {game}
+            </li>
+          ))}
+        </ul>
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/80 sm:text-[15px]">
+          Play numbers selected with an edge, not just hope.
+          <br />
+          You never know when you&apos;ll hit it big, so make sure you&apos;re ready.
         </p>
 
         <div className="mt-6 flex items-center justify-center gap-2" aria-hidden>
