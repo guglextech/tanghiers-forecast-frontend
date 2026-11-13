@@ -46,24 +46,35 @@ function pickFeatured(forecasts: Forecast[]) {
   );
 }
 
-function balls(forecast: Forecast) {
-  return {
-    banker: forecast.body?.banker ?? forecast.numbers.slice(0, 1),
-    twoSure: forecast.body?.twoSure ?? forecast.numbers.slice(1, 3),
-    threeDirect: forecast.body?.threeDirect ?? forecast.numbers.slice(3, 6),
-  };
-}
-
-function NumberBall({ value, tone }: { value: number; tone: 'ink' | 'soft' }) {
+function OverviewMetric({
+  label,
+  value,
+  icon: Icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  icon: typeof Users;
+  tone: 'blue' | 'green' | 'violet' | 'slate';
+}) {
+  const tones = {
+    blue: 'bg-[#eef4ff] text-[#0B3A82]',
+    green: 'bg-[#ecfdf3] text-[#067647]',
+    violet: 'bg-[#f4f3ff] text-[#5925dc]',
+    slate: 'bg-[#f2f4f7] text-[#344054]',
+  } as const;
   return (
-    <span
-      className={cn(
-        'grid size-8 place-items-center rounded-full text-xs font-semibold tabular-nums',
-        tone === 'ink' ? 'bg-[#0B3A82] text-white' : 'bg-[#eef2f6] text-[#344054]',
-      )}
-    >
-      {String(value).padStart(2, '0')}
-    </span>
+    <li className="rounded-xl border border-[#e4e7ec] bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium text-[#667085]">{label}</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-[#101828] tabular-nums">{value}</p>
+        </div>
+        <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg', tones[tone])}>
+          <Icon className="size-4" />
+        </span>
+      </div>
+    </li>
   );
 }
 
@@ -94,7 +105,6 @@ export function AdminOverview() {
   const featured = pickFeatured(desk.forecasts);
   const queue = desk.forecasts.filter((item) => item.status === 'draft' || item.status === 'scheduled').slice(0, 5);
   const published = desk.forecasts.filter((item) => item.status === 'published').slice(0, 5);
-  const picks = featured ? balls(featured) : null;
 
   return (
     <div className="space-y-5">
@@ -109,50 +119,35 @@ export function AdminOverview() {
         }
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
-        <section className="rounded-xl border border-[#e4e7ec] bg-white p-5 sm:p-6">
-          {featured && picks ? (
-            <>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">On deck</p>
-                  <h2 className="mt-1 text-xl font-semibold tracking-tight">{featured.title}</h2>
-                  <p className="mt-1 text-sm text-[#667085]">{formatDeskDate(featured.date)}</p>
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <OverviewMetric label="Subscribers" value={String(stats.activeSubscribers)} icon={Users} tone="blue" />
+        <OverviewMetric label="Published" value={String(stats.publishedForecasts)} icon={CalendarDays} tone="green" />
+        <OverviewMetric label="Emails sent" value={String(stats.emailsSent)} icon={Mail} tone="violet" />
+        <OverviewMetric label="SMS queued" value={String(stats.smsQueued)} icon={Smartphone} tone="slate" />
+      </ul>
+
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.8fr)]">
+        <section className="overflow-hidden rounded-xl border border-[#dfe3e8] bg-white">
+          {featured ? (
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold tracking-wide text-[#0B3A82] uppercase">Latest forecast</p>
+                  <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-[#101828]">{featured.title}</h2>
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-[#667085]">
+                    <CalendarDays className="size-3.5" />
+                    {formatDeskDate(featured.date)}
+                  </p>
                 </div>
                 <Pill tone={toneFor(featured.status)}>{featured.status}</Pill>
               </div>
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                <div>
-                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Banker</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {picks.banker.map((value, index) => (
-                      <NumberBall key={`b-${index}`} value={value} tone="ink" />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Two sure</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {picks.twoSure.map((value, index) => (
-                      <NumberBall key={`t-${index}`} value={value} tone="soft" />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="mb-2 text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Three direct</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {picks.threeDirect.map((value, index) => (
-                      <NumberBall key={`d-${index}`} value={value} tone="soft" />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-3">
                 <Link
                   href={`/admin/forecasts/${featured.id}`}
-                  className="inline-flex h-9 items-center rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
                 >
                   Open forecast
+                  <ArrowRight className="size-3.5" />
                 </Link>
                 {featured.status === 'published' ? (
                   <Link href={`/forecasts/${featured.id}`} className="text-sm font-medium text-[#0B3A82] hover:underline">
@@ -160,10 +155,10 @@ export function AdminOverview() {
                   </Link>
                 ) : null}
               </div>
-            </>
+            </div>
           ) : (
-            <div className="flex min-h-[220px] flex-col items-start justify-center">
-              <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">On deck</p>
+            <div className="flex min-h-64 flex-col items-start justify-center p-6">
+              <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Latest forecast</p>
               <h2 className="mt-2 text-xl font-semibold">No forecast yet</h2>
               <p className="mt-1 max-w-sm text-sm text-[#667085]">Write the next draw, then publish it for subscribers.</p>
               <div className="mt-5">
@@ -176,40 +171,21 @@ export function AdminOverview() {
           )}
         </section>
 
-        <ul className="grid grid-cols-2 gap-3 xl:grid-cols-1">
-          {[
-            { label: 'Subscribers', value: String(stats.activeSubscribers), icon: Users },
-            { label: 'Published', value: String(stats.publishedForecasts), icon: CalendarDays },
-            { label: 'Emails sent', value: String(stats.emailsSent), icon: Mail },
-            { label: 'SMS queued', value: String(stats.smsQueued), icon: Smartphone },
-          ].map((item) => (
-            <li key={item.label} className="flex items-center gap-3 rounded-xl border border-[#e4e7ec] bg-white px-4 py-3.5">
-              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#eef3fb] text-[#0B3A82]">
-                <item.icon className="size-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs text-[#667085]">{item.label}</p>
-                <p className="text-lg font-semibold tabular-nums">{item.value}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
         <QueueCard
           title="Needs attention"
           href="/admin/forecasts"
           empty="No drafts or scheduled forecasts."
           items={queue}
         />
-        <QueueCard
-          title="Recently published"
-          href="/admin/forecasts"
-          empty="Nothing published yet."
-          items={published}
-        />
       </div>
+
+      <QueueCard
+        title="Recently published"
+        href="/admin/forecasts"
+        empty="Nothing published yet."
+        items={published}
+        layout="grid"
+      />
     </div>
   );
 }
@@ -219,36 +195,53 @@ function QueueCard({
   href,
   empty,
   items,
+  layout = 'list',
 }: {
   title: string;
   href: string;
   empty: string;
   items: Forecast[];
+  layout?: 'list' | 'grid';
 }) {
   return (
-    <section className="rounded-xl border border-[#e4e7ec] bg-white">
-      <div className="flex items-center justify-between px-4 py-3">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <Link href={href} className="inline-flex items-center gap-1 text-xs font-medium text-[#0B3A82] hover:underline">
+    <section className="overflow-hidden rounded-xl border border-[#e4e7ec] bg-white">
+      <div className="flex items-center justify-between border-b border-[#eef0f3] px-4 py-3.5">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-[#101828]">{title}</h2>
+          <span className="rounded-full bg-[#f2f4f7] px-2 py-0.5 text-[11px] font-medium text-[#475467]">
+            {items.length}
+          </span>
+        </div>
+        <Link href={href} className="inline-flex items-center gap-1 text-xs font-semibold text-[#0B3A82] hover:underline">
           View all
           <ArrowRight className="size-3.5" />
         </Link>
       </div>
       {items.length === 0 ? (
-        <p className="px-4 pb-5 text-sm text-[#667085]">{empty}</p>
+        <p className="px-4 py-6 text-sm text-[#667085]">{empty}</p>
       ) : (
-        <ul className="divide-y divide-[#eef0f3] border-t border-[#eef0f3]">
+        <ul
+          className={cn(
+            layout === 'grid'
+              ? 'grid sm:grid-cols-2 xl:grid-cols-3'
+              : 'divide-y divide-[#eef0f3]',
+          )}
+        >
           {items.map((forecast) => (
-            <li key={forecast.id}>
+            <li
+              key={forecast.id}
+              className={cn(layout === 'grid' && 'border-b border-[#eef0f3] sm:border-r xl:border-b-0')}
+            >
               <Link
                 href={`/admin/forecasts/${forecast.id}`}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#f8fafc]"
+                className="group flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-[#f8fafc]"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{forecast.title}</p>
-                  <p className="text-xs text-[#98a2b3]">{formatDeskDate(forecast.date)}</p>
+                  <p className="truncate text-sm font-medium text-[#101828]">{forecast.title}</p>
+                  <p className="mt-0.5 text-xs text-[#98a2b3]">{formatDeskDate(forecast.date)}</p>
                 </div>
                 <Pill tone={toneFor(forecast.status)}>{forecast.status}</Pill>
+                <ArrowRight className="size-3.5 shrink-0 text-[#98a2b3] transition-transform group-hover:translate-x-0.5" />
               </Link>
             </li>
           ))}
