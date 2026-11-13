@@ -375,7 +375,7 @@ export function ForecastTable({
               <thead>
                 <tr className="border-b border-[#eef0f3]">
                   <Th className={cn(subscriberTh, 'w-[34%]', stickyStart)}>Forecast</Th>
-                  <Th className={cn(subscriberTh, 'w-[28%]')}>Numbers</Th>
+                  <Th className={cn(subscriberTh, 'w-[28%]')}>Message</Th>
                   <Th className={cn(subscriberTh, 'w-[14%]')}>Status</Th>
                   <Th className={cn(subscriberTh, 'w-[20%]')}>Goes live</Th>
                   <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
@@ -390,22 +390,12 @@ export function ForecastTable({
                       <ForecastCell forecast={forecast} />
                     </td>
                     <td className={td}>
-                      {forecast.numbers.length ? (
-                        <span className="flex flex-wrap gap-1">
-                          {forecast.numbers.slice(0, 6).map((value, index) => (
-                            <span
-                              key={`${forecast.id}-${index}`}
-                              className="grid size-7 place-items-center rounded-full border border-[#e4e7ec] bg-white text-[11px] font-semibold text-[#344054] tabular-nums"
-                            >
-                              {String(value).padStart(2, '0')}
-                            </span>
-                          ))}
-                          {forecast.numbers.length > 6 ? (
-                            <span className="self-center text-xs text-[#98a2b3]">+{forecast.numbers.length - 6}</span>
-                          ) : null}
-                        </span>
+                      {forecast.message ? (
+                        <p className="truncate text-[#475467]" title={forecast.message}>
+                          {forecast.message}
+                        </p>
                       ) : (
-                        <span className="text-[#98a2b3]">—</span>
+                        <span className="text-[#98a2b3]">No message</span>
                       )}
                     </td>
                     <td className={cn(td, 'whitespace-nowrap')}>

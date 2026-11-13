@@ -12,6 +12,7 @@ import {
   unscheduleForecast,
 } from '@/lib/desk';
 import { ConfirmDrawer } from '@/components/admin/ConfirmDrawer';
+import { ForecastViewDialog } from '@/components/admin/ForecastViewDialog';
 import { formatLongDate } from '@/lib/dates';
 import {
   DropdownMenu,
@@ -51,6 +52,7 @@ export function ForecastActions({
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
   const [confirm, setConfirm] = React.useState<ConfirmAction | null>(null);
+  const [viewing, setViewing] = React.useState(false);
 
   const run = async (action: 'publish' | 'unschedule' | 'archive' | 'delete') => {
     setBusy(true);
@@ -97,6 +99,7 @@ export function ForecastActions({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44 rounded-xl">
+          <DropdownMenuItem onSelect={() => setViewing(true)}>View</DropdownMenuItem>
           <DropdownMenuItem onSelect={() => router.push(`/admin/forecasts/${forecast.id}`)}>
             Edit
           </DropdownMenuItem>
@@ -138,6 +141,8 @@ export function ForecastActions({
           ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ForecastViewDialog forecastId={forecast.id} open={viewing} onOpenChange={setViewing} />
 
       <ConfirmDrawer
         open={Boolean(confirm)}
