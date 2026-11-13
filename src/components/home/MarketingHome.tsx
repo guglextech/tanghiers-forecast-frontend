@@ -58,17 +58,17 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
         <h1 className="max-w-3xl text-3xl leading-[1.05] font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
           Stop Leaving Millions to <span className="text-[#FB11A8]">Pure Luck</span>
         </h1>
-        <p className="mt-4 text-[11px] font-semibold tracking-[0.18em] text-white/70 uppercase sm:text-xs">
+        <p className="mt-4 text-sm font-extrabold tracking-wide text-white uppercase sm:text-base">
           Daily forecasts nationwide for
         </p>
         <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-white/80 sm:text-[15px]">
           Numbers · Cash4Life · Mega Millions · Powerball · Double Play · Pick 2 · Pick 3 · Pick 4 · Pick 5 ·
           Pick 10 · Daily 4 · All or Nothing · Cash 5 · Texas 2 Step · &amp; more
         </p>
-        
-        <p>
-          Play numbers selected with an edge, not just hope. <br />
-          You never know when you'll hit it big, so make sure you're ready.
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/80 sm:text-[15px]">
+          Play numbers selected with an edge, not just hope.
+          <br />
+          You never know when you&apos;ll hit it big, so make sure you&apos;re ready.
         </p>
 
         <div className="mt-6 flex items-center justify-center gap-2" aria-hidden>
