@@ -146,6 +146,26 @@ export type ApiForecastContent = {
   video?: ApiForecastVideo | null;
 };
 
+export type ApiWaitlistEntry = {
+  id: string;
+  email?: string;
+  name?: string | null;
+  fullName?: string | null;
+  phone?: string | null;
+  status?: string | null;
+  source?: string | null;
+  referrer?: string | null;
+  productSlug?: string | null;
+  countryCode?: string | null;
+  timezone?: string | null;
+  notes?: string | null;
+  message?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  joinedAt?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
 export type ApiForecast = {
   id: string;
   title?: string;

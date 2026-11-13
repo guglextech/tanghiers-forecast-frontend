@@ -39,6 +39,7 @@ import {
   Login03Icon,
   Logout03Icon,
   Mail01Icon,
+  Megaphone01Icon,
   Menu01Icon,
   Message01Icon,
   Moon02Icon,
@@ -129,6 +130,7 @@ export const Lock = icon(SquareLock02Icon, 'Lock');
 export const LogIn = icon(Login03Icon, 'LogIn');
 export const LogOut = icon(Logout03Icon, 'LogOut');
 export const Mail = icon(Mail01Icon, 'Mail');
+export const Megaphone = icon(Megaphone01Icon, 'Megaphone');
 export const Menu = icon(Menu01Icon, 'Menu');
 export const MessageCircle = icon(Message01Icon, 'MessageCircle');
 export const Moon = icon(Moon02Icon, 'Moon');

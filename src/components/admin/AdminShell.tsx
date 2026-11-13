@@ -20,6 +20,7 @@ import {
   ArrowUpRight,
   CalendarDays,
   LayoutGrid,
+  Megaphone,
   Menu,
   Send,
   Settings,
@@ -34,6 +35,7 @@ const deskLinks: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/admin/forecasts', label: 'Forecasts', icon: CalendarDays },
   { href: '/admin/deliveries', label: 'Deliveries', icon: Send },
   { href: '/admin/subscribers', label: 'Subscribers', icon: Users },
+  { href: '/admin/marketing', label: 'Marketing list', icon: Megaphone },
   { href: '/admin/plans', label: 'Plans', icon: Tag },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
@@ -43,6 +45,7 @@ function sectionLabel(pathname: string) {
   if (pathname.startsWith('/admin/forecasts')) return 'Forecasts';
   if (pathname.startsWith('/admin/deliveries')) return 'Deliveries';
   if (pathname.startsWith('/admin/subscribers')) return 'Subscribers';
+  if (pathname.startsWith('/admin/marketing')) return 'Marketing list';
   if (pathname.startsWith('/admin/plans')) return 'Plans';
   if (pathname.startsWith('/admin/settings')) return 'Settings';
   return 'Overview';

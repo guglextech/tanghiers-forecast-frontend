@@ -1,4 +1,4 @@
-import { apiRequest, unwrapList } from '@/lib/api/client';
+import { apiDownload, apiRequest, unwrapList } from '@/lib/api/client';
 import { PRODUCT_SLUG, productBody, productResource, productUrl } from '@/lib/api/config';
 import type {
   ApiAdminProduct,
@@ -11,6 +11,7 @@ import type {
   ApiPlan,
   ApiSubscription,
   ApiUser,
+  ApiWaitlistEntry,
   AuthTokens,
   LoginResult,
   MfaEnrollStart,
@@ -298,6 +299,20 @@ export const admin = {
     }),
   syncPlan: (id: string) =>
     apiRequest<ApiPlan>(`/v1/admin/plans/${encodeURIComponent(id)}/sync`, { method: 'POST' }),
+  waitlist: (
+    query: { limit?: number; offset?: number; search?: string; productSlug?: string } = {},
+  ) =>
+    apiRequest<ApiWaitlistEntry[] | { items?: ApiWaitlistEntry[]; entries?: ApiWaitlistEntry[]; total?: number }>(
+      productUrl(
+        '/v1/admin/waitlist',
+        { limit: query.limit, offset: query.offset, search: query.search },
+        query.productSlug,
+      ),
+    ),
+  waitlistEntry: (id: string) =>
+    apiRequest<ApiWaitlistEntry>(`/v1/admin/waitlist/${encodeURIComponent(id)}`),
+  exportWaitlist: (productSlug = PRODUCT_SLUG) =>
+    apiDownload(productUrl('/v1/admin/waitlist/export', { format: 'csv' }, productSlug), 'waitlist.csv'),
 };
 
 export function asList<T>(value: T[] | { items?: T[] } | null | undefined): T[];
