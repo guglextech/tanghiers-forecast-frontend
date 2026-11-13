@@ -58,7 +58,7 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
         <h1 className="max-w-3xl text-3xl leading-[1.05] font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
           Stop Leaving Millions to <span className="text-[#FB11A8]">Pure Luck</span>
         </h1>
-        <p className="mt-4 text-sm font-extrabold tracking-wide text-white uppercase sm:text-base">
+        <p className="mt-4 text-lg font-extrabold tracking-wide text-white uppercase sm:text-xl lg:text-2xl">
           Daily forecasts nationwide for
         </p>
         <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-white/80 sm:text-[15px]">
