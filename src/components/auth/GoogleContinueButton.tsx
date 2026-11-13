@@ -49,7 +49,7 @@ export function GoogleContinueButton({
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || disabled) return;
+    if (!host) return;
     if (!clientId) {
       onErrorRef.current?.('Google sign-in is not configured.');
       return;
@@ -70,7 +70,6 @@ export function GoogleContinueButton({
       auto_select: false,
       cancel_on_tap_outside: true,
       ux_mode: 'popup',
-      use_fedcm_for_prompt: true,
       itp_support: true,
       callback: ({ credential }: CredentialResponse) => {
         if (credential) onSuccessRef.current(credential, nonceRef.current);
@@ -78,24 +77,29 @@ export function GoogleContinueButton({
       },
     });
 
-    const width = Math.max(240, Math.floor(host.getBoundingClientRect().width || 320));
-    host.replaceChildren();
-    gis.renderButton(host, {
-      type: 'standard',
-      theme: 'outline',
-      size: 'large',
-      text: 'continue_with',
-      shape: 'rectangular',
-      logo_alignment: 'left',
-      width,
-    });
-  }, [clientId, disabled, resetKey, scriptLoadedSuccessfully]);
+    const paint = () => {
+      const width = Math.max(240, Math.floor(host.getBoundingClientRect().width || 320));
+      host.replaceChildren();
+      gis.renderButton(host, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'rectangular',
+        logo_alignment: 'left',
+        width,
+      });
+    };
+
+    const frame = window.requestAnimationFrame(paint);
+    return () => window.cancelAnimationFrame(frame);
+  }, [clientId, resetKey, scriptLoadedSuccessfully]);
 
   return (
     <div
       ref={hostRef}
       className={cn(
-        'flex min-h-10 w-full items-center justify-center overflow-hidden rounded-[var(--radius)]',
+        'flex min-h-10 w-full items-center justify-center',
         disabled && 'pointer-events-none opacity-50',
       )}
     >
