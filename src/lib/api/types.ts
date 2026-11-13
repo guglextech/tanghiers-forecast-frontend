@@ -107,6 +107,11 @@ export type ApiPlan = {
   channels?: string[];
   featured?: boolean;
   period?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  legacyPriceIds?: string[];
   providerPriceId?: string;
   stripePriceId?: string;
   priceId?: string;

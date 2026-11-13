@@ -64,6 +64,34 @@ function extraCurrencies(amounts: Record<string, number>) {
     .sort();
 }
 
+function accessLabel(plan: AdminPlan) {
+  if (plan.kind === 'pass') {
+    if (!plan.passDurationHours) return 'Fixed access';
+    if (plan.passDurationHours % 24 === 0) {
+      const days = plan.passDurationHours / 24;
+      return `${days}-day access`;
+    }
+    return `${plan.passDurationHours}-hour access`;
+  }
+  if (!plan.interval) return 'Recurring';
+  const count = Math.max(1, plan.intervalCount);
+  return count === 1 ? `Every ${plan.interval}` : `Every ${count} ${plan.interval}s`;
+}
+
+function otherPriceLabel(amounts: Record<string, number>) {
+  const codes = extraCurrencies(amounts);
+  if (codes.length === 0) return '—';
+  const shown = codes.slice(0, 2).map((code) => `${code} ${amountLabel(amounts, code)}`);
+  return `${shown.join(' · ')}${codes.length > 2 ? `  +${codes.length - 2}` : ''}`;
+}
+
+function updatedLabel(value: string) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+}
+
 function toAmountInputs(amounts: Record<string, number>) {
   const next: Record<string, string> = {};
   for (const code of CURRENCIES) {
@@ -71,6 +99,25 @@ function toAmountInputs(amounts: Record<string, number>) {
     next[code] = typeof minor === 'number' ? String(fromMinorUnits(minor, code)) : '';
   }
   return next;
+}
+
+function PlanStat({
+  label,
+  value,
+  tone = 'default',
+}: {
+  label: string;
+  value: number;
+  tone?: 'default' | 'active';
+}) {
+  return (
+    <div className="rounded-xl border border-[#e4e7ec] bg-white px-4 py-3">
+      <p className="text-xs font-medium text-[#667085]">{label}</p>
+      <p className={cn('mt-1 text-2xl font-semibold tabular-nums', tone === 'active' ? 'text-[#067647]' : 'text-[#101828]')}>
+        {value}
+      </p>
+    </div>
+  );
 }
 
 export function PlansScreen() {
@@ -84,7 +131,10 @@ export function PlansScreen() {
   const [pricing, setPricing] = React.useState<AdminPlan | null>(null);
 
   const load = React.useCallback(async () => {
-    const rows = asList<ApiPlan>(await admin.plans()).map(mapAdminPlan).filter((plan) => plan.id);
+    const rows = asList<ApiPlan>(await admin.plans())
+      .map(mapAdminPlan)
+      .filter((plan) => plan.id)
+      .sort((left, right) => left.sortOrder - right.sortOrder || left.name.localeCompare(right.name));
     setPlans(rows);
     setReady(true);
   }, []);
@@ -107,6 +157,9 @@ export function PlansScreen() {
   });
 
   const pageRows = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const activeCount = plans.filter((plan) => plan.isActive).length;
+  const subscriptionCount = plans.filter((plan) => plan.kind === 'subscription').length;
+  const passCount = plans.filter((plan) => plan.kind === 'pass').length;
 
   React.useEffect(() => {
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -119,7 +172,7 @@ export function PlansScreen() {
     <div className="space-y-5">
       <PageLead
         title="Plans"
-        description="Link a Stripe price, then name the plan and set amounts for each currency."
+        description="Manage access, billing cadence, delivery channels, and localized prices."
         action={
           <Button
             type="button"
@@ -132,6 +185,13 @@ export function PlansScreen() {
           </Button>
         }
       />
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <PlanStat label="Total plans" value={plans.length} />
+        <PlanStat label="Active" value={activeCount} tone="active" />
+        <PlanStat label="Subscriptions" value={subscriptionCount} />
+        <PlanStat label="Passes" value={passCount} />
+      </div>
 
       <Directory
         title="Plan directory"
@@ -169,15 +229,17 @@ export function PlansScreen() {
           <EmptyRow>{query.trim() || kind !== 'all' ? 'No plans match that filter.' : 'No plans yet.'}</EmptyRow>
         ) : (
           <DeskScroll className="pb-1">
-            <table className="w-full min-w-[920px]">
+            <table className="w-full min-w-[1080px]">
               <thead>
                 <tr className="border-y border-[#f2f4f7]">
                   <Th className={stickyStart}>Plan</Th>
-                  <Th>Code</Th>
+                  <Th>Status</Th>
                   <Th>Type</Th>
-                  <Th>Interval</Th>
+                  <Th>Billing / access</Th>
                   <Th>USD</Th>
-                  <Th>Currencies</Th>
+                  <Th>Other prices</Th>
+                  <Th>Channels</Th>
+                  <Th>Updated</Th>
                   <th className={cn('w-12 px-3 py-2.5', stickyEnd)}>
                     <span className="sr-only">Actions</span>
                   </th>
@@ -185,34 +247,45 @@ export function PlansScreen() {
               </thead>
               <tbody>
                 {pageRows.map((plan) => {
-                  const extras = extraCurrencies(plan.amounts);
                   return (
                     <tr key={plan.id} className="group border-b border-[#f2f4f7] last:border-0 hover:bg-[#fafafa]">
-                      <td className={cn(td, 'whitespace-nowrap', stickyStart)}>
+                      <td className={cn(td, 'min-w-64', stickyStart)}>
                         <NameCell name={plan.name} />
-                      </td>
-                      <td className={cn(td, 'whitespace-nowrap')}>
-                        <span className="inline-flex rounded-full bg-[#f2f4f7] px-2 py-0.5 font-mono text-[11px] text-[#475467]">
+                        <p className="mt-1 ml-11 line-clamp-1 max-w-64 text-xs text-[#98a2b3]">
+                          {plan.description || 'No description'}
+                        </p>
+                        <span className="mt-1 ml-11 inline-flex rounded bg-[#f2f4f7] px-1.5 py-0.5 font-mono text-[10px] text-[#667085]">
                           {plan.code}
                         </span>
                       </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
+                        <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'active' : 'inactive'}</Pill>
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap')}>
                         <Pill tone={kindTone(plan.kind)}>{plan.kind || '—'}</Pill>
                       </td>
-                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{plan.interval || '—'}</td>
+                      <td className={cn(td, 'whitespace-nowrap text-[#475467]')}>{accessLabel(plan)}</td>
                       <td className={cn(td, 'whitespace-nowrap font-medium tabular-nums')}>
                         {amountLabel(plan.amounts)}
                       </td>
+                      <td className={cn(td, 'whitespace-nowrap text-xs text-[#667085]')}>
+                        {otherPriceLabel(plan.amounts)}
+                      </td>
                       <td className={cn(td, 'whitespace-nowrap')}>
-                        <span className="inline-flex items-center gap-1">
-                          <Pill tone="muted">USD</Pill>
-                          {extras.slice(0, 3).map((code) => (
-                            <Pill key={code} tone="muted">
-                              {code}
-                            </Pill>
-                          ))}
-                          {extras.length > 3 ? <Pill tone="muted">+{extras.length - 3}</Pill> : null}
+                        <span className="flex gap-1">
+                          {plan.channels.length ? (
+                            plan.channels.map((channel) => (
+                              <Pill key={channel} tone="muted">
+                                {channel}
+                              </Pill>
+                            ))
+                          ) : (
+                            <span className="text-[#98a2b3]">—</span>
+                          )}
                         </span>
+                      </td>
+                      <td className={cn(td, 'whitespace-nowrap text-xs text-[#667085]')}>
+                        {updatedLabel(plan.updatedAt)}
                       </td>
                       <td className={cn('px-3 py-3 text-right', stickyEnd)}>
                         <PlanActions
@@ -314,6 +387,31 @@ function PlanActions({
   );
 }
 
+function PlanSheetSummary({ plan }: { plan: AdminPlan }) {
+  return (
+    <div className="rounded-xl border border-[#e4e7ec] bg-[#f9fafb] px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-[#101828]">{plan.name}</p>
+          <p className="mt-0.5 font-mono text-[11px] text-[#667085]">{plan.code}</p>
+        </div>
+        <Pill tone={plan.isActive ? 'ok' : 'muted'}>{plan.isActive ? 'active' : 'inactive'}</Pill>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <Pill tone={kindTone(plan.kind)}>{plan.kind}</Pill>
+        <span className="text-xs text-[#667085]">{accessLabel(plan)}</span>
+        {plan.channels.length ? <span className="text-xs text-[#98a2b3]">· {plan.channels.join(', ')}</span> : null}
+      </div>
+      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-t border-[#e4e7ec] pt-3 text-xs">
+        <dt className="text-[#98a2b3]">Stripe price</dt>
+        <dd className="min-w-0 truncate text-right font-mono text-[#475467]">{plan.providerPriceId || '—'}</dd>
+        <dt className="text-[#98a2b3]">Sort order</dt>
+        <dd className="text-right font-medium tabular-nums text-[#475467]">{plan.sortOrder}</dd>
+      </dl>
+    </div>
+  );
+}
+
 function LinkPlanSheet({
   open,
   onClose,
@@ -361,13 +459,13 @@ function LinkPlanSheet({
 
   return (
     <Sheet open={open} onOpenChange={(next) => !next && !busy && onClose()}>
-      <SheetContent side="right" className="sm:max-w-md">
+      <SheetContent side="right" className="sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>Link plan</SheetTitle>
           <SheetDescription>Create a plan from a recurring Stripe price. Interval and amounts are read from Stripe.</SheetDescription>
         </SheetHeader>
-        <form className="flex flex-1 flex-col" onSubmit={(event) => void submit(event)}>
-          <div className="grid flex-1 gap-4 px-5 py-5">
+        <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => void submit(event)}>
+          <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
             {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
             <div className="space-y-2">
               <Label htmlFor="plan-code">Code</Label>
@@ -458,14 +556,15 @@ function EditPlanSheet({
 
   return (
     <Sheet open={Boolean(plan)} onOpenChange={(next) => !next && !busy && onClose()}>
-      <SheetContent side="right" className="sm:max-w-md">
+      <SheetContent side="right" className="sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>Edit plan</SheetTitle>
           <SheetDescription>Name and description shown on the public pricing page.</SheetDescription>
         </SheetHeader>
-        <form className="flex flex-1 flex-col" onSubmit={(event) => void submit(event)}>
-          <div className="grid flex-1 gap-4 px-5 py-5">
+        <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => void submit(event)}>
+          <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
             {error ? <p className="text-sm text-[#b42318]">{error}</p> : null}
+            {plan ? <PlanSheetSummary plan={plan} /> : null}
             <div className="space-y-2">
               <Label htmlFor="edit-plan-name">Name</Label>
               <Input id="edit-plan-name" value={name} onChange={(event) => setName(event.target.value)} />
@@ -477,7 +576,7 @@ function EditPlanSheet({
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Every forecast, by email and SMS"
-                className="min-h-24"
+                className="min-h-28 resize-y"
               />
             </div>
           </div>
@@ -547,34 +646,43 @@ function PriceSheet({
 
   return (
     <Sheet open={Boolean(plan)} onOpenChange={(next) => !next && !busy && onClose()}>
-      <SheetContent side="right" className="sm:max-w-md">
+      <SheetContent side="right" className="sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>Set prices</SheetTitle>
           <SheetDescription>
             Amounts in major units. This creates a new Stripe price and archives the old one.
           </SheetDescription>
         </SheetHeader>
-        <form className="flex flex-1 flex-col" onSubmit={(event) => void submit(event)}>
-          <div className="grid flex-1 grid-cols-2 gap-4 px-5 py-5">
-            {error ? <p className="col-span-2 text-sm text-[#b42318]">{error}</p> : null}
-            {CURRENCIES.map((code) => (
-              <div key={code} className="space-y-2">
-                <Label htmlFor={`amount-${code}`}>{code}</Label>
-                <Input
-                  id={`amount-${code}`}
-                  inputMode="decimal"
-                  value={amounts[code] ?? ''}
-                  onChange={(event) =>
-                    setAmounts((current) => ({
-                      ...current,
-                      [code]: event.target.value.replace(/[^\d.]/g, ''),
-                    }))
-                  }
-                  placeholder="9.99"
-                  className="tabular-nums"
-                />
-              </div>
-            ))}
+        <form className="flex min-h-0 flex-1 flex-col" onSubmit={(event) => void submit(event)}>
+          <div className="flex-1 overflow-y-auto px-5 py-5">
+            {error ? <p className="mb-4 text-sm text-[#b42318]">{error}</p> : null}
+            {plan ? <PlanSheetSummary plan={plan} /> : null}
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              {CURRENCIES.map((code) => (
+                <div key={code} className="space-y-2">
+                  <Label htmlFor={`amount-${code}`} className="flex items-center justify-between">
+                    <span>{code}</span>
+                    {code === 'USD' ? <span className="text-[11px] font-normal text-[#98a2b3]">required</span> : null}
+                  </Label>
+                  <Input
+                    id={`amount-${code}`}
+                    inputMode="decimal"
+                    value={amounts[code] ?? ''}
+                    onChange={(event) =>
+                      setAmounts((current) => ({
+                        ...current,
+                        [code]: event.target.value.replace(/[^\d.]/g, ''),
+                      }))
+                    }
+                    placeholder="0.00"
+                    className="tabular-nums"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-[#98a2b3]">
+              Enter customer-facing amounts. Values are converted to minor units before being sent.
+            </p>
           </div>
           <SheetFooter className="flex-row justify-end">
             <Button type="button" variant="outline" disabled={busy} onClick={onClose}>

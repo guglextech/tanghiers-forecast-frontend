@@ -651,8 +651,13 @@ export type AdminPlan = {
   description: string;
   kind: string;
   interval: string;
+  intervalCount: number;
+  passDurationHours: number | null;
   amounts: Record<string, number>;
   channels: string[];
+  isActive: boolean;
+  sortOrder: number;
+  updatedAt: string;
   providerPriceId: string;
 };
 
@@ -671,8 +676,13 @@ export function mapAdminPlan(row: ApiPlan): AdminPlan {
     description: row.description?.trim() || '',
     kind: kind === 'pass' ? 'pass' : kind === 'subscription' ? 'subscription' : kind,
     interval,
+    intervalCount: typeof row.intervalCount === 'number' ? row.intervalCount : 1,
+    passDurationHours: typeof row.passDurationHours === 'number' ? row.passDurationHours : null,
     amounts: row.displayPrices ?? row.amounts ?? {},
     channels: row.channels ?? [],
+    isActive: Boolean(row.isActive ?? row.active ?? row.status === 'active'),
+    sortOrder: typeof row.sortOrder === 'number' ? row.sortOrder : 0,
+    updatedAt: row.updatedAt || '',
     providerPriceId: row.providerPriceId || row.stripePriceId || row.priceId || '',
   };
 }
