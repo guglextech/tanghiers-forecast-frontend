@@ -12,8 +12,19 @@ const withPWA = withPWAInit({
   fallbacks: {
     document: "/",
   },
+  extendDefaultRuntimeCaching: true,
   workboxOptions: {
     disableDevLogs: true,
+    runtimeCaching: [
+      {
+        urlPattern: ({ url }: { url: URL }) =>
+          /^(accounts|apis|ogs|www)\.google\.com$|^(ssl|www)\.gstatic\.com$/.test(url.hostname),
+        handler: "NetworkOnly",
+        options: {
+          cacheName: "google-identity",
+        },
+      },
+    ],
   },
 });
 
