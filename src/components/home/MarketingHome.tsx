@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Flame, Lock, Play, Sparkles } from '@/components/ui/icons';
+import { Flame, Lock, Play } from '@/components/ui/icons';
 import { PublicFrame } from '@/components/chrome/Frames';
 import { Button } from '@/components/ui/button';
 import { formatMoney, type Plan } from '@/data/site';
@@ -79,14 +79,15 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
         <p className="mt-4 text-lg font-extrabold tracking-wide text-white uppercase sm:text-xl lg:text-2xl">
           Daily forecasts nationwide for
         </p>
-        <ul className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+        <ul className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
           {HERO_GAMES.map((game) => (
-            <li
-              key={game}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#FB11A8]/40 bg-[#FB11A8]/12 px-2.5 py-1 text-xs font-semibold text-[#FB11A8] sm:px-3 sm:text-sm"
-            >
-              <Sparkles className="size-3 shrink-0 sm:size-3.5" strokeWidth={2.2} />
-              {game}
+            <li key={game}>
+              <Link
+                href="/signup"
+                className="text-sm font-semibold text-[#FB11A8] no-underline hover:no-underline sm:text-[15px]"
+              >
+                {game}
+              </Link>
             </li>
           ))}
         </ul>
