@@ -65,6 +65,11 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
           Numbers · Cash4Life · Mega Millions · Powerball · Double Play · Pick 2 · Pick 3 · Pick 4 · Pick 5 ·
           Pick 10 · Daily 4 · All or Nothing · Cash 5 · Texas 2 Step · &amp; more
         </p>
+        
+        <p>
+          Play numbers selected with an edge, not just hope. <br />
+          You never know when you'll hit it big, so make sure you're ready.
+        </p>
 
         <div className="mt-6 flex items-center justify-center gap-2" aria-hidden>
           {Array.from({ length: 5 }).map((_, index) => (
