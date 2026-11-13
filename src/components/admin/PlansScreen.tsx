@@ -18,6 +18,7 @@ import { fromMinorUnits, toMinorUnits } from '@/lib/plans';
 import { formatMoney } from '@/data/site';
 import { PAGE_SIZE } from '@/lib/pagination';
 import { LoadingState } from '@/components/app/LoadingState';
+import { ConfirmDrawer } from '@/components/admin/ConfirmDrawer';
 import {
   DeskScroll,
   Directory,
@@ -363,6 +364,21 @@ function PlanActions({
   onSynced: () => Promise<void>;
 }) {
   const [busy, setBusy] = React.useState(false);
+  const [confirmDeactivate, setConfirmDeactivate] = React.useState(false);
+
+  const setActive = async (isActive: boolean) => {
+    setBusy(true);
+    try {
+      await admin.updatePlan(plan.id, { isActive });
+      toast.success(isActive ? 'Plan activated.' : 'Plan deactivated.');
+      setConfirmDeactivate(false);
+      await onSynced();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not update this plan.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const sync = async () => {
     setBusy(true);
@@ -378,31 +394,64 @@ function PlanActions({
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          disabled={busy}
-          aria-label={`Actions for ${plan.name}`}
-          className="grid size-8 place-items-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828] disabled:opacity-50"
-        >
-          {busy ? <RefreshCw className="size-4 animate-spin" /> : <MoreHorizontal className="size-4" />}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44 rounded-xl">
-        <DropdownMenuItem onSelect={onEdit}>Edit</DropdownMenuItem>
-        <DropdownMenuItem onSelect={onPrice}>Set prices</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={busy}
-          onSelect={() => {
-            void sync();
-          }}
-        >
-          Sync from Stripe
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            disabled={busy}
+            aria-label={`Actions for ${plan.name}`}
+            className="grid size-8 place-items-center rounded-full text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828] disabled:opacity-50"
+          >
+            {busy ? <RefreshCw className="size-4 animate-spin" /> : <MoreHorizontal className="size-4" />}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44 rounded-xl">
+          <DropdownMenuItem onSelect={onEdit}>Edit</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onPrice}>Set prices</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={busy}
+            onSelect={() => {
+              void sync();
+            }}
+          >
+            Sync from Stripe
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {plan.isActive ? (
+            <DropdownMenuItem variant="destructive" disabled={busy} onSelect={() => setConfirmDeactivate(true)}>
+              Deactivate
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              disabled={busy}
+              onSelect={() => {
+                void setActive(true);
+              }}
+            >
+              Activate
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ConfirmDrawer
+        open={confirmDeactivate}
+        title="Deactivate this plan?"
+        description="It will be hidden from the pricing page and new members can't buy it. Existing subscribers are not affected."
+        subject={{ title: plan.name, detail: `${accessLabel(plan)} · ${amountLabel(plan.amounts)}` }}
+        confirmLabel="Deactivate"
+        busy={busy}
+        destructive
+        onClose={() => {
+          if (!busy) setConfirmDeactivate(false);
+        }}
+        onConfirm={() => {
+          void setActive(false);
+        }}
+      />
+    </>
   );
 }
 
