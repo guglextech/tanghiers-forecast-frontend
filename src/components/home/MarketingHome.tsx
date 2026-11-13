@@ -84,7 +84,7 @@ function Hero({ href, onPreview }: { href: string; onPreview: () => void }) {
             <li key={game}>
               <Link
                 href="/signup"
-                className="text-sm font-semibold text-[#FB11A8] hover:underline sm:text-[15px]"
+                className="text-sm font-semibold text-[#FB11A8] no-underline hover:no-underline sm:text-[15px]"
               >
                 {game}
               </Link>
