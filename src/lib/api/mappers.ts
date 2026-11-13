@@ -14,6 +14,7 @@ import type {
   ApiProductField,
   ApiSubscription,
   ApiUser,
+  ApiWaitlistEntry,
 } from '@/lib/api/types';
 import type { ForecastField } from '@/data/forecasts';
 
@@ -642,6 +643,41 @@ export function productSettingsBody(form: ProductSettingsForm) {
     }));
   }
   return body;
+}
+
+export type WaitlistEntry = {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  status: string;
+  source: string;
+  productSlug: string;
+  countryCode: string;
+  timezone: string;
+  notes: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export function mapWaitlistEntry(row: ApiWaitlistEntry): WaitlistEntry {
+  const name = String(row.name || row.fullName || '').trim();
+  const email = String(row.email || '').trim();
+  const status = String(row.status || 'pending').trim().toLowerCase() || 'pending';
+  return {
+    id: String(row.id || ''),
+    email,
+    name: name || email || 'Waitlist entry',
+    phone: String(row.phone || '').trim(),
+    status,
+    source: String(row.source || row.referrer || '').trim(),
+    productSlug: String(row.productSlug || '').trim(),
+    countryCode: String(row.countryCode || '').trim(),
+    timezone: String(row.timezone || '').trim(),
+    notes: String(row.notes || row.message || '').trim(),
+    createdAt: row.createdAt || row.joinedAt || null,
+    updatedAt: row.updatedAt || null,
+  };
 }
 
 export type AdminPlan = {

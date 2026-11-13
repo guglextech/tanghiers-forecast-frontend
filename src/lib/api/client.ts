@@ -179,6 +179,62 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return payload as T;
 }
 
+function filenameFromDisposition(header: string | null, fallback: string) {
+  if (!header) return fallback;
+  const utf = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (utf?.[1]) {
+    try {
+      return decodeURIComponent(utf[1].replace(/['"]/g, ''));
+    } catch {
+      return utf[1];
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header);
+  return plain?.[1]?.trim() || fallback;
+}
+
+export async function apiDownload(
+  path: string,
+  fallbackName: string,
+  options: Omit<RequestOptions, 'body'> = {},
+): Promise<{ blob: Blob; filename: string }> {
+  const method = options.method ?? 'GET';
+  const headers: Record<string, string> = { ...(options.headers ?? {}) };
+
+  const send = async () => {
+    const tokens = options.auth === false ? null : readTokens();
+    if (tokens?.accessToken) {
+      headers.Authorization = `${tokens.tokenType || 'Bearer'} ${tokens.accessToken}`;
+    } else {
+      delete headers.Authorization;
+    }
+    return fetch(`${API_BASE_URL}${path}`, { method, headers });
+  };
+
+  if (options.auth !== false) await ensureAccessToken();
+
+  let response = await send();
+  if (response.status === 401 && options.auth !== false) {
+    const refreshed = await refreshTokens();
+    if (refreshed) response = await send();
+  }
+
+  if (!response.ok) {
+    const payload = (await parseBody(response)) as ApiEnvelope<unknown> | null;
+    throw new ApiError(
+      errorMessage(payload, response.status === 401 ? 'Please log in again.' : 'Download failed.'),
+      response.status,
+      payload && 'code' in payload ? (payload.code ?? payload.error ?? null) : null,
+      path,
+    );
+  }
+
+  return {
+    blob: await response.blob(),
+    filename: filenameFromDisposition(response.headers.get('content-disposition'), fallbackName),
+  };
+}
+
 export function unwrapList<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value as T[];
   if (value && typeof value === 'object') {
@@ -190,6 +246,8 @@ export function unwrapList<T>(value: unknown): T[] {
       payments?: T[];
       subscriptions?: T[];
       plans?: T[];
+      entries?: T[];
+      waitlist?: T[];
     };
     if (Array.isArray(record.items)) return record.items;
     if (Array.isArray(record.data)) return record.data;
@@ -198,6 +256,8 @@ export function unwrapList<T>(value: unknown): T[] {
     if (Array.isArray(record.payments)) return record.payments;
     if (Array.isArray(record.subscriptions)) return record.subscriptions;
     if (Array.isArray(record.plans)) return record.plans;
+    if (Array.isArray(record.entries)) return record.entries;
+    if (Array.isArray(record.waitlist)) return record.waitlist;
   }
   return [];
 }
