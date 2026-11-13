@@ -107,10 +107,10 @@ export function AdminOverview() {
   const published = desk.forecasts.filter((item) => item.status === 'published').slice(0, 5);
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1440px] space-y-6">
       <PageLead
         title="Overview"
-        description="What to publish next, and how the last forecasts landed."
+        description="Manage forecasts and keep track of your publishing activity."
         action={
           <PrimaryAction href="/admin/forecasts/new">
             <Plus className="size-4" />
@@ -126,66 +126,69 @@ export function AdminOverview() {
         <OverviewMetric label="SMS queued" value={String(stats.smsQueued)} icon={Smartphone} tone="slate" />
       </ul>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.8fr)]">
-        <section className="overflow-hidden rounded-xl border border-[#dfe3e8] bg-white">
-          {featured ? (
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
+      <section className="overflow-hidden rounded-xl border border-[#dfe3e8] bg-white">
+        {featured ? (
+          <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#eef4ff] text-[#0B3A82]">
+                <CalendarDays className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <p className="text-[11px] font-semibold tracking-wide text-[#0B3A82] uppercase">Latest forecast</p>
-                  <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-[#101828]">{featured.title}</h2>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-[#667085]">
-                    <CalendarDays className="size-3.5" />
-                    {formatDeskDate(featured.date)}
-                  </p>
+                  <Pill tone={toneFor(featured.status)}>{featured.status}</Pill>
                 </div>
-                <Pill tone={toneFor(featured.status)}>{featured.status}</Pill>
+                <h2 className="mt-1 truncate text-xl font-semibold tracking-tight text-[#101828]">{featured.title}</h2>
+                <p className="mt-1 text-sm text-[#667085]">{formatDeskDate(featured.date)}</p>
               </div>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              {featured.status === 'published' ? (
                 <Link
-                  href={`/admin/forecasts/${featured.id}`}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
+                  href={`/forecasts/${featured.id}`}
+                  className="inline-flex h-9 items-center rounded-lg border border-[#d0d5dd] bg-white px-3.5 text-sm font-semibold text-[#344054] hover:bg-[#f9fafb]"
                 >
-                  Open forecast
-                  <ArrowRight className="size-3.5" />
+                  View on site
                 </Link>
-                {featured.status === 'published' ? (
-                  <Link href={`/forecasts/${featured.id}`} className="text-sm font-medium text-[#0B3A82] hover:underline">
-                    View on site
-                  </Link>
-                ) : null}
-              </div>
+              ) : null}
+              <Link
+                href={`/admin/forecasts/${featured.id}`}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0B3A82] px-3.5 text-sm font-semibold text-white hover:bg-[#092d66]"
+              >
+                Open forecast
+                <ArrowRight className="size-3.5" />
+              </Link>
             </div>
-          ) : (
-            <div className="flex min-h-64 flex-col items-start justify-center p-6">
-              <p className="text-[11px] font-medium tracking-wide text-[#98a2b3] uppercase">Latest forecast</p>
-              <h2 className="mt-2 text-xl font-semibold">No forecast yet</h2>
-              <p className="mt-1 max-w-sm text-sm text-[#667085]">Write the next draw, then publish it for subscribers.</p>
-              <div className="mt-5">
-                <PrimaryAction href="/admin/forecasts/new">
-                  <Plus className="size-4" />
-                  New forecast
-                </PrimaryAction>
-              </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold tracking-wide text-[#0B3A82] uppercase">Latest forecast</p>
+              <h2 className="mt-1 text-lg font-semibold">No forecast yet</h2>
+              <p className="mt-1 text-sm text-[#667085]">Create your first forecast and publish it for subscribers.</p>
             </div>
-          )}
-        </section>
+            <PrimaryAction href="/admin/forecasts/new">
+              <Plus className="size-4" />
+              New forecast
+            </PrimaryAction>
+          </div>
+        )}
+      </section>
 
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <QueueCard
           title="Needs attention"
           href="/admin/forecasts"
           empty="No drafts or scheduled forecasts."
           items={queue}
         />
+        <QueueCard
+          title="Recently published"
+          href="/admin/forecasts"
+          empty="Nothing published yet."
+          items={published}
+        />
       </div>
-
-      <QueueCard
-        title="Recently published"
-        href="/admin/forecasts"
-        empty="Nothing published yet."
-        items={published}
-        layout="grid"
-      />
     </div>
   );
 }
@@ -195,13 +198,11 @@ function QueueCard({
   href,
   empty,
   items,
-  layout = 'list',
 }: {
   title: string;
   href: string;
   empty: string;
   items: Forecast[];
-  layout?: 'list' | 'grid';
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#e4e7ec] bg-white">
@@ -220,18 +221,9 @@ function QueueCard({
       {items.length === 0 ? (
         <p className="px-4 py-6 text-sm text-[#667085]">{empty}</p>
       ) : (
-        <ul
-          className={cn(
-            layout === 'grid'
-              ? 'grid sm:grid-cols-2 xl:grid-cols-3'
-              : 'divide-y divide-[#eef0f3]',
-          )}
-        >
+        <ul className="divide-y divide-[#eef0f3]">
           {items.map((forecast) => (
-            <li
-              key={forecast.id}
-              className={cn(layout === 'grid' && 'border-b border-[#eef0f3] sm:border-r xl:border-b-0')}
-            >
+            <li key={forecast.id}>
               <Link
                 href={`/admin/forecasts/${forecast.id}`}
                 className="group flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-[#f8fafc]"
